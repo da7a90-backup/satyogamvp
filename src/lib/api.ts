@@ -26,25 +26,6 @@ export async function submitApplication(data: FormData) {
 }
 
 
-export async function getProgramDates(programType: string) {
-    try {
-      const response = await fetch(`${STRAPI_URL}/api/program-dates?populate=*&filters[program]=${programType}`, {
-        headers: {
-          'Authorization': `Bearer ${STRAPI_API_TOKEN}`
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch program dates')
-      }
-      
-      return await response.json()
-    } catch (error) {
-      console.error('Error fetching program dates:', error)
-      throw error
-    }
-  }
-
   // lib/api.ts
 
 interface FetchAPIOptions extends RequestInit {
@@ -61,45 +42,6 @@ interface StrapiResponse<T> {
       total: number;
     };
   };
-}
-
-/**
- * Helper function to fetch data from Strapi API
- * @param path The API endpoint path (should start with /)
- * @param options Fetch options
- * @returns The response data
- */
-export async function fetchAPI<T>(path: string, options: FetchAPIOptions = {}): Promise<StrapiResponse<T>> {
-  const defaultOptions: FetchAPIOptions = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    next: { 
-      // Configure cache behavior (can be adjusted per endpoint)
-      revalidate: 60, // revalidate data every 60 seconds
-    },
-  };
-  
-  const mergedOptions: FetchAPIOptions = {
-    ...defaultOptions,
-    ...options,
-    headers: {
-      ...defaultOptions.headers,
-      ...options.headers,
-    },
-  };
-  
-  // Get API URL from environment variable with fallback
-  const apiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
-  const response = await fetch(`${apiUrl}/api${path}`, mergedOptions);
-  
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`API error (${response.status}): ${error}`);
-  }
-  
-  const data = await response.json();
-  return data;
 }
 
 /**
@@ -128,25 +70,272 @@ export function parseRichText(content: any): string {
   return content;
 }
 
+
+// lib/api.js
+
 /**
- * Get the full URL for a media item from Strapi
- * @param media Media object from Strapi
- * @returns The full URL for the media
+ * Helper to make GET requests to Strapi API endpoints
+ * @param {string} path Path of the API route
+ * @param {Object} urlParamsObject URL params object, will be stringified
+ * @param {Object} options Options passed to fetch
+ * @returns Parsed API call response
  */
-export function getStrapiMedia(media: any): string | null {
-  if (!media) return null;
-  
-  // Handle different Strapi versions media format
-  const imageUrl = media.url || (media.data && media.data.attributes && media.data.attributes.url);
-  
-  if (!imageUrl) return null;
-  
-  // If the URL is a full URL, return it
-  if (imageUrl.startsWith('http')) {
-    return imageUrl;
+// lib/api.ts
+
+/**
+ * Helper to make GET requests to Strapi API endpoints
+ * @param {string} path Path of the API route
+ * @param {Record<string, any>} urlParamsObject URL params object, will be stringified
+ * @param {RequestInit} options Options passed to fetch
+ * @returns Parsed API call response
+ */
+ export async function fetchAPI(
+  path: string, 
+  urlParamsObject: Record<string, any> = {}, 
+  options: RequestInit = {}
+): Promise<any> {
+  // Merge default and user options
+  const mergedOptions = {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    ...options,
+  };
+
+  // Build request URL
+  const queryString = Object.keys(urlParamsObject)
+    .map(
+      (key) => `${encodeURIComponent(key)}=${encodeURIComponent(urlParamsObject[key])}`
+    )
+    .join('&');
+    
+  const requestUrl = `${
+    process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337'
+  }${path}${queryString ? `?${queryString}` : ''}`;
+
+  // Trigger API call
+  const response = await fetch(requestUrl, mergedOptions);
+
+  // Handle response
+  if (!response.ok) {
+    console.error(response.statusText);
+    throw new Error(`An error occurred please try again`);
   }
   
-  // Otherwise, prefix with the Strapi URL
-  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
-  return `${strapiUrl}${imageUrl}`;
+  const data = await response.json();
+  return data;
+}
+
+/**
+ * Get full Strapi URL from path
+ * @param {string} path Path of the file
+ * @returns {string} Full Strapi URL
+ */
+export function getStrapiMedia(path: string) {
+  if (!path) return null;
+  if (path.startsWith('http') || path.startsWith('//')) return path;
+  return `${
+    process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://127.0.0.1:1337'
+  }${path}`;
+}
+
+/**
+ * Fetch homepage data
+ */
+export async function getHomePageData() {
+  try {
+    const homeData = await fetchAPI('/api/homepage', {
+      populate: {
+        hero: {
+          populate: '*',
+        },
+        aboutSection: {
+          populate: '*',
+        },
+        shunyamurtiSection: {
+          populate: '*',
+        },
+        learningOptions: {
+          populate: {
+            tabs: {
+              populate: '*',
+            },
+          },
+        },
+        membershipCta: {
+          populate: '*',
+        },
+        seo: {
+          populate: '*',
+        },
+      },
+    });
+    
+    return homeData.data.attributes;
+  } catch (error) {
+    console.error("Error fetching home page data:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch blog posts with pagination
+ */
+export async function getBlogPosts(page = 1, pageSize = 6, featured = false) {
+  try {
+    const filters = featured ? { isFeatured: { $eq: true } } : {};
+    
+    const data = await fetchAPI('/api/blog-posts', {
+      populate: {
+        featuredImage: '*',
+        author: {
+          populate: '*',
+        },
+        category: {
+          populate: '*',
+        },
+      },
+      sort: ['publishedAt:desc'],
+      pagination: {
+        page,
+        pageSize,
+      },
+      filters,
+    });
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching blog posts:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch a single blog post by slug
+ */
+export async function getBlogPostBySlug(slug: any) {
+  try {
+    const data = await fetchAPI('/api/blog-posts', {
+      filters: {
+        slug: {
+          $eq: slug,
+        },
+      },
+      populate: {
+        featuredImage: '*',
+        author: {
+          populate: '*',
+        },
+        category: {
+          populate: '*',
+        },
+        seo: {
+          populate: '*',
+        },
+      },
+    });
+    
+    return data.data[0];
+  } catch (error) {
+    console.error("Error fetching blog post:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch upcoming events
+ */
+export async function getUpcomingEvents(type = 'all', limit = 10) {
+  try {
+    const now = new Date().toISOString();
+    
+    // Filter for dates in the future
+    const filters: any = {
+      startDate: {
+        $gt: now,
+      },
+    };
+    
+    // Add location type filter if provided
+    if (type === 'onsite' || type === 'online') {
+      filters.location = {
+        $eq: type.charAt(0).toUpperCase() + type.slice(1),
+      };
+    }
+    
+    const data = await fetchAPI('/api/events', {
+      filters,
+      sort: ['startDate:asc'],
+      populate: '*',
+      pagination: {
+        limit,
+      },
+    });
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching upcoming events:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch a single event by slug
+ */
+export async function getEventBySlug(slug: string) {
+  try {
+    const data = await fetchAPI('/api/events', {
+      filters: {
+        slug: {
+          $eq: slug,
+        },
+      },
+      populate: '*',
+    });
+    
+    return data.data[0];
+  } catch (error) {
+    console.error("Error fetching event:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch membership plans
+ */
+export async function getMembershipPlans() {
+  try {
+    const data = await fetchAPI('/api/memberships', {
+      populate: {
+        features: '*',
+      },
+      sort: ['displayOrder'],
+    });
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching membership plans:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch program dates for a specific program type
+ */
+export async function getProgramDates(programType: any) {
+  try {
+    const data = await fetchAPI('/api/program-dates', {
+      filters: {
+        program: {
+          $eq: programType,
+        },
+      },
+      sort: ['start_date:asc'],
+    });
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching program dates:", error);
+    throw error;
+  }
 }
