@@ -75,13 +75,16 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
 
   // Fetch categories
   useEffect(() => {
+    // In your useEffect that fetches categories
     const fetchCategories = async () => {
       try {
-        // Use the fetchAPI helper instead of direct fetch
+        // Use the fetchAPI helper
         const data: any = await fetchAPI("/api/blog-categories");
+        console.log("Categories API response:", data);
         setCategories(data.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        setCategories([]);
       }
     };
 
@@ -205,6 +208,94 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
   const handleContentKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>
   ) => {
+    // Allow default behavior for copy/paste shortcuts
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      (e.key === "c" || e.key === "v" || e.key === "x")
+    ) {
+      return; // Let the browser handle copy/paste/cut
+    }
+
+    // Handle tab key for indentation
+    if (e.key === "Tab") {
+      e.preventDefault(); // Prevent moving focus to the next element
+
+      if (!textareaRef.current) return;
+
+      const textarea = textareaRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = textarea.value;
+
+      // If text is selected, indent each line in the selection
+      if (start !== end) {
+        const selectedText = value.substring(start, end);
+        const lines = selectedText.split("\n");
+
+        // Handle shift+tab (outdent)
+        if (e.shiftKey) {
+          const outdentedLines = lines.map((line) => {
+            if (line.startsWith("    ")) {
+              return line.substring(4); // Remove 4 spaces
+            } else if (line.startsWith("\t")) {
+              return line.substring(1); // Remove 1 tab
+            } else if (line.startsWith("  ")) {
+              return line.substring(2); // Remove 2 spaces
+            }
+            return line;
+          });
+
+          const newText = outdentedLines.join("\n");
+          const newContent =
+            value.substring(0, start) + newText + value.substring(end);
+
+          setFormData({ ...formData, content: newContent });
+
+          // Set selection to maintain the same range
+          setTimeout(() => {
+            if (textareaRef.current) {
+              textareaRef.current.selectionStart = start;
+              textareaRef.current.selectionEnd = start + newText.length;
+            }
+          }, 0);
+        }
+        // Regular tab (indent)
+        else {
+          const indentedLines = lines.map((line) => "    " + line);
+          const newText = indentedLines.join("\n");
+          const newContent =
+            value.substring(0, start) + newText + value.substring(end);
+
+          setFormData({ ...formData, content: newContent });
+
+          // Set selection to maintain the same range
+          setTimeout(() => {
+            if (textareaRef.current) {
+              textareaRef.current.selectionStart = start;
+              textareaRef.current.selectionEnd = start + newText.length;
+            }
+          }, 0);
+        }
+      }
+      // No selection, just insert indentation at cursor position
+      else {
+        const newContent =
+          value.substring(0, start) +
+          "    " + // Insert 4 spaces
+          value.substring(end);
+
+        setFormData({ ...formData, content: newContent });
+
+        // Place cursor after the inserted indentation
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.selectionStart = start + 4;
+            textareaRef.current.selectionEnd = start + 4;
+          }
+        }, 0);
+      }
+    }
+
     if (e.key === "Enter") {
       const textarea = e.currentTarget;
       const { value, selectionStart } = textarea;
@@ -448,86 +539,6 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
         textareaRef.current.focus();
       }
     }, 0);
-  };
-
-  // Function to detect and apply markdown syntax directly
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Handle list continuation (keeping your existing code for this)
-    handleContentKeyDown(e);
-
-    // Handle markdown syntax detection and formatting
-    if (e.key === "Space" && textareaRef.current) {
-      const textarea = textareaRef.current;
-      const { value, selectionStart } = textarea;
-
-      // Get the current line up to the cursor
-      const currentLineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-      const currentLineUpToCursor = value.substring(
-        currentLineStart,
-        selectionStart
-      );
-
-      // Detect markdown syntax
-
-      // Heading 1: #
-      if (currentLineUpToCursor === "# ") {
-        e.preventDefault();
-
-        // Replace the '# ' with actual heading formatting by removing it and applying the style
-        const beforeLine = value.substring(0, currentLineStart);
-        const afterCursor = value.substring(selectionStart);
-
-        // Set the content without the '# ' prefix - we'll style it with HTML instead
-        setFormData({
-          ...formData,
-          content: beforeLine + afterCursor,
-        });
-
-        // At this point you'd implement actual heading styling for WYSIWYG
-        // But since we're using markdown, we actually want to keep the # prefix
-        // This is just a placeholder for potential future WYSIWYG implementation
-
-        // For now, let's just maintain the original behavior
-        setFormData({
-          ...formData,
-          content: value,
-        });
-      }
-
-      // Heading 2: ##
-      else if (currentLineUpToCursor === "## ") {
-        // Similar implementation would go here
-      }
-
-      // Heading 3: ###
-      else if (currentLineUpToCursor === "### ") {
-        // Similar implementation would go here
-      }
-
-      // Bold: **text**
-      else if (
-        currentLineUpToCursor.endsWith("**") &&
-        currentLineUpToCursor.includes("**")
-      ) {
-        // This detects closing ** of a bold section
-        // You'd implement WYSIWYG styling here if desired
-      }
-
-      // Italic: *text*
-      else if (
-        currentLineUpToCursor.endsWith("*") &&
-        !currentLineUpToCursor.endsWith("**") &&
-        currentLineUpToCursor.includes("*")
-      ) {
-        // This detects closing * of an italic section
-        // You'd implement WYSIWYG styling here if desired
-      }
-
-      // Code block: ```
-      else if (currentLineUpToCursor === "``` ") {
-        // Code block detection
-      }
-    }
   };
 
   // Function to detect and apply markdown syntax on selection and shortcut keys
