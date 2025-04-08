@@ -10,6 +10,7 @@ import {
   EyeIcon,
   StarIcon,
 } from "@heroicons/react/24/outline";
+import { blogApi } from "@/lib/strapi";
 
 // Updated BlogPost interface to match Strapi collection structure
 interface BlogPost {
@@ -70,28 +71,9 @@ const BlogIndex = () => {
   const fetchBlogPosts = async (page = 1, query = "") => {
     setIsLoading(true);
     try {
-      // Building the query parameters
-      const queryParams = new URLSearchParams({
-        "pagination[page]": page.toString(),
-        "pagination[pageSize]": "10",
-        sort: "createdAt:desc",
-        populate: "featuredImage,category,author", // Updated to include the correct relations
-      });
-
-      // Add search filter if query exists
-      if (query) {
-        queryParams.append("filters[title][$containsi]", query);
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/blog-posts?${queryParams}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch blog posts");
-      }
-
-      const data = await response.json();
+      // Using blogApi from strapi.ts instead of direct fetch
+      const data: any = await blogApi.getPosts(page, 10, query);
+      
       setBlogPosts(data.data);
 
       // Set pagination info
@@ -123,19 +105,8 @@ const BlogIndex = () => {
   // Delete blog post
   const deleteBlogPost = async (id: number) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/blog-posts/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("jwt")}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete blog post");
-      }
+      // Using blogApi from strapi.ts instead of direct fetch
+      await blogApi.deletePost(id.toString());
 
       // Refresh the blog posts list
       fetchBlogPosts(currentPage, searchQuery);

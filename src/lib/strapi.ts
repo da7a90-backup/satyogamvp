@@ -3,7 +3,7 @@
  */
 
 const API_URL =
-  process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
+  process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://127.0.0.1:1337";
 
 /**
  * Get auth token from local storage
@@ -18,7 +18,7 @@ export const getToken = (): string | null => {
   //     localStorage.getItem("jwt") || process.env.NEXT_PUBLIC_STRAPI_TOKEN || null
   //   );
 
-  return process.env.NEXT_PUBLIC_STRAPI_TOKEN || null;
+  return process.env.NEXT_PUBLIC_STRAPI_API_TOKEN || null;
 };
 
 /**
