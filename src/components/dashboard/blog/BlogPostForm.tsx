@@ -55,6 +55,7 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [showHeadingMenu, setShowHeadingMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
 
   // File upload state
   const [featuredImage, setFeaturedImage] = useState<File | null>(null);
@@ -177,6 +178,17 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
       (!formData.slug || formData.slug === generateSlug(formData.title))
     ) {
       setFormData((prev) => ({ ...prev, slug: generateSlug(value) }));
+    }
+
+    // Validate canonical URL
+    if (name === "canonicalUrl") {
+      if (value && !isValidUrl(value)) {
+        setUrlError(
+          "Please enter a valid URL (e.g., https://example.com/page)"
+        );
+      } else {
+        setUrlError(null);
+      }
     }
 
     // Clear error when field is edited
@@ -604,6 +616,19 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
     }
   };
 
+  // Handle URL changes
+  const isValidUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // Empty URL is considered valid (just not filled)
+
+    try {
+      // Try to create a URL object - this will throw an error for invalid URLs
+      new URL(url);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -629,6 +654,11 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
 
     if (!formData.categoryId) {
       newErrors.categoryId = "Category is required";
+    }
+
+    // Check canonical URL
+    if (formData.canonicalUrl && !isValidUrl(formData.canonicalUrl)) {
+      newErrors.canonicalUrl = "Please enter a valid URL";
     }
 
     setErrors(newErrors);
@@ -1305,9 +1335,19 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
                   name="canonicalUrl"
                   value={formData.canonicalUrl}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                    urlError || errors.canonicalUrl
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-purple-500"
+                  }`}
                   placeholder="https://example.com/canonical-path"
                 />
+                {(urlError || errors.canonicalUrl) && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <ExclamationCircleIcon className="h-4 w-4 mr-1" />
+                    {urlError || errors.canonicalUrl}
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-gray-500">
                   Use this when content appears on multiple URLs to specify the
                   preferred version
