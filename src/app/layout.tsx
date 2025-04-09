@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Metadata } from 'next';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
+import AuthProvider from '@/components/auth/AuthProvider';
 
 // Initialize the Inter font with subset optimization
 const inter = Inter({ 
@@ -38,7 +39,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={inter.variable}>
       <body className="flex flex-col min-h-screen">
-      <LayoutWrapper>{children}</LayoutWrapper>
+        <AuthProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

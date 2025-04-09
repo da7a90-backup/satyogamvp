@@ -11,6 +11,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
+    "@next-auth/prisma-adapter": "^1.0.7",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-progress": "^1.1.0",
     "@radix-ui/react-select": "^2.1.2",
@@ -22,6 +23,7 @@
     "heroicons": "^2.2.0",
     "lucide-react": "^0.464.0",
     "next": "15.0.3",
+    "next-auth": "^4.24.11",
     "plotly.js": "^2.35.2",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",

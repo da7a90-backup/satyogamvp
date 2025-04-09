@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 
 // Common Form Input Component
@@ -114,7 +114,7 @@ interface LoginProps {
   redirectTo?: string;
 }
 
-export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/' }) => {
+export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/dashboard' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -129,28 +129,36 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/' }) => 
     setError('');
     
     try {
-      // Call your authentication API here
-      // Example: const response = await signIn(email, password);
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+        callbackUrl: redirectTo,
+      });
       
-      // For demo purposes, just simulate a successful login after delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Handle successful login
-      if (onSuccess) {
-        onSuccess();
-      } else if (redirectTo) {
-        router.push(redirectTo);
+      if (result?.error) {
+        setError('Invalid email or password. Please try again.');
+      } else if (result?.url) {
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push(result.url);
+        }
       }
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = (provider: 'google' | 'facebook' | 'apple') => {
-    // Implement social login logic
-    console.log(`Login with ${provider}`);
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'apple') => {
+    try {
+      await signIn(provider, { callbackUrl: redirectTo });
+    } catch (err) {
+      console.error(`${provider} login error:`, err);
+    }
   };
 
   return (
@@ -160,7 +168,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/' }) => 
           <span className="text-2xl font-serif italic">Logo</span>
         </Link>
         <h1 className="text-3xl font-bold mt-8 mb-2">Log In</h1>
-        <p className="text-gray-600">Lorem ipsum dolor sit amet adipiscing elit.</p>
+        <p className="text-gray-600">Enter your credentials to access your account</p>
       </div>
 
       {error && (
@@ -258,10 +266,11 @@ interface SignupProps {
   redirectTo?: string;
 }
 
-export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/' }) => {
+export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/login' }) => {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -269,32 +278,57 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/' }) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
     
     try {
-      // Call your registration API here
-      // Example: const response = await register(email, password);
+      // Register with Strapi
+      const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/auth/local/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
+      });
       
-      // For demo purposes, just simulate a successful signup after delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const data = await response.json();
       
-      // Handle successful signup
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Failed to register');
+      }
+      
+      // Handle successful registration
       if (onSuccess) {
         onSuccess();
-      } else if (redirectTo) {
-        router.push(redirectTo);
+      } else {
+        // Redirect to login page with success message
+        router.push(`${redirectTo}?registered=true`);
       }
     } catch (err) {
-      setError('Unable to create account. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to create account');
+      console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialSignup = (provider: 'google' | 'facebook' | 'apple') => {
-    // Implement social signup logic
-    console.log(`Signup with ${provider}`);
+  const handleSocialSignup = async (provider: 'google' | 'facebook' | 'apple') => {
+    try {
+      await signIn(provider, { callbackUrl: redirectTo });
+    } catch (err) {
+      console.error(`${provider} signup error:`, err);
+    }
   };
 
   return (
@@ -304,7 +338,7 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/' }) =
           <span className="text-2xl font-serif italic">Logo</span>
         </Link>
         <h1 className="text-3xl font-bold mt-8 mb-2">Sign Up</h1>
-        <p className="text-gray-600">Lorem ipsum dolor sit amet adipiscing elit.</p>
+        <p className="text-gray-600">Create a new account to access Sat Yoga resources</p>
       </div>
 
       {error && (
@@ -323,6 +357,16 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/' }) =
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
         />
+        
+        <FormInput
+          id="username"
+          label="Username"
+          type="text"
+          placeholder="Choose a username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
+        />
 
         <FormInput
           id="password"
@@ -333,17 +377,26 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/' }) =
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
         />
+        
+        <FormInput
+          id="confirm-password"
+          label="Confirm Password"
+          type="password"
+          placeholder="••••••••"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          autoComplete="new-password"
+        />
 
-        <div className="flex items-center mb-6">
+        <div className="flex items-center my-4">
           <input
-            id="remember-me"
+            id="terms"
             type="checkbox"
             className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
+            required
           />
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-            Remember
+          <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+            I agree to the <Link href="/terms" className="text-purple-600 hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-purple-600 hover:underline">Privacy Policy</Link>
           </label>
         </div>
 
@@ -389,7 +442,7 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/' }) =
   );
 };
 
-// Auth layout page components
+// Export Login and Signup pages for direct usage in app/
 export const LoginPage: React.FC = () => (
   <div className="min-h-screen flex flex-col justify-center py-12">
     <Login />

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import UserNavigation from './UserNavigation';
 
 interface MenuItem {
   label: string;
@@ -264,21 +265,8 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
               </svg>
             </button>
             
-            {/* Donate Button */}
-            <Link 
-              href="/donate" 
-              className="hidden md:block bg-white text-gray-700 border border-gray-300 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50"
-            >
-              Donate
-            </Link>
-            
-            {/* Login Button */}
-            <Link 
-              href="/login" 
-              className="hidden md:block bg-gray-900 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-800"
-            >
-              Login
-            </Link>
+            {/* User Navigation (Login/Logout/Profile) */}
+            <UserNavigation />
             
             {/* Mobile Menu Button */}
             <button 
