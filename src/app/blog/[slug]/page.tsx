@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { BlogPostPage } from '@/components/blog/Blog';
-import { fetchAPI } from '@/lib/api';
+import { BlogPost, BlogPostPage } from '@/components/blog/Blog';
+import { blogApi } from '@/lib/strapi';
 
 interface BlogPostPageProps {
   params: {
@@ -9,112 +9,183 @@ interface BlogPostPageProps {
   };
 }
 
-// Generate metadata for the blog post
-export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const slug = params.slug;
+// Transform a single Strapi blog post to the expected format
+function transformStrapiPost(post: any) {
+  if (!post) return null;
   
-  // In a real implementation, you would fetch the blog post from your Strapi API
-  // const data = await fetchAPI(`/blog-posts?filters[slug][$eq]=${slug}&populate=*`);
+  const attrs = post.attributes;
+  console.log("Post attributes:", JSON.stringify(attrs, null, 2));
+  console.log("Author data:", JSON.stringify(attrs.author, null, 2));
   
-  // If no post is found, return a generic title
-  // if (!data || !data.data || data.data.length === 0) {
-  //   return {
-  //     title: 'Blog Post Not Found - Sat Yoga',
-  //   };
-  // }
-  
-  // const post = data.data[0].attributes;
-  
-  // For this example, we'll use mock data
-  const post = {
-    title: 'One Month in A "Most Undesirable Location"',
-    excerpt: 'As Shunyamurti recently stated, the undesirableness of the location is actually its greatest virtue...',
+  // Get the author data, handling different possible structures
+  let authorData = {
+    id: '0',
+    name: 'Unknown',
+    imageUrl: '',
   };
   
+  if (attrs.author) {
+    // If author is just a string (simple name)
+    if (typeof attrs.author === 'string') {
+      authorData = {
+        id: '0',
+        name: attrs.author,
+        imageUrl: '',
+      };
+    }
+    // If author is a data object (relational field)
+    else if (attrs.author.data) {
+      const authorAttrs = attrs.author.data.attributes;
+      authorData = {
+        id: attrs.author.data.id.toString(),
+        name: authorAttrs.name || authorAttrs.username || 'Unknown',
+        imageUrl: authorAttrs.avatar?.data?.attributes?.url || '',
+      };
+    } 
+    // If author is directly embedded (not in data property)
+    else if (attrs.author.name || attrs.author.username) {
+      authorData = {
+        id: attrs.author.id?.toString() || '0',
+        name: attrs.author.name || attrs.author.username || 'Unknown',
+        imageUrl: attrs.author.avatar?.url || '',
+      };
+    }
+  }
+  
   return {
-    title: `${post.title} - Sat Yoga Blog`,
-    description: post.excerpt,
+    id: post.id.toString(),
+    title: attrs.title || '',
+    slug: attrs.slug || '',
+    excerpt: attrs.excerpt || '',
+    content: attrs.content || '',
+    featuredImage: attrs.featuredImage?.data?.attributes?.url || '',
+    category: attrs.category?.data?.attributes?.name || 'Uncategorized',
+    author: authorData,
+    publishedAt: attrs.publishedAt || new Date().toISOString(),
+    readTime: attrs.readTime || Math.ceil(((attrs.content || '').length / 1000) * 2), // Estimate reading time
+    isFeatured: attrs.isFeatured || false,
   };
 }
 
-export default async function BlogPostPageRoute({ params }: BlogPostPageProps) {
-  const slug = params.slug;
+// Transform related posts
+function transformStrapiPosts(strapiData: any) {
+  if (!strapiData || !strapiData.data) return [];
   
-  // In a real implementation, you would fetch the blog post from your Strapi API
-  // const data = await fetchAPI(`/blog-posts?filters[slug][$eq]=${slug}&populate=*`);
-  
-  // if (!data || !data.data || data.data.length === 0) {
-  //   notFound();
-  // }
-  
-  // const post = data.data[0].attributes;
-  
-  // Mock data for demonstration
-  const post = {
-    id: '1',
-    title: 'One Month in A "Most Undesirable Location"',
-    slug: 'one-month-undesirable-location',
-    excerpt: 'As Shunyamurti recently stated, the undesirableness of the location is actually its greatest virtue...',
-    content: `
-      <p>As Shunyamurti recently stated, the undesirableness of the location of the ashram is actually its greatest virtue. There is a logic to this that bears contemplation. I contemplate this every time I have to go to Esparza, the modest town on the highway where I often have to take the car for repairs.</p>
-      <p>Two weeks ago our car overheated severely and had to be towed to Esparza. I have developed a relationship with the mechanic there, and he is a nice and honest young fellow. We were stuck in town for about three hours while the car was being fixed, and so, for the first time, we decided to have lunch there. We chose a place in the town plaza. It was, as I suppose is normal in this environment, an open-air restaurant overlooking the tiny town plaza with its gazebo for small band concerts, that I think must happen on Sundays—no idea for certain as we are never in Esparza on a Sunday.</p>
-      <p>But it was a weekday, a Thursday, and several shops were open; as it was between Christmas and New Years, there were a few children in the plaza, and a few adults on cell phones sitting in the gazebo. There was a big church nearby. But on the whole it was a singularly unexciting environment, as are almost all of these small Costa Rican towns. The lunch was perfectly acceptable, though nothing special. If I lived in Esparza, I am sure I would find this place perfectly adequate. But I don't live in Esparza.</p>
-      <h2>The Humble Ashram Life</h2>
-      <p>I live in Sat Yoga Ashram, in the Durika valley, a valley which is in the middle of nowhere, surrounded by mountains. There are no settlements more elaborate than a very humble bodega near us. The ashram has its own farm where most of our vegetables, fruits, and eggs are produced. The food is plentiful and fresh and actually quite exciting, and the entire experience of living in the ashram is vibrant and transcendental. The ashram is in a state of continuous transformation, with new buildings, new gardens, new farms, new roads being built continuously. The energy is high.</p>
-      <p>Our neighbors are mostly dairy farmers or coffee producers—mainly subsistence farmers except for the dairymen, who represent wealth in this region. Their farms have been in their families for generations. There is very little initiative or entrepreneurial spirit in the local population. Around our farm there are very poor tico (native Costa Rican) folk. Many of their houses don't have electricity, and are really just shacks. But closer to the local elementary school at the entrance to the dirt road that leads to our land, there is the tienda, the grocery store with some bakery products, and the pulperia, which offers a few more items like soft drinks and hardware items.</p>
-    `,
-    featuredImage: '',
-    category: 'Ashram Life',
-    author: {
-      id: '1',
-      name: 'Donna',
-      imageUrl: '',
-    },
-    publishedAt: '2024-03-21T10:00:00Z',
-    readTime: 5,
-    isFeatured: true,
-  };
-  
-  // Mock related posts
-  const relatedPosts = [
-    {
-      id: '2',
-      title: 'My Transformational Journey',
-      slug: 'transformational-journey',
-      excerpt: 'I arrived at the Ashram on a Tuesday afternoon and was greeted by Amrita and taken to my Bhavan...',
-      content: '<p>I arrived at the Ashram on a Tuesday afternoon and was greeted by Amrita and taken to my Bhavan...</p>',
-      featuredImage: '',
-      category: 'Ashram Life',
+  return strapiData.data.map((post: any) => {
+    const attrs = post.attributes;
+    return {
+      id: post.id.toString(),
+      title: attrs.title || '',
+      slug: attrs.slug || '',
+      excerpt: attrs.excerpt || '',
+      content: attrs.content || '',
+      featuredImage: attrs.featuredImage?.data?.attributes?.url || '',
+      category: attrs.category?.data?.attributes?.name || 'Uncategorized',
       author: {
-        id: '2',
-        name: 'Judy D.',
-        imageUrl: '',
+        id: attrs.author?.data?.id?.toString() || '0',
+        name: attrs.author?.data?.attributes?.name || 'Unknown',
+        imageUrl: attrs.author?.data?.attributes?.avatar?.data?.attributes?.url || '',
       },
-      publishedAt: '2024-03-21T09:00:00Z',
-      readTime: 5,
-    },
-    {
-      id: '3',
-      title: 'Workers\' Christmas Party',
-      slug: 'workers-christmas-party',
-      excerpt: 'On December 16, it was our joy to host the annual Christmas party for our local workers...',
-      content: '<p>On December 16, it was our joy to host the annual Christmas party for our local workers...</p>',
-      featuredImage: '',
-      category: 'Ashram Life',
-      author: {
-        id: '3',
-        name: 'Manisha',
-        imageUrl: '',
-      },
-      publishedAt: '2024-03-21T08:00:00Z',
-      readTime: 5,
-    },
-  ];
+      publishedAt: attrs.publishedAt || new Date().toISOString(),
+      readTime: attrs.readTime || Math.ceil(((attrs.content || '').length / 1000) * 2),
+      isFeatured: attrs.isFeatured || false,
+    };
+  });
+}
+
+// Generate metadata for the blog post
+export async function generateMetadata(
+  { params }: BlogPostPageProps
+): Promise<Metadata> {
+  // Wait for the params object to be fully available
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams.slug;
   
-  // If the request slug doesn't match the post slug, return 404
-  if (slug !== post.slug) {
+  try {
+    // Fetch the blog post from Strapi using blogApi
+    const post = await blogApi.getBlogPostBySlug(slug);
+    
+    // If no post is found, return a generic title
+    if (!post) {
+      return {
+        title: 'Blog Post Not Found - Sat Yoga',
+      };
+    }
+    
+    const attrs = post.attributes;
+    
+    // Use SEO data if available, otherwise use post title and excerpt
+    return {
+      title: attrs.seo?.metaTitle || `${attrs.title} - Sat Yoga Blog`,
+      description: attrs.seo?.metaDescription || attrs.excerpt,
+      keywords: attrs.seo?.keywords?.split(',') || [],
+      openGraph: {
+        title: attrs.seo?.metaTitle || attrs.title,
+        description: attrs.seo?.metaDescription || attrs.excerpt,
+        images: attrs.featuredImage?.data ? [
+          {
+            url: attrs.featuredImage.data.attributes.url,
+            alt: attrs.title,
+          }
+        ] : [],
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching blog post for metadata:', error);
+    return {
+      title: 'Blog - Sat Yoga',
+      description: 'Explore transformative insights from Sat Yoga',
+    };
+  }
+}
+
+export default async function BlogPostPageRoute(
+  { params }: BlogPostPageProps
+) {
+  // Wait for the params object to be fully available
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams.slug;
+  
+  try {
+    // Fetch the blog post from Strapi using blogApi
+    const post = await blogApi.getBlogPostBySlug(slug);
+    
+    // If post not found, return 404
+    if (!post) {
+      notFound();
+    }
+    
+    // Transform the post data
+    const transformedPost = transformStrapiPost(post);
+    
+    // Double-check that transformation worked
+    if (!transformedPost) {
+      console.error('Post transformation failed');
+      notFound();
+    }
+    
+   // Get the category ID for related posts
+   const categoryId = post.attributes.category?.data?.id;
+   const postId = post.id;
+   
+   // Fetch related posts with the same category
+   let relatedPosts = [];
+   try {
+     // Make sure we pass numbers or valid strings that can be parsed to integers
+     const relatedPostsData = await blogApi.getRelatedPosts(
+       String(categoryId || ''), 
+       String(postId), 
+       2
+     );
+     relatedPosts = transformStrapiPosts(relatedPostsData);
+   } catch (relatedError) {
+     // Log but don't fail the whole page if related posts can't be fetched
+     console.error('Error fetching related posts:', relatedError);
+   }
+    
+    return <BlogPostPage post={transformedPost} relatedPosts={relatedPosts} />;
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
     notFound();
   }
-  
-  return <BlogPostPage post={post} relatedPosts={relatedPosts} />;
 }

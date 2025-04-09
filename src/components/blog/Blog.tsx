@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import MarkdownRenderer from './MarkdownRenderer';
 
 // Types
 export interface Author {
@@ -376,7 +377,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   
   // Available categories - could be dynamic based on your data
   const categories: BlogCategory[] = ['All', 'Featured articles', 'Ashram Life', 'Arts & Culture', 'Recipes', 'Essays'];
-  
+  //TODO: set these categories in strapi and fetch them dynamically from there while giving the category all by default to all blog posts
   // Featured post is the first featured post or the first post
   const featuredPost = posts.find(post => post.isFeatured) || posts[0];
   
@@ -558,7 +559,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({
         )}
         
         <div className="prose prose-lg max-w-none mb-12">
-          <div dangerouslySetInnerHTML={{ __html: post.content }} />
+          <MarkdownRenderer content={post.content} />
         </div>
         
         <div className="border-t border-gray-200 pt-8 mb-12">

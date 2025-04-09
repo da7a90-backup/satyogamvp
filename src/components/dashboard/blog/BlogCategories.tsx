@@ -40,13 +40,8 @@ const BlogCategories = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/blog-categories?sort=name:asc`
-      );
-      if (!response.ok) throw new Error("Failed to fetch categories");
-
-      const data = await response.json();
-      setCategories(data.data);
+      const categories: any = await blogApi.getCategories()
+      setCategories(categories.data);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred"
@@ -121,28 +116,16 @@ const BlogCategories = () => {
     }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/blog-categories`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("jwt")}`,
-          },
-          body: JSON.stringify({
-            data: {
-              name: formData.name,
-              slug: formData.slug,
-              description: formData.description,
-            },
-          }),
-        }
-      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      const createdCategory: any = await blogApi.createCategory({
+        name: formData.name,
+        slug: formData.slug,
+        description: formData.description,
+      })
+
+      if (!createdCategory.data.id) {
         throw new Error(
-          errorData.error?.message || "Failed to create category"
+          JSON.stringify(createdCategory) || "Failed to create category"
         );
       }
 
