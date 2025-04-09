@@ -1,13 +1,23 @@
-// app/signup/page.tsx
 import { Metadata } from 'next';
 import { Signup } from '@/components/auth/AuthComponents';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export const metadata: Metadata = {
   title: 'Sign Up - Sat Yoga',
-  description: 'Create an account to join the Sat Yoga community and access exclusive spiritual content and resources.',
+  description: 'Create an account to access exclusive content, courses, and community resources at Sat Yoga.',
 };
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  // Check if user is already authenticated
+  const session = await getServerSession(authOptions);
+  
+  // If already logged in, redirect to dashboard
+  if (session) {
+    redirect('/dashboard');
+  }
+  
   return (
     <div className="min-h-screen flex flex-col justify-center py-12">
       <Signup />
