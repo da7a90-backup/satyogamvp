@@ -350,7 +350,7 @@ const CourseIndex = () => {
                             </svg>
                           </Link>
                           <Link
-                            href={`/dashboard/admin/course/edit/${course.id}`}
+                            href={`/dashboard/admin/course/edit/${course.attributes.slug}`}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             <PencilIcon className="h-5 w-5" />
