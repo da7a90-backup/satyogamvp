@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { use } from "react"; // Import React.use
 import CourseForm from "@/components/dashboard/course/CourseForm";
 import { courseApi } from "@/lib/courseApi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -8,13 +9,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface EditCoursePageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default function EditCoursePage({ params }: EditCoursePageProps) {
-  const { slug } = params;
+  // Use React.use() to unwrap the params promise
+  const resolvedParams = use(params);
+  const { slug } = resolvedParams;
+
   const router = useRouter();
   const [courseId, setCourseId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

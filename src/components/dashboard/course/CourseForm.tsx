@@ -8,6 +8,9 @@ import {
   ListBulletIcon,
   LinkIcon,
   UserIcon,
+  PlusIcon,
+  MinusIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import {
@@ -26,6 +29,24 @@ interface Instructor {
     title?: string;
     bio?: string;
   };
+}
+
+interface LearningPoint {
+  title: string;
+  description: string;
+}
+
+interface CourseFeatures {
+  videoClasses: string;
+  guidedMeditations: string;
+  studyMaterials: string;
+  supportInfo: string;
+  curriculumAids: string;
+}
+
+interface FeaturedQuote {
+  quoteText: string;
+  authorName: string;
 }
 
 interface CourseFormProps {
@@ -47,30 +68,45 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
     startDate: "",
     endDate: "",
     instructorIds: [] as number[],
-    isFeatured: false,
-    metaTitle: "",
-    metaDescription: "",
-    keywords: "",
-    canonicalUrl: "",
     publishImmediately: false,
+
+    // Content fields
+    whatYouWillLearn: {
+      learningPoints: [] as LearningPoint[],
+    },
+    courseFeatures: {
+      videoClasses: "",
+      guidedMeditations: "",
+      studyMaterials: "",
+      supportInfo: "",
+      curriculumAids: "",
+    },
+    featuredQuote: {
+      quoteText: "",
+      authorName: "",
+    },
   });
 
   // UI states
   const [showPreview, setShowPreview] = useState(false);
   const [showHeadingMenu, setShowHeadingMenu] = useState(false);
-  const [showSeoFields, setShowSeoFields] = useState(false);
-  const [urlError, setUrlError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [featuredImage, setFeaturedImage] = useState<File | null>(null);
-  const [metaImage, setMetaImage] = useState<File | null>(null);
+  const [previewMedia, setPreviewMedia] = useState<File[]>([]);
+  const [quoteAuthorImage, setQuoteAuthorImage] = useState<File | null>(null);
   const [currentFeaturedImage, setCurrentFeaturedImage] = useState<
     string | null
   >(null);
-  const [currentMetaImage, setCurrentMetaImage] = useState<string | null>(null);
+  const [currentPreviewMedia, setCurrentPreviewMedia] = useState<
+    { id: number; url: string; name: string }[]
+  >([]);
+  const [currentQuoteAuthorImage, setCurrentQuoteAuthorImage] = useState<
+    string | null
+  >(null);
 
   // Fetch instructors
   useEffect(() => {
@@ -107,13 +143,26 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
             setCurrentFeaturedImage(featuredImageUrl);
           }
 
-          // Get the meta image URL if it exists
-          let metaImageUrl = null;
-          if (data.attributes.seo?.metaImage?.data) {
-            metaImageUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL || ""}${
-              data.attributes.seo.metaImage.data.attributes.url
-            }`;
-            setCurrentMetaImage(metaImageUrl);
+          // Get preview media if it exists
+          if (data.attributes.previewMedia?.data) {
+            const mediaItems = data.attributes.previewMedia.data.map(
+              (item: any) => ({
+                id: item.id,
+                url: `${process.env.NEXT_PUBLIC_STRAPI_URL || ""}${
+                  item.attributes.url
+                }`,
+                name: item.attributes.name,
+              })
+            );
+            setCurrentPreviewMedia(mediaItems);
+          }
+
+          // Get quote author image if it exists
+          if (data.attributes.featuredQuote?.authorImage?.data) {
+            const authorImageUrl = `${
+              process.env.NEXT_PUBLIC_STRAPI_URL || ""
+            }${data.attributes.featuredQuote.authorImage.data.attributes.url}`;
+            setCurrentQuoteAuthorImage(authorImageUrl);
           }
 
           // Get instructor IDs
@@ -122,6 +171,25 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
                 (instructor) => instructor.id
               )
             : [];
+
+          // Get learning points
+          const learningPoints =
+            data.attributes.whatYouWillLearn?.learningPoints || [];
+
+          // Get course features
+          const courseFeatures = data.attributes.courseFeatures || {
+            videoClasses: "",
+            guidedMeditations: "",
+            studyMaterials: "",
+            supportInfo: "",
+            curriculumAids: "",
+          };
+
+          // Get featured quote
+          const featuredQuote = data.attributes.featuredQuote || {
+            quoteText: "",
+            authorName: "",
+          };
 
           setFormData({
             title: data.attributes.title || "",
@@ -136,24 +204,15 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
               ? new Date(data.attributes.endDate).toISOString().split("T")[0]
               : "",
             instructorIds: instructorIds,
-            isFeatured: data.attributes.isFeatured || false,
-            metaTitle: data.attributes.seo?.metaTitle || "",
-            metaDescription: data.attributes.seo?.metaDescription || "",
-            keywords: data.attributes.seo?.keywords || "",
-            canonicalUrl: data.attributes.seo?.canonicalURL || "",
             publishImmediately: !!data.attributes.publishedAt,
-          });
 
-          // Expand SEO fields if they have data
-          if (
-            data.attributes.seo?.metaTitle ||
-            data.attributes.seo?.metaDescription ||
-            data.attributes.seo?.keywords ||
-            data.attributes.seo?.canonicalURL ||
-            data.attributes.seo?.metaImage
-          ) {
-            setShowSeoFields(true);
-          }
+            // Content fields
+            whatYouWillLearn: {
+              learningPoints: learningPoints,
+            },
+            courseFeatures: courseFeatures,
+            featuredQuote: featuredQuote,
+          });
         } catch (error) {
           console.error("Error fetching course:", error);
           setErrors({ form: "Failed to load course" });
@@ -192,17 +251,6 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
       setFormData((prev) => ({ ...prev, slug: generateSlug(value) }));
     }
 
-    // Validate canonical URL
-    if (name === "canonicalUrl") {
-      if (value && !isValidUrl(value)) {
-        setUrlError(
-          "Please enter a valid URL (e.g., https://example.com/page)"
-        );
-      } else {
-        setUrlError(null);
-      }
-    }
-
     // Clear error when field is edited
     if (errors[name]) {
       setErrors((prev) => {
@@ -211,6 +259,74 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
         return newErrors;
       });
     }
+  };
+
+  // Handle nested object changes
+  const handleNestedChange = (
+    objectName: "whatYouWillLearn" | "courseFeatures" | "featuredQuote",
+    field: string,
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [objectName]: {
+        ...prev[objectName],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Handle learning point changes
+  const handleLearningPointChange = (
+    index: number,
+    field: "title" | "description",
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const newLearningPoints = [...prev.whatYouWillLearn.learningPoints];
+      newLearningPoints[index] = {
+        ...newLearningPoints[index],
+        [field]: value,
+      };
+      return {
+        ...prev,
+        whatYouWillLearn: {
+          ...prev.whatYouWillLearn,
+          learningPoints: newLearningPoints,
+        },
+      };
+    });
+  };
+
+  // Add new learning point
+  const addLearningPoint = () => {
+    if (formData.whatYouWillLearn.learningPoints.length < 5) {
+      setFormData((prev) => ({
+        ...prev,
+        whatYouWillLearn: {
+          ...prev.whatYouWillLearn,
+          learningPoints: [
+            ...prev.whatYouWillLearn.learningPoints,
+            { title: "", description: "" },
+          ],
+        },
+      }));
+    }
+  };
+
+  // Remove learning point
+  const removeLearningPoint = (index: number) => {
+    setFormData((prev) => {
+      const newLearningPoints = [...prev.whatYouWillLearn.learningPoints];
+      newLearningPoints.splice(index, 1);
+      return {
+        ...prev,
+        whatYouWillLearn: {
+          ...prev.whatYouWillLearn,
+          learningPoints: newLearningPoints,
+        },
+      };
+    });
   };
 
   // Handle checkbox changes
@@ -235,27 +351,28 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
   // Handle file changes
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "featuredImage" | "metaImage"
+    type: "featuredImage" | "quoteAuthorImage" | "previewMedia"
   ) => {
-    const file = e.target.files?.[0] || null;
-    if (type === "featuredImage") {
-      setFeaturedImage(file);
+    if (type === "previewMedia") {
+      const files = e.target.files ? Array.from(e.target.files) : [];
+      setPreviewMedia([...previewMedia, ...files]);
     } else {
-      setMetaImage(file);
+      const file = e.target.files?.[0] || null;
+      if (type === "featuredImage") {
+        setFeaturedImage(file);
+      } else if (type === "quoteAuthorImage") {
+        setQuoteAuthorImage(file);
+      }
     }
   };
 
-  // Handle URL validation
-  const isValidUrl = (url: string): boolean => {
-    if (!url.trim()) return true; // Empty URL is considered valid (just not filled)
-
-    try {
-      // Try to create a URL object - this will throw an error for invalid URLs
-      new URL(url);
-      return true;
-    } catch (error) {
-      return false;
-    }
+  // Remove preview media item
+  const removePreviewMedia = (index: number) => {
+    setPreviewMedia((prev) => {
+      const newPreviewMedia = [...prev];
+      newPreviewMedia.splice(index, 1);
+      return newPreviewMedia;
+    });
   };
 
   // Helper function to format selected text in markdown
@@ -386,8 +503,33 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
       newErrors.price = "Price must be greater than 0 for paid courses";
     }
 
-    if (formData.canonicalUrl && !isValidUrl(formData.canonicalUrl)) {
-      newErrors.canonicalUrl = "Please enter a valid URL";
+    // Validate learning points
+    formData.whatYouWillLearn.learningPoints.forEach((point, index) => {
+      if (point.title.length > 250) {
+        newErrors[`learningPoint_${index}_title`] =
+          "Title must be less than 250 characters";
+      }
+      if (point.description.length > 250) {
+        newErrors[`learningPoint_${index}_description`] =
+          "Description must be less than 250 characters";
+      }
+    });
+
+    // Validate course features
+    Object.entries(formData.courseFeatures).forEach(([key, value]) => {
+      if (typeof value === "string" && value.length > 250) {
+        newErrors[
+          `courseFeature_${key}`
+        ] = `This field must be less than 250 characters`;
+      }
+    });
+
+    // Validate quote text
+    if (
+      formData.featuredQuote.quoteText &&
+      formData.featuredQuote.quoteText.length > 300
+    ) {
+      newErrors.quoteText = "Quote must be less than 300 characters";
     }
 
     setErrors(newErrors);
@@ -406,7 +548,8 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
     try {
       // First upload any images
       let featuredImageId = null;
-      let metaImageId = null;
+      let quoteAuthorImageId = null;
+      let previewMediaIds: number[] = [];
 
       if (featuredImage) {
         try {
@@ -427,14 +570,33 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
         }
       }
 
-      if (metaImage) {
+      if (quoteAuthorImage) {
         try {
-          const result = await courseApi.uploadFile(metaImage);
-          metaImageId = result.id; // Get the ID from the result
-          console.log("Meta image uploaded successfully, ID:", metaImageId);
+          const result = await courseApi.uploadFile(quoteAuthorImage);
+          quoteAuthorImageId = result.id;
+          console.log(
+            "Quote author image uploaded successfully, ID:",
+            quoteAuthorImageId
+          );
         } catch (uploadError) {
-          console.error("Meta image upload failed:", uploadError);
-          // Continue with form submission even if meta image fails
+          console.error("Quote author image upload failed:", uploadError);
+          // Continue with form submission even if author image fails
+        }
+      }
+
+      // Upload preview media files
+      if (previewMedia.length > 0) {
+        for (const media of previewMedia) {
+          try {
+            const result = await courseApi.uploadFile(media);
+            previewMediaIds.push(result.id);
+          } catch (uploadError) {
+            console.error(
+              `Preview media upload failed for ${media.name}:`,
+              uploadError
+            );
+            // Continue with form submission even if some media fails
+          }
         }
       }
 
@@ -447,34 +609,37 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
         price: formData.isFree ? 0 : formData.price,
         startDate: formData.startDate || null,
         endDate: formData.endDate || null,
-        isFeatured: formData.isFeatured,
 
-        // Handle instructors
-        instructors:
-          formData.instructorIds.length > 0
-            ? { connect: formData.instructorIds }
-            : undefined,
+        // Handle instructors correctly for Strapi v4
+        instructors: {
+          connect:
+            formData.instructorIds.length > 0 ? formData.instructorIds : [],
+        },
 
-        // SEO fields
-        ...(formData.metaTitle ||
-        formData.metaDescription ||
-        formData.keywords ||
-        formData.canonicalUrl ||
-        metaImageId
-          ? {
-              seo: {
-                metaTitle: formData.metaTitle || undefined,
-                metaDescription: formData.metaDescription || undefined,
-                keywords: formData.keywords || undefined,
-                canonicalURL: formData.canonicalUrl || undefined,
-                ...(metaImageId
-                  ? { metaImage: metaImageId } // Direct ID as per Strapi docs
-                  : {}),
-              },
-            }
+        // Format whatYouWillLearn as a direct array (as required by Strapi)
+        whatYouWillLearn: formData.whatYouWillLearn.learningPoints,
+
+        // Format courseFeatures as a single component with fields
+        courseFeatures: {
+          videoClasses: formData.courseFeatures.videoClasses,
+          guidedMeditations: formData.courseFeatures.guidedMeditations,
+          studyMaterials: formData.courseFeatures.studyMaterials,
+          supportInfo: formData.courseFeatures.supportInfo,
+          curriculumAids: formData.courseFeatures.curriculumAids,
+        },
+
+        featuredQuote: {
+          quoteText: formData.featuredQuote.quoteText,
+          authorName: formData.featuredQuote.authorName,
+          ...(quoteAuthorImageId ? { authorImage: quoteAuthorImageId } : {}),
+        },
+
+        // Preview media
+        ...(previewMediaIds.length > 0
+          ? { previewMedia: previewMediaIds }
           : {}),
 
-        // Featured image - DIRECT ID as per Strapi documentation
+        // Featured image
         ...(featuredImageId ? { featuredImage: featuredImageId } : {}),
 
         // Handle published state
@@ -750,6 +915,503 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
           </div>
         </div>
 
+        {/* What You Will Learn Section */}
+        <div className="mb-6 border-t border-gray-200 pt-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            What You Will Learn
+          </h3>
+
+          {/* Learning Points */}
+          {formData.whatYouWillLearn.learningPoints.map((point, index) => (
+            <div key={index} className="mb-6 p-4 bg-gray-50 rounded-md">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-medium">Learning Point {index + 1}</h4>
+                <button
+                  type="button"
+                  onClick={() => removeLearningPoint(index)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mb-3">
+                <label
+                  htmlFor={`learningPointTitle${index}`}
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id={`learningPointTitle${index}`}
+                  value={point.title}
+                  onChange={(e) =>
+                    handleLearningPointChange(index, "title", e.target.value)
+                  }
+                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                    errors[`learningPoint_${index}_title`]
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-purple-500"
+                  }`}
+                  placeholder="e.g., Discover A Unique Approach to Self-Realization"
+                  maxLength={250}
+                />
+                {errors[`learningPoint_${index}_title`] && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors[`learningPoint_${index}_title`]}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  {point.title.length}/250 characters
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor={`learningPointDescription${index}`}
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Description
+                </label>
+                <textarea
+                  id={`learningPointDescription${index}`}
+                  value={point.description}
+                  onChange={(e) =>
+                    handleLearningPointChange(
+                      index,
+                      "description",
+                      e.target.value
+                    )
+                  }
+                  rows={3}
+                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                    errors[`learningPoint_${index}_description`]
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-purple-500"
+                  }`}
+                  placeholder="Our novel approach to empowerment and a life of joyous fulfillment..."
+                  maxLength={250}
+                />
+                {errors[`learningPoint_${index}_description`] && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors[`learningPoint_${index}_description`]}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  {point.description.length}/250 characters
+                </p>
+              </div>
+            </div>
+          ))}
+
+          {formData.whatYouWillLearn.learningPoints.length < 5 && (
+            <button
+              type="button"
+              onClick={addLearningPoint}
+              className="flex items-center text-purple-600 hover:text-purple-800"
+            >
+              <PlusIcon className="h-5 w-5 mr-1" />
+              Add Learning Point (
+              {formData.whatYouWillLearn.learningPoints.length}/5)
+            </button>
+          )}
+        </div>
+
+        {/* Course Features */}
+        <div className="mb-6 border-t border-gray-200 pt-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            This course includes:
+          </h3>
+
+          {/* Video Classes */}
+          <div className="mb-4 p-4 bg-gray-50 rounded-md">
+            <div className="mb-2">
+              <label
+                htmlFor="videoClasses"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Video Classes
+              </label>
+              <textarea
+                id="videoClasses"
+                value={formData.courseFeatures.videoClasses}
+                onChange={(e) =>
+                  handleNestedChange(
+                    "courseFeatures",
+                    "videoClasses",
+                    e.target.value
+                  )
+                }
+                rows={3}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors.courseFeature_videoClasses
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-purple-500"
+                }`}
+                placeholder="e.g., 7 video classes - These in-depth presentations comprise over 3.5 hours of class time!"
+                maxLength={250}
+              />
+              {errors.courseFeature_videoClasses && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.courseFeature_videoClasses}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.courseFeatures.videoClasses.length}/250 characters
+              </p>
+            </div>
+          </div>
+
+          {/* Guided Meditations */}
+          <div className="mb-4 p-4 bg-gray-50 rounded-md">
+            <div className="mb-2">
+              <label
+                htmlFor="guidedMeditations"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Guided Meditations
+              </label>
+              <textarea
+                id="guidedMeditations"
+                value={formData.courseFeatures.guidedMeditations}
+                onChange={(e) =>
+                  handleNestedChange(
+                    "courseFeatures",
+                    "guidedMeditations",
+                    e.target.value
+                  )
+                }
+                rows={3}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors.courseFeature_guidedMeditations
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-purple-500"
+                }`}
+                placeholder="e.g., 7 Guided meditations - Seven Specially selected meditations guided by Shunyamurti"
+                maxLength={250}
+              />
+              {errors.courseFeature_guidedMeditations && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.courseFeature_guidedMeditations}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.courseFeatures.guidedMeditations.length}/250
+                characters
+              </p>
+            </div>
+          </div>
+
+          {/* Study Materials */}
+          <div className="mb-4 p-4 bg-gray-50 rounded-md">
+            <div className="mb-2">
+              <label
+                htmlFor="studyMaterials"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Study Materials
+              </label>
+              <textarea
+                id="studyMaterials"
+                value={formData.courseFeatures.studyMaterials}
+                onChange={(e) =>
+                  handleNestedChange(
+                    "courseFeatures",
+                    "studyMaterials",
+                    e.target.value
+                  )
+                }
+                rows={3}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors.courseFeature_studyMaterials
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-purple-500"
+                }`}
+                placeholder="e.g., Additional study materials - Each lesson is supplemented with illuminating videos and essays"
+                maxLength={250}
+              />
+              {errors.courseFeature_studyMaterials && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.courseFeature_studyMaterials}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.courseFeatures.studyMaterials.length}/250 characters
+              </p>
+            </div>
+          </div>
+
+          {/* Support Info */}
+          <div className="mb-4 p-4 bg-gray-50 rounded-md">
+            <div className="mb-2">
+              <label
+                htmlFor="supportInfo"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Support Information
+              </label>
+              <textarea
+                id="supportInfo"
+                value={formData.courseFeatures.supportInfo}
+                onChange={(e) =>
+                  handleNestedChange(
+                    "courseFeatures",
+                    "supportInfo",
+                    e.target.value
+                  )
+                }
+                rows={3}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors.courseFeature_supportInfo
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-purple-500"
+                }`}
+                placeholder="e.g., Comments and questions - Radha Ma and the Sat Yoga Teaching Team will be available to answer questions"
+                maxLength={250}
+              />
+              {errors.courseFeature_supportInfo && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.courseFeature_supportInfo}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.courseFeatures.supportInfo.length}/250 characters
+              </p>
+            </div>
+          </div>
+
+          {/* Curriculum Aids */}
+          <div className="mb-4 p-4 bg-gray-50 rounded-md">
+            <div className="mb-2">
+              <label
+                htmlFor="curriculumAids"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Curriculum Aids
+              </label>
+              <textarea
+                id="curriculumAids"
+                value={formData.courseFeatures.curriculumAids}
+                onChange={(e) =>
+                  handleNestedChange(
+                    "courseFeatures",
+                    "curriculumAids",
+                    e.target.value
+                  )
+                }
+                rows={3}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors.courseFeature_curriculumAids
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-purple-500"
+                }`}
+                placeholder="e.g., Curriculum study aids - Heart opening writing exercises and mind-expanding thoughts experiments"
+                maxLength={250}
+              />
+              {errors.courseFeature_curriculumAids && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.courseFeature_curriculumAids}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.courseFeatures.curriculumAids.length}/250 characters
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Preview Media */}
+        <div className="mb-6 border-t border-gray-200 pt-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Preview Media (Optional)
+          </h3>
+
+          {/* Current preview media display */}
+          {currentPreviewMedia.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Current Preview Media:
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {currentPreviewMedia.map((media, index) => (
+                  <div key={index} className="relative">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                      <img
+                        src={media.url}
+                        alt={`Preview media ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="text-xs mt-1 block truncate">
+                      {media.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* New preview media display */}
+          {previewMedia.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                New Preview Media to Upload:
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {previewMedia.map((file, index) => (
+                  <div key={index} className="relative">
+                    <div className="aspect-square border rounded-lg flex items-center justify-center bg-gray-100 overflow-hidden">
+                      {file.type.startsWith("image/") ? (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-500 p-2 text-center">
+                          {file.name}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removePreviewMedia(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <span className="text-xs mt-1 block truncate">
+                      {file.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4">
+            <label
+              htmlFor="previewMedia"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Add Preview Images/Videos
+            </label>
+            <input
+              type="file"
+              id="previewMedia"
+              multiple
+              accept="image/*,video/*"
+              onChange={(e) => handleFileChange(e, "previewMedia")}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0 file:text-sm file:font-semibold
+                        file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Upload images or videos to promote your course (optional)
+            </p>
+          </div>
+        </div>
+
+        {/* Featured Quote */}
+        <div className="mb-6 border-t border-gray-200 pt-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Featured Quote (Optional)
+          </h3>
+
+          <div className="mb-4">
+            <label
+              htmlFor="quoteText"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Quote Text
+            </label>
+            <textarea
+              id="quoteText"
+              value={formData.featuredQuote.quoteText}
+              onChange={(e) =>
+                handleNestedChange("featuredQuote", "quoteText", e.target.value)
+              }
+              rows={3}
+              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.quoteText
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-purple-500"
+              }`}
+              placeholder='e.g., "Lorem ipsum dolor sit amet, consectetur adipiscing elit..."'
+              maxLength={300}
+            />
+            {errors.quoteText && (
+              <p className="mt-1 text-sm text-red-600">{errors.quoteText}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.featuredQuote.quoteText.length}/300 characters
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label
+              htmlFor="authorName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Author Name
+            </label>
+            <input
+              type="text"
+              id="authorName"
+              value={formData.featuredQuote.authorName}
+              onChange={(e) =>
+                handleNestedChange(
+                  "featuredQuote",
+                  "authorName",
+                  e.target.value
+                )
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="e.g., Shunyamurti"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label
+              htmlFor="quoteAuthorImage"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Author Image
+            </label>
+            <div className="mt-1 flex items-center">
+              <input
+                type="file"
+                id="quoteAuthorImage"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, "quoteAuthorImage")}
+                className="sr-only"
+              />
+              <label
+                htmlFor="quoteAuthorImage"
+                className="relative cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              >
+                <span>Choose file</span>
+              </label>
+              <p className="ml-3 text-sm text-gray-500">
+                {quoteAuthorImage ? quoteAuthorImage.name : "No file chosen"}
+              </p>
+            </div>
+            {currentQuoteAuthorImage && !quoteAuthorImage && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-500 mb-2">Current image:</p>
+                <div className="w-20 h-20 overflow-hidden rounded-full">
+                  <img
+                    src={currentQuoteAuthorImage}
+                    alt="Current author image"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Price Details */}
         <div className="mb-6 border-t border-gray-200 pt-4">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -942,195 +1604,6 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
               Recommended size: 1200x630 pixels
             </p>
           </div>
-        </div>
-
-        {/* Additional Details */}
-        <div className="mb-6 border-t border-gray-200 pt-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Additional Options
-          </h3>
-
-          {/* Featured course */}
-          <div className="mb-4 flex items-center">
-            <input
-              type="checkbox"
-              id="isFeatured"
-              name="isFeatured"
-              checked={formData.isFeatured}
-              onChange={handleCheckboxChange}
-              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-            />
-            <label
-              htmlFor="isFeatured"
-              className="ml-2 block text-sm text-gray-700"
-            >
-              Feature this course (display prominently on the homepage)
-            </label>
-          </div>
-        </div>
-
-        {/* SEO Section - Toggle */}
-        <div className="mb-6 border-t border-gray-200 pt-4">
-          <button
-            type="button"
-            onClick={() => setShowSeoFields(!showSeoFields)}
-            className="text-lg font-medium text-gray-900 mb-4 flex items-center"
-          >
-            SEO Settings
-            <svg
-              className={`ml-2 h-5 w-5 transition-transform ${
-                showSeoFields ? "transform rotate-180" : ""
-              }`}
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-
-          {showSeoFields && (
-            <div className="bg-gray-50 p-4 rounded-md">
-              {/* Meta Title */}
-              <div className="mb-4">
-                <label
-                  htmlFor="metaTitle"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Meta Title
-                </label>
-                <input
-                  type="text"
-                  id="metaTitle"
-                  name="metaTitle"
-                  value={formData.metaTitle}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="SEO title (defaults to course title if empty)"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended length: 50-60 characters
-                </p>
-              </div>
-
-              {/* Meta Description */}
-              <div className="mb-4">
-                <label
-                  htmlFor="metaDescription"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Meta Description
-                </label>
-                <textarea
-                  id="metaDescription"
-                  name="metaDescription"
-                  value={formData.metaDescription}
-                  onChange={handleChange}
-                  rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Brief description for search engines"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended length: 150-160 characters
-                </p>
-              </div>
-
-              {/* Keywords */}
-              <div className="mb-4">
-                <label
-                  htmlFor="keywords"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Keywords
-                </label>
-                <input
-                  type="text"
-                  id="keywords"
-                  name="keywords"
-                  value={formData.keywords}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="keyword1, keyword2, keyword3"
-                />
-              </div>
-
-              {/* Canonical URL */}
-              <div className="mb-4">
-                <label
-                  htmlFor="canonicalUrl"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Canonical URL
-                </label>
-                <input
-                  type="text"
-                  id="canonicalUrl"
-                  name="canonicalUrl"
-                  value={formData.canonicalUrl}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                    urlError || errors.canonicalUrl
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-purple-500"
-                  }`}
-                  placeholder="https://example.com/canonical-path"
-                />
-                {(urlError || errors.canonicalUrl) && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center">
-                    <ExclamationCircleIcon className="h-4 w-4 mr-1" />
-                    {urlError || errors.canonicalUrl}
-                  </p>
-                )}
-              </div>
-
-              {/* Meta Image */}
-              <div className="mb-4">
-                <label
-                  htmlFor="metaImage"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Social Media Image
-                </label>
-                <div className="mt-1 flex items-center">
-                  <input
-                    type="file"
-                    id="metaImage"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, "metaImage")}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor="metaImage"
-                    className="relative cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                  >
-                    <span>Choose file</span>
-                  </label>
-                  <p className="ml-3 text-sm text-gray-500">
-                    {metaImage ? metaImage.name : "No file chosen"}
-                  </p>
-                </div>
-                {currentMetaImage && !metaImage && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500 mb-2">Current image:</p>
-                    <div className="w-40 h-auto overflow-hidden rounded-md">
-                      <img
-                        src={currentMetaImage}
-                        alt="Current meta image"
-                        className="w-full h-auto"
-                      />
-                    </div>
-                  </div>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended size: 1200x630 pixels
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Publish immediately checkbox */}

@@ -14,6 +14,10 @@ import {
   UserIcon,
   CurrencyDollarIcon,
   CheckBadgeIcon,
+  BookOpenIcon,
+  ClipboardDocumentListIcon,
+  PhotoIcon,
+  ChatBubbleBottomCenterTextIcon,
 } from "@heroicons/react/24/outline";
 import ReactMarkdown from "react-markdown";
 
@@ -77,6 +81,20 @@ const CourseDetailPage = () => {
     }
   };
 
+  // Helper function to safely construct image URLs
+  const getImageUrl = (urlPath: string) => {
+    if (!urlPath) return "";
+
+    // If it's already an absolute URL, return it as is
+    if (urlPath.startsWith("http://") || urlPath.startsWith("https://")) {
+      return urlPath;
+    }
+
+    // Otherwise, prepend the Strapi URL
+    const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "";
+    return `${strapiUrl}${urlPath}`;
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -124,6 +142,12 @@ const CourseDetailPage = () => {
   const featuredImage = course?.attributes?.featuredImage;
   const instructors = course?.attributes?.instructors;
   const publishedAt = course?.attributes?.publishedAt;
+
+  // New fields
+  const whatYouWillLearn = course?.attributes?.whatYouWillLearn || [];
+  const courseFeatures = course?.attributes?.courseFeatures || {};
+  const previewMedia = course?.attributes?.previewMedia;
+  const featuredQuote = course?.attributes?.featuredQuote;
 
   const formattedStartDate = startDate
     ? new Date(startDate).toLocaleDateString()
@@ -175,13 +199,7 @@ const CourseDetailPage = () => {
         {featuredImage?.data && featuredImage.data.attributes?.url && (
           <div className="w-full h-64 relative overflow-hidden">
             <Image
-              src={
-                featuredImage.data.attributes.url.startsWith("http")
-                  ? featuredImage.data.attributes.url
-                  : `${process.env.NEXT_PUBLIC_STRAPI_URL || ""}${
-                      featuredImage.data.attributes.url
-                    }`
-              }
+              src={getImageUrl(featuredImage.data.attributes.url)}
               alt={title}
               fill
               style={{ objectFit: "cover" }}
@@ -256,6 +274,194 @@ const CourseDetailPage = () => {
             </div>
           </div>
 
+          {/* What You Will Learn Section */}
+          {whatYouWillLearn && whatYouWillLearn.length > 0 && (
+            <div className="mb-6 border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <BookOpenIcon className="h-5 w-5 mr-2 text-gray-500" />
+                What You Will Learn
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {whatYouWillLearn.map((point: any, index: number) => (
+                  <div key={index} className="bg-purple-50 p-4 rounded-lg">
+                    <h4 className="font-bold text-purple-800 mb-1">
+                      {point.title}
+                    </h4>
+                    <p className="text-sm text-gray-600">{point.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Course Features Section */}
+          {courseFeatures && Object.keys(courseFeatures).length > 0 && (
+            <div className="mb-6 border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <ClipboardDocumentListIcon className="h-5 w-5 mr-2 text-gray-500" />
+                This Course Includes:
+              </h3>
+
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                {courseFeatures.videoClasses && (
+                  <div className="flex">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-purple-700 font-bold">1</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium">Video Classes</p>
+                      <p className="text-sm text-gray-600">
+                        {courseFeatures.videoClasses}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {courseFeatures.guidedMeditations && (
+                  <div className="flex">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-purple-700 font-bold">2</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium">
+                        Guided Meditations
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {courseFeatures.guidedMeditations}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {courseFeatures.studyMaterials && (
+                  <div className="flex">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-purple-700 font-bold">3</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium">
+                        Study Materials
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {courseFeatures.studyMaterials}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {courseFeatures.supportInfo && (
+                  <div className="flex">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-purple-700 font-bold">4</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium">Support</p>
+                      <p className="text-sm text-gray-600">
+                        {courseFeatures.supportInfo}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {courseFeatures.curriculumAids && (
+                  <div className="flex">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-purple-700 font-bold">5</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium">
+                        Curriculum Aids
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {courseFeatures.curriculumAids}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Preview Media */}
+          {previewMedia?.data?.length > 0 && (
+            <div className="mb-6 border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <PhotoIcon className="h-5 w-5 mr-2 text-gray-500" />
+                Preview Media
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {previewMedia.data.map((media: any) => {
+                  const mediaUrl = getImageUrl(media.attributes.url);
+                  const isImage = media.attributes.mime?.startsWith("image/");
+
+                  return (
+                    <div key={media.id} className="relative group">
+                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
+                        {isImage ? (
+                          <Image
+                            src={mediaUrl}
+                            alt={media.attributes.name || "Preview media"}
+                            fill
+                            sizes="(max-width: 768px) 50vw, 33vw"
+                            style={{ objectFit: "cover" }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full bg-gray-800 text-white">
+                            <span className="text-xs p-2 text-center">
+                              {media.attributes.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs mt-1 block truncate">
+                        {media.attributes.name}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Featured Quote */}
+          {featuredQuote?.quoteText && (
+            <div className="mb-6 border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <ChatBubbleBottomCenterTextIcon className="h-5 w-5 mr-2 text-gray-500" />
+                Featured Quote
+              </h3>
+
+              <blockquote className="relative bg-purple-50 p-5 rounded-lg border-l-4 border-purple-400">
+                <p className="italic text-gray-800 mb-3">
+                  "{featuredQuote.quoteText}"
+                </p>
+
+                <footer className="flex items-center">
+                  {featuredQuote.authorImage?.data && (
+                    <div className="mr-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden relative">
+                        <Image
+                          src={getImageUrl(
+                            featuredQuote.authorImage.data.attributes.url
+                          )}
+                          alt={featuredQuote.authorName || "Quote author"}
+                          fill
+                          sizes="40px"
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <cite className="not-italic font-medium text-gray-900">
+                    {featuredQuote.authorName}
+                  </cite>
+                </footer>
+              </blockquote>
+            </div>
+          )}
+
           {/* Course classes section */}
           <div className="mt-8 border-t border-gray-200 pt-6">
             <div className="flex justify-between items-center mb-4">
@@ -263,7 +469,7 @@ const CourseDetailPage = () => {
                 Course Classes
               </h3>
               <Link
-                href={`/dashboard/admin/course/${course.id}/class/new`}
+                href={`/dashboard/admin/course/${course.attributes.slug}/class/new`}
                 className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
               >
                 Add Class

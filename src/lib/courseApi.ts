@@ -127,7 +127,6 @@ export const courseApi = {
       throw error;
     }
   },
-
   /**
    * Get a single course by slug
    */
@@ -141,19 +140,24 @@ export const courseApi = {
         { slug: { $eq: slug } },
         undefined,
         undefined,
-        ["featuredImage", "instructors", "seo"]
+        [
+          "featuredImage",
+          "instructors",
+          "seo",
+          "whatYouWillLearn",
+          "whatYouWillLearn.learningPoints",
+          "courseFeatures",
+          "previewMedia",
+          "featuredQuote",
+          "featuredQuote.authorImage",
+        ]
       );
-
-      console.log("API request URL:", url);
 
       // Make the request
       const response: any = await fetchAPI(url);
-      console.log("API response structure:", Object.keys(response));
 
       // Check if we have data and log its structure
       if (response.data && response.data.length > 0) {
-        console.log("Course found with ID:", response.data[0].id);
-
         // Return the first item from the data array
         return response.data[0];
       } else {
@@ -165,7 +169,6 @@ export const courseApi = {
       throw error;
     }
   },
-
   /**
    * Get classes for a course
    */
