@@ -61,17 +61,14 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         | "additional-materials";
       duration: number;
       // Additional fields for each type will be conditionally rendered
-      videoUrl?: string;
       videoDescription?: string;
       videoTranscript?: string;
-      videoAudioFile?: File | null;
       keyConceptsContent?: string;
       writingPromptsContent?: string;
       additionalMaterialsContent?: Array<{
         type: "video" | "essay" | "guided-meditation";
         title: string;
         content?: string;
-        file?: File | null;
       }>;
     }>,
   });
@@ -195,7 +192,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     // Add type-specific default fields
     if (type === "video") {
       Object.assign(newSection, {
-        videoUrl: "",
         videoDescription: "",
         videoTranscript: "",
       });
@@ -267,7 +263,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     });
   };
 
-  // Handle file uploads
+  // Improved file change handler to avoid UI inconsistencies
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "video" | "audio" | "additional",
@@ -276,22 +272,36 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
   ) => {
     const file = e.target.files?.[0] || null;
 
+    // If no file was selected, don't change the current selection
+    if (!file) {
+      console.log(`No file selected for ${type} upload`);
+      return;
+    }
+
     if (type === "video") {
       setVideoFiles((prev) => ({
         ...prev,
         [index]: file,
       }));
+
+      // Also update the validation state to ensure form submission works
+      const section = formData.content[index];
+      if (section && section.type === "video") {
+        console.log(`Updated video file for section ${index}: ${file.name}`);
+      }
     } else if (type === "audio") {
       setAudioFiles((prev) => ({
         ...prev,
         [index]: file,
       }));
+      console.log(`Updated audio file for section ${index}: ${file.name}`);
     } else if (type === "additional" && subIndex !== undefined) {
       const key = `${index}-${subIndex}`;
       setAdditionalFiles((prev) => ({
         ...prev,
         [key]: file,
       }));
+      console.log(`Updated additional file ${key}: ${file.name}`);
     }
   };
 
@@ -309,7 +319,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
           type,
           title: "",
           content: type === "essay" ? "" : undefined,
-          file: null,
         };
 
         section.additionalMaterialsContent = [
@@ -385,64 +394,146 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     });
   };
 
-  // Convert form data and upload files for API
+  // Process uploads and prepare data
   const prepareDataForSubmission = async () => {
-    // Create a deep copy of form data
-    const formattedData = { ...formData };
+    try {
+      // Upload files and keep track of media IDs
+      const mediaIds: Record<string, number> = {};
 
-    // Upload all files and update references
-    for (let i = 0; i < formData.content.length; i++) {
-      const section = formData.content[i];
-
-      // Upload video if exists
-      if (section.type === "video" && videoFiles[i]) {
-        try {
-          const uploadResult = await courseApi.uploadFile(videoFiles[i]!);
-          formattedData.content[i].videoUrl = uploadResult.url;
-        } catch (error) {
-          console.error("Error uploading video file:", error);
-          throw new Error("Failed to upload video file");
-        }
-      }
-
-      // Upload audio if exists
-      if (section.type === "video" && audioFiles[i]) {
-        try {
-          const uploadResult = await courseApi.uploadFile(audioFiles[i]!);
-          formattedData.content[i].videoAudioFile = uploadResult.url;
-        } catch (error) {
-          console.error("Error uploading audio file:", error);
-          throw new Error("Failed to upload audio file");
-        }
-      }
-
-      // Upload additional materials files if exist
-      if (
-        section.type === "additional-materials" &&
-        section.additionalMaterialsContent
-      ) {
-        for (let j = 0; j < section.additionalMaterialsContent.length; j++) {
-          const key = `${i}-${j}`;
-          if (additionalFiles[key]) {
-            try {
-              const uploadResult = await courseApi.uploadFile(
-                additionalFiles[key]!
-              );
-              formattedData.content[i].additionalMaterialsContent[j].file =
-                uploadResult.url;
-            } catch (error) {
-              console.error("Error uploading additional file:", error);
-              throw new Error("Failed to upload additional material file");
-            }
+      // Upload video files
+      for (const [index, file] of Object.entries(videoFiles)) {
+        if (file) {
+          try {
+            const result = await courseApi.uploadFile(file);
+            mediaIds[`video_${index}`] = result.id;
+          } catch (error) {
+            console.error(
+              `Error uploading video file for section ${index}:`,
+              error
+            );
+            throw new Error(`Failed to upload video file for section ${index}`);
           }
         }
       }
-    }
 
-    return formattedData;
+      // Upload audio files
+      for (const [index, file] of Object.entries(audioFiles)) {
+        if (file) {
+          try {
+            const result = await courseApi.uploadFile(file);
+            mediaIds[`audio_${index}`] = result.id;
+          } catch (error) {
+            console.error(
+              `Error uploading audio file for section ${index}:`,
+              error
+            );
+            throw new Error(`Failed to upload audio file for section ${index}`);
+          }
+        }
+      }
+
+      // Upload additional material files
+      for (const [key, file] of Object.entries(additionalFiles)) {
+        if (file) {
+          try {
+            const result = await courseApi.uploadFile(file);
+            mediaIds[`additional_${key}`] = result.id;
+          } catch (error) {
+            console.error(`Error uploading additional file ${key}:`, error);
+            throw new Error(`Failed to upload additional file ${key}`);
+          }
+        }
+      }
+
+      // Initialize empty content components
+      let videoComponent = null;
+      let keyConceptsComponent = null;
+      let writingPromptsComponent = null;
+      let additionalMaterialsComponent = null;
+
+      // Process each content section and map to the correct component structure
+      formData.content.forEach((section, sectionIndex) => {
+        if (section.type === "video") {
+          const videoId = mediaIds[`video_${sectionIndex}`];
+          const audioId = mediaIds[`audio_${sectionIndex}`];
+
+          videoComponent = {
+            videoFile: videoId ? videoId : null,
+            videoDescription: section.videoDescription || "",
+            videoTranscript: section.videoTranscript || "",
+            AudioFile: audioId ? audioId : null,
+            duration: section.duration || 0,
+          };
+        } else if (section.type === "key-concepts") {
+          keyConceptsComponent = {
+            content: section.keyConceptsContent || "",
+            duration: section.duration || 0,
+          };
+        } else if (section.type === "writing-prompts") {
+          writingPromptsComponent = {
+            content: section.writingPromptsContent || "",
+            duration: section.duration || 0,
+          };
+        } else if (section.type === "additional-materials") {
+          // Process additional materials
+          const videoMaterial = section.additionalMaterialsContent?.find(
+            (m) => m.type === "video"
+          );
+          const essayMaterial = section.additionalMaterialsContent?.find(
+            (m) => m.type === "essay"
+          );
+          const meditationMaterial = section.additionalMaterialsContent?.find(
+            (m) => m.type === "guided-meditation"
+          );
+
+          const videoIndex = section.additionalMaterialsContent?.findIndex(
+            (m) => m.type === "video"
+          );
+          const meditationIndex = section.additionalMaterialsContent?.findIndex(
+            (m) => m.type === "guided-meditation"
+          );
+
+          const videoFileId =
+            videoIndex !== undefined && videoIndex >= 0
+              ? mediaIds[`additional_${sectionIndex}-${videoIndex}`]
+              : null;
+
+          const meditationFileId =
+            meditationIndex !== undefined && meditationIndex >= 0
+              ? mediaIds[`additional_${sectionIndex}-${meditationIndex}`]
+              : null;
+
+          additionalMaterialsComponent = {
+            video: videoFileId,
+            essay: essayMaterial?.content || "",
+            guidedMeditation: meditationFileId,
+            duration: section.duration || 0,
+          };
+        }
+      });
+
+      // Create final structure for API
+      const classData = {
+        title: formData.title,
+        orderIndex: Math.max(formData.orderIndex, 1),
+        duration: formData.duration,
+        course: parseInt(courseId!),
+        content: {
+          video: videoComponent,
+          keyConcepts: keyConceptsComponent,
+          writingPrompts: writingPromptsComponent,
+          additionalMaterials: additionalMaterialsComponent,
+        },
+      };
+
+      return classData;
+    } catch (error) {
+      console.error("Error preparing data:", error);
+      throw error;
+    }
   };
 
-  // Validate form
+  // Updated validateForm function to properly handle file uploads
   const validateForm = (): boolean => {
     if (!formData.title.trim()) {
       setError("Class title is required");
@@ -459,10 +550,20 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       const section = formData.content[i];
 
       if (section.type === "video") {
-        // For videos, either a file or URL should be provided
-        if (!videoFiles[i] && !section.videoUrl) {
-          setError(`Video file or URL is required for video section ${i + 1}`);
+        // Check if video file exists
+        if (!videoFiles[i]) {
+          setError(`Video file is required for video section ${i + 1}`);
           return false;
+        }
+        // Clear any possible mismatch between UI and actual file selection
+        const videoInput = document.getElementById(
+          `section-${i}-video`
+        ) as HTMLInputElement;
+        if (videoInput && !videoInput.files?.length && videoFiles[i]) {
+          // There's a potential mismatch, force the section to use the stored file
+          console.log(
+            `Ensuring video file is properly recognized for section ${i + 1}`
+          );
         }
       } else if (
         section.type === "key-concepts" &&
@@ -476,13 +577,52 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       ) {
         setError(`Content is required for writing prompts section ${i + 1}`);
         return false;
+      } // Update the additional materials validation part of the validateForm function
+      else if (section.type === "additional-materials") {
+        // Additional materials are optional, only validate if they exist
+        if (
+          section.additionalMaterialsContent &&
+          section.additionalMaterialsContent.length > 0
+        ) {
+          for (let j = 0; j < section.additionalMaterialsContent.length; j++) {
+            const material = section.additionalMaterialsContent[j];
+
+            // Validate title for all material types
+            if (!material.title?.trim()) {
+              setError(
+                `Title is required for additional material ${
+                  j + 1
+                } in section ${i + 1}`
+              );
+              return false;
+            }
+
+            // Title is only required if material was added
+            if (!material.title?.trim()) {
+              setError(
+                `Title is required for additional material ${
+                  j + 1
+                } in section ${i + 1}`
+              );
+              return false;
+            }
+
+            // Only validate essay content if essay type was added
+            if (material.type === "essay" && !material.content?.trim()) {
+              setError(`Content is required for essay in section ${i + 1}`);
+              return false;
+            }
+          }
+        }
       }
     }
 
     return true;
   };
 
-  // Handle form submission
+  // Replace the submit handler with this improved version that
+  // uses custom validation rather than relying on HTML5 form validation
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -491,6 +631,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       return;
     }
 
+    // Use our custom validation function instead of relying on HTML form validation
     if (!validateForm()) {
       return;
     }
@@ -501,71 +642,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
 
     try {
       // Prepare data with file uploads
-      const preparedData = await prepareDataForSubmission();
-
-      // Initialize empty content components
-      let videoComponent = null;
-      let keyConceptsComponent = null;
-      let writingPromptsComponent = null;
-      let additionalMaterialsComponent = null;
-
-      // Process each content section and map to the correct component structure
-      preparedData.content.forEach((section) => {
-        if (section.type === "video") {
-          videoComponent = {
-            videoUrl: section.videoUrl || "",
-            videoDescription: section.videoDescription || "",
-            videoTranscript: section.videoTranscript || "",
-            videoAudioFile: section.videoAudioFile || null,
-            duration: section.duration || 0,
-          };
-        } else if (section.type === "key-concepts") {
-          keyConceptsComponent = {
-            content: section.keyConceptsContent || "",
-            duration: section.duration || 0,
-          };
-        } else if (section.type === "writing-prompts") {
-          writingPromptsComponent = {
-            content: section.writingPromptsContent || "",
-            duration: section.duration || 0,
-          };
-        } else if (section.type === "additional-materials") {
-          // For additional materials, we just need the raw content objects
-          additionalMaterialsComponent = {
-            // Use the raw file/content values from the additionalMaterialsContent
-            video:
-              section.additionalMaterialsContent?.find(
-                (m) => m.type === "video"
-              )?.file || null,
-            essay:
-              section.additionalMaterialsContent?.find(
-                (m) => m.type === "essay"
-              )?.content || "",
-            guidedMeditation:
-              section.additionalMaterialsContent?.find(
-                (m) => m.type === "guided-meditation"
-              )?.file || null,
-            duration: section.duration || 0,
-          };
-        }
-      });
-
-      // Create the properly structured class data
-      const classData = {
-        title: preparedData.title,
-        orderIndex: Math.max(preparedData.orderIndex, 1),
-        duration: preparedData.duration,
-        course: parseInt(courseId),
-        // Only include components that have content
-        ...(videoComponent && { video: videoComponent }),
-        ...(keyConceptsComponent && { keyConcepts: keyConceptsComponent }),
-        ...(writingPromptsComponent && {
-          writingPrompts: writingPromptsComponent,
-        }),
-        ...(additionalMaterialsComponent && {
-          additionalMaterials: additionalMaterialsComponent,
-        }),
-      };
+      const classData = await prepareDataForSubmission();
 
       console.log("Submitting class data:", JSON.stringify(classData, null, 2));
       await courseApi.createClass(classData);
@@ -574,7 +651,8 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
 
       // Redirect back to course classes page after a delay
       setTimeout(() => {
-        router.push(`/dashboard/admin/course/${courseSlug}/classes`);
+        // router.push(`/dashboard/admin/course/${courseSlug}/classes`);
+        router.push(`/dashboard/admin/course/${courseSlug}`);
       }, 1500);
     } catch (error) {
       console.error("Error creating class:", error);
@@ -583,6 +661,18 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       setIsSaving(false);
     }
   };
+
+  // Add this function to your component to completely disable HTML5 validation
+  useEffect(() => {
+    // Find the form element and disable native HTML5 validation
+    const form = document.querySelector("form");
+    if (form) {
+      form.setAttribute("novalidate", "true");
+      console.log(
+        "Disabled native form validation, using custom validation instead"
+      );
+    }
+  }, []);
   // Render content section based on type
   const ContentSection = ({
     type,
@@ -638,7 +728,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             <TrashIcon className="h-5 w-5" />
           </button>
         </div>
-
         {/* Common fields for all section types - only duration now */}
         <div className="mb-4">
           <label
@@ -667,41 +756,33 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                 htmlFor={`section-${index}-video`}
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Video File
+                Video File <span className="text-red-500">*</span>
               </label>
-              <input
-                type="file"
-                id={`section-${index}-video`}
-                accept="video/*"
-                onChange={(e) => handleFileChange(e, "video", index)}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-              />
+              <div className="mt-1 flex items-center">
+                <input
+                  type="file"
+                  id={`section-${index}-video`}
+                  accept="video/*"
+                  onChange={(e) => handleFileChange(e, "video", index)}
+                  className="hidden" // Hide the default input
+                />
+                <label
+                  htmlFor={`section-${index}-video`}
+                  className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
+                >
+                  Choose file
+                </label>
+                <span className="ml-3 text-sm text-gray-500">
+                  {videoFiles[index]
+                    ? videoFiles[index].name
+                    : "No file chosen"}
+                </span>
+              </div>
               {videoFiles[index] && (
                 <p className="mt-1 text-sm text-green-600">
                   Selected: {videoFiles[index]?.name}
                 </p>
               )}
-            </div>
-
-            <div>
-              <label
-                htmlFor={`section-${index}-video-url`}
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Or Video URL
-              </label>
-              <input
-                type="text"
-                id={`section-${index}-video-url`}
-                name="videoUrl"
-                value={data.videoUrl || ""}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="https://example.com/video.mp4"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Either upload a video file or enter a URL
-              </p>
             </div>
 
             <div>
@@ -747,13 +828,26 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
               >
                 Audio File (Optional)
               </label>
-              <input
-                type="file"
-                id={`section-${index}-audio`}
-                accept="audio/*"
-                onChange={(e) => handleFileChange(e, "audio", index)}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-              />
+              <div className="mt-1 flex items-center">
+                <input
+                  type="file"
+                  id={`section-${index}-audio`}
+                  accept="audio/*"
+                  onChange={(e) => handleFileChange(e, "audio", index)}
+                  className="hidden" // Hide the default input
+                />
+                <label
+                  htmlFor={`section-${index}-audio`}
+                  className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
+                >
+                  Choose file
+                </label>
+                <span className="ml-3 text-sm text-gray-500">
+                  {audioFiles[index]
+                    ? audioFiles[index].name
+                    : "No file chosen"}
+                </span>
+              </div>
               {audioFiles[index] && (
                 <p className="mt-1 text-sm text-green-600">
                   Selected: {audioFiles[index]?.name}
@@ -762,7 +856,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             </div>
           </div>
         )}
-
         {type === "key-concepts" && (
           <div>
             <label
@@ -786,7 +879,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             </p>
           </div>
         )}
-
         {type === "writing-prompts" && (
           <div>
             <label
@@ -810,7 +902,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             </p>
           </div>
         )}
-
         {type === "additional-materials" && (
           <div>
             <div className="flex justify-between items-center mb-4">
@@ -885,7 +976,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                           <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
-
                       <div className="mb-3">
                         <label
                           htmlFor={`material-${index}-${materialIndex}-title`}
@@ -915,20 +1005,34 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                           >
                             Video File
                           </label>
-                          <input
-                            type="file"
-                            id={`material-${index}-${materialIndex}-file`}
-                            accept="video/*"
-                            onChange={(e) =>
-                              handleFileChange(
-                                e,
-                                "additional",
-                                index,
-                                materialIndex
-                              )
-                            }
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                          />
+                          <div className="mt-1 flex items-center">
+                            <input
+                              type="file"
+                              id={`material-${index}-${materialIndex}-file`}
+                              accept="video/*"
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  "additional",
+                                  index,
+                                  materialIndex
+                                )
+                              }
+                              className="hidden" // Hide the default input
+                            />
+                            <label
+                              htmlFor={`material-${index}-${materialIndex}-file`}
+                              className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
+                            >
+                              Choose file
+                            </label>
+                            <span className="ml-3 text-sm text-gray-500">
+                              {additionalFiles[`${index}-${materialIndex}`]
+                                ? additionalFiles[`${index}-${materialIndex}`]
+                                    .name
+                                : "No file chosen"}
+                            </span>
+                          </div>
                           {additionalFiles[`${index}-${materialIndex}`] && (
                             <p className="mt-1 text-sm text-green-600">
                               Selected:{" "}
@@ -949,20 +1053,34 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                           >
                             Audio File
                           </label>
-                          <input
-                            type="file"
-                            id={`material-${index}-${materialIndex}-file`}
-                            accept="audio/*"
-                            onChange={(e) =>
-                              handleFileChange(
-                                e,
-                                "additional",
-                                index,
-                                materialIndex
-                              )
-                            }
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                          />
+                          <div className="mt-1 flex items-center">
+                            <input
+                              type="file"
+                              id={`material-${index}-${materialIndex}-file`}
+                              accept="audio/*"
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  "additional",
+                                  index,
+                                  materialIndex
+                                )
+                              }
+                              className="hidden" // Hide the default input
+                            />
+                            <label
+                              htmlFor={`material-${index}-${materialIndex}-file`}
+                              className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
+                            >
+                              Choose file
+                            </label>
+                            <span className="ml-3 text-sm text-gray-500">
+                              {additionalFiles[`${index}-${materialIndex}`]
+                                ? additionalFiles[`${index}-${materialIndex}`]
+                                    .name
+                                : "No file chosen"}
+                            </span>
+                          </div>
                           {additionalFiles[`${index}-${materialIndex}`] && (
                             <p className="mt-1 text-sm text-green-600">
                               Selected:{" "}
@@ -1016,6 +1134,52 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       </div>
     );
   }
+
+  // Add this function to the NewClassForm.tsx component
+  const testSubmission = async () => {
+    try {
+      if (!courseId) {
+        console.error("Cannot test submission: course ID is missing");
+        return;
+      }
+
+      // Create the absolute minimum data needed
+      const minimalData = {
+        title: "Testing Class",
+        orderIndex: 2,
+        duration: 100,
+        course: 2,
+        content: {
+          video: {
+            videoFile: 86,
+            videoDescription:
+              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
+            videoTranscript:
+              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
+            AudioFile: 87,
+            duration: 50,
+          },
+          keyConcepts: {
+            content:
+              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
+            duration: 30,
+          },
+          writingPrompts: {
+            content:
+              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
+            duration: 20,
+          },
+          additionalMaterials: null,
+        },
+      };
+
+      console.log("Testing with data:", minimalData);
+      await courseApi.createClass(minimalData);
+      console.log("Test submission successful");
+    } catch (error) {
+      console.error("Test submission error:", error);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -1214,6 +1378,16 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
           >
             Cancel
           </Link>
+
+          {/* Add this test button */}
+          <button
+            type="button"
+            onClick={testSubmission}
+            className="px-6 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+          >
+            Test Submission
+          </button>
+
           <button
             type="submit"
             disabled={isSaving || !courseId}

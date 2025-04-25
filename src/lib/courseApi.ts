@@ -207,6 +207,7 @@ export const courseApi = {
    */
   createClass: async (classData: any) => {
     try {
+      // Explicitly wrap the data as expected by Strapi v4
       return await fetchAPI("/api/course-classes", {
         method: "POST",
         body: JSON.stringify({ data: classData }),
