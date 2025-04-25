@@ -1,23 +1,15 @@
-import React from "react";
-import NewClassPage from "@/components/dashboard/course/NewClassPage";
+"use client";
 
-interface CourseClassesPageProps {
-  params: {
-    slug: string;
-  };
-}
+import NewClassForm from "@/components/dashboard/course/NewClassForm";
+import { useParams } from "next/navigation";
 
-export async function generateMetadata({ params }: CourseClassesPageProps) {
-  return {
-    title: `Add New Class - Admin Dashboard`,
-    description: `Create a new class for this course.`,
-  };
-}
+export default function NewClassPage() {
+  const params = useParams();
+  const courseSlug = params.slug as string;
 
-export default function CourseNewClassPage({ params }: CourseClassesPageProps) {
   return (
     <div>
-      <NewClassPage params={params} />
+      <NewClassForm courseSlug={courseSlug} />
     </div>
   );
 }

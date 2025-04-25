@@ -37,7 +37,6 @@ const CourseDetailPage = () => {
     const fetchCourse = async () => {
       setIsLoading(true);
       try {
-        console.log("Fetching course with slug:", slug);
         const response = await courseApi.getCourseBySlug(slug);
         console.log("API Response:", response);
 

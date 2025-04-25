@@ -16,29 +16,22 @@ import {
   QuestionMarkCircleIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { courseApi } from "@/lib/courseApi";
 
-interface ClassContent {
-  video: string | null;
-  videoTitle: string;
-  videoDescription: string;
-  videoTranscript: string;
-  videoAudioFile: string | null;
-  keyConcepts: string;
-  writingPrompts: string;
-  additionalMaterials: {
-    video?: string | null;
-    essay?: string;
-    guidedMeditation?: string | null;
-  }[];
+interface ClassContentType {
+  type: "video" | "key-concepts" | "writing-prompts" | "additional-materials";
+  title: string;
+  duration: number; // in minutes
+  completed?: boolean;
 }
 
 interface ClassType {
   id: number;
   attributes: {
     title: string;
-    inClassPosition: number;
+    orderIndex: number;
     duration: number;
-    classContent: ClassContent;
+    content: ClassContentType[];
     createdAt: string;
     updatedAt: string;
   };
@@ -66,15 +59,9 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentClass, setCurrentClass] = useState<ClassType | null>(null);
   const [expandedClassId, setExpandedClassId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    duration: 0,
-    inClassPosition: 0,
-  });
 
   // Fetch course details and classes
   const fetchCourseAndClasses = async () => {
@@ -82,38 +69,12 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
     setError(null);
 
     try {
-      // Fetch course details directly
-      const courseResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/courses/${courseId}?populate=*`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-        }
-      );
-
-      if (!courseResponse.ok) {
-        throw new Error("Failed to fetch course");
-      }
-
-      const courseData = await courseResponse.json();
+      // Fetch course details
+      const courseData = await courseApi.getCourse(courseId);
       setCourse(courseData.data);
 
       // Fetch classes for this course
-      const classesResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/course-classes?filters[course][id][$eq]=${courseId}&sort=inClassPosition:asc&pagination[pageSize]=100&populate=*`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-        }
-      );
-
-      if (!classesResponse.ok) {
-        throw new Error("Failed to fetch classes");
-      }
-
-      const classesData = await classesResponse.json();
+      const classesData = await courseApi.getClasses(courseId);
       setClasses(classesData.data || []);
     } catch (err) {
       setError(
@@ -127,98 +88,13 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
 
   // Load course and classes on component mount
   useEffect(() => {
-    if (courseId) {
-      fetchCourseAndClasses();
-    }
+    fetchCourseAndClasses();
   }, [courseId]);
-
-  // Handle form input changes
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        name === "duration" || name === "inClassPosition"
-          ? parseInt(value) || 0
-          : value,
-    }));
-  };
-
-  // Reset form
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      duration: 0,
-      inClassPosition: 0,
-    });
-  };
-
-  // Open edit modal with class data
-  const handleEdit = (classItem: ClassType) => {
-    setCurrentClass(classItem);
-    setFormData({
-      title: classItem.attributes.title,
-      duration: classItem.attributes.duration,
-      inClassPosition: classItem.attributes.inClassPosition,
-    });
-    setShowEditModal(true);
-  };
 
   // Open delete modal
   const handleDeleteClick = (classItem: ClassType) => {
     setCurrentClass(classItem);
     setShowDeleteModal(true);
-  };
-
-  // Update an existing class
-  const handleUpdateClass = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!currentClass) return;
-
-    if (!formData.title.trim()) {
-      setError("Class title is required");
-      return;
-    }
-
-    try {
-      // Update class in the API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/course-classes/${currentClass.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-          body: JSON.stringify({
-            data: {
-              title: formData.title,
-              duration: formData.duration,
-              inClassPosition: formData.inClassPosition,
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData?.error?.message || "Failed to update class");
-      }
-
-      // Update UI
-      setShowEditModal(false);
-      setCurrentClass(null);
-      resetForm();
-      setSuccessMessage("Class updated successfully!");
-
-      // Refresh classes
-      fetchCourseAndClasses();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update class");
-    }
   };
 
   // Delete a class
@@ -227,20 +103,7 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
 
     try {
       // Delete class from the API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/course-classes/${currentClass.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData?.error?.message || "Failed to delete class");
-      }
+      await courseApi.deleteClass(currentClass.id.toString());
 
       // Update UI
       setShowDeleteModal(false);
@@ -273,54 +136,42 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
     const newClasses = [...classes];
     const targetIndex = direction === "up" ? classIndex - 1 : classIndex + 1;
 
-    // Swap the positions
-    const currentPosition = newClasses[classIndex].attributes.inClassPosition;
-    const targetPosition = newClasses[targetIndex].attributes.inClassPosition;
+    // Swap the order indices
+    const currentOrderIndex = newClasses[classIndex].attributes.orderIndex;
+    newClasses[classIndex].attributes.orderIndex =
+      newClasses[targetIndex].attributes.orderIndex;
+    newClasses[targetIndex].attributes.orderIndex = currentOrderIndex;
+
+    // Swap the elements in the array
+    [newClasses[classIndex], newClasses[targetIndex]] = [
+      newClasses[targetIndex],
+      newClasses[classIndex],
+    ];
+
+    // Update UI optimistically
+    setClasses(newClasses);
 
     try {
       // Update both classes in the API
       await Promise.all([
-        fetch(
-          `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/course-classes/${newClasses[classIndex].id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            },
-            body: JSON.stringify({
-              data: { inClassPosition: targetPosition },
-            }),
-          }
-        ),
-        fetch(
-          `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/course-classes/${newClasses[targetIndex].id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            },
-            body: JSON.stringify({
-              data: { inClassPosition: currentPosition },
-            }),
-          }
-        ),
+        courseApi.updateClass(newClasses[classIndex].id.toString(), {
+          orderIndex: newClasses[classIndex].attributes.orderIndex,
+        }),
+        courseApi.updateClass(newClasses[targetIndex].id.toString(), {
+          orderIndex: newClasses[targetIndex].attributes.orderIndex,
+        }),
       ]);
-
-      // Refresh the class list
-      fetchCourseAndClasses();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to reorder classes"
       );
+      // Revert the optimistic update
+      fetchCourseAndClasses();
     }
   };
 
   // Format duration from minutes to hours and minutes
   const formatDuration = (minutes: number) => {
-    if (!minutes) return "0 min";
-
     if (minutes < 60) {
       return `${minutes} min`;
     }
@@ -343,114 +194,6 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
     );
     return formatDuration(totalMinutes);
   };
-
-  // Class form modal for editing
-  const ClassFormModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Edit Class</h3>
-          <button
-            onClick={() => {
-              setShowEditModal(false);
-              resetForm();
-            }}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <svg
-              className="h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <form onSubmit={handleUpdateClass}>
-          <div className="mb-4">
-            <label
-              htmlFor="title"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Class Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter class title"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label
-              htmlFor="inClassPosition"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Position in Course
-            </label>
-            <input
-              type="number"
-              id="inClassPosition"
-              name="inClassPosition"
-              value={formData.inClassPosition}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label
-              htmlFor="duration"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Duration (minutes)
-            </label>
-            <input
-              type="number"
-              id="duration"
-              name="duration"
-              value={formData.duration}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="0"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => {
-                setShowEditModal(false);
-                resetForm();
-              }}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-            >
-              Update
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
 
   // Delete confirmation modal
   const DeleteConfirmationModal = () => (
@@ -487,15 +230,16 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
 
     if (!isExpanded) return null;
 
-    const { classContent } = classItem.attributes;
-
-    // If no content has been created yet
-    if (!classContent) {
+    // If no content sections have been created yet
+    if (
+      !classItem.attributes.content ||
+      classItem.attributes.content.length === 0
+    ) {
       return (
         <div className="pl-10 pr-4 pb-6 pt-2">
           <div className="bg-gray-50 p-4 rounded-md text-center">
             <p className="text-gray-500 mb-4">
-              No content has been added to this class yet
+              No content sections created yet
             </p>
             <Link
               href={`/dashboard/admin/course/${courseId}/class/${classItem.id}/edit`}
@@ -513,71 +257,45 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
     return (
       <div className="pl-10 pr-4 pb-6 pt-2">
         <div className="border border-gray-200 rounded-md divide-y divide-gray-200">
-          {/* Video content */}
-          {classContent.videoTitle && (
-            <div className="p-4 hover:bg-gray-50 flex justify-between items-center">
+          {classItem.attributes.content.map((content, idx) => (
+            <div
+              key={idx}
+              className="p-4 hover:bg-gray-50 flex justify-between items-center"
+            >
               <div className="flex items-center">
-                <PlayIcon className="h-5 w-5 text-purple-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {classContent.videoTitle}
-                  </p>
-                  <p className="text-xs text-gray-500">Video Lecture</p>
-                </div>
-              </div>
-            </div>
-          )}
+                {content.type === "video" && (
+                  <PlayIcon className="h-5 w-5 text-purple-500 mr-3" />
+                )}
+                {content.type === "key-concepts" && (
+                  <DocumentTextIcon className="h-5 w-5 text-blue-500 mr-3" />
+                )}
+                {content.type === "writing-prompts" && (
+                  <BookOpenIcon className="h-5 w-5 text-green-500 mr-3" />
+                )}
+                {content.type === "additional-materials" && (
+                  <QuestionMarkCircleIcon className="h-5 w-5 text-orange-500 mr-3" />
+                )}
 
-          {/* Key Concepts */}
-          {classContent.keyConcepts && (
-            <div className="p-4 hover:bg-gray-50 flex justify-between items-center">
-              <div className="flex items-center">
-                <DocumentTextIcon className="h-5 w-5 text-blue-500 mr-3" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    Key Concepts
+                    {content.title}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Content notes and key concepts
+                    {formatDuration(content.duration)}
                   </p>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Writing Prompts */}
-          {classContent.writingPrompts && (
-            <div className="p-4 hover:bg-gray-50 flex justify-between items-center">
-              <div className="flex items-center">
-                <BookOpenIcon className="h-5 w-5 text-green-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Writing Prompts
-                  </p>
-                  <p className="text-xs text-gray-500">Reflective exercises</p>
-                </div>
+              <div className="flex space-x-2">
+                <Link
+                  href={`/dashboard/admin/course/${courseId}/class/${classItem.id}/content/${idx}/edit`}
+                  className="text-blue-600 hover:text-blue-900"
+                >
+                  <PencilIcon className="h-4 w-4" />
+                </Link>
               </div>
             </div>
-          )}
-
-          {/* Additional Materials */}
-          {classContent.additionalMaterials &&
-            classContent.additionalMaterials.length > 0 && (
-              <div className="p-4 hover:bg-gray-50 flex justify-between items-center">
-                <div className="flex items-center">
-                  <QuestionMarkCircleIcon className="h-5 w-5 text-orange-500 mr-3" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      Additional Materials
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {classContent.additionalMaterials.length} supplementary
-                      item(s)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+          ))}
         </div>
 
         <div className="mt-4 text-center">
@@ -607,14 +325,14 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center mb-4 sm:mb-0">
           <Link
-            href={`/dashboard/admin/course/${courseId}`}
+            href="/dashboard/admin/course"
             className="mr-4 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Course Content: {course?.attributes.title || "Loading..."}
+              Course Content: {course?.attributes.title}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               Manage classes and course structure
@@ -660,7 +378,7 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
               Course Overview
             </h2>
             <p className="mt-2 text-gray-600 max-w-2xl">
-              {course?.attributes.description || "No description available"}
+              {course?.attributes.description}
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex flex-col items-start md:items-end">
@@ -708,52 +426,45 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
           </div>
         ) : (
           <ul className="divide-y divide-gray-200">
-            {classes
-              .sort(
-                (a, b) =>
-                  a.attributes.inClassPosition - b.attributes.inClassPosition
-              )
-              .map((classItem, index) => (
-                <li key={classItem.id} className="hover:bg-gray-50">
-                  <div className="px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center" style={{ width: "70%" }}>
-                      <span className="inline-flex items-center justify-center w-8 h-8 bg-purple-100 text-purple-800 rounded-full mr-4 font-medium">
-                        {classItem.attributes.inClassPosition}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <button
-                          onClick={() =>
-                            setExpandedClassId(
-                              expandedClassId === classItem.id
-                                ? null
-                                : classItem.id
-                            )
-                          }
-                          className="flex items-center text-left"
-                        >
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {classItem.attributes.title}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {formatDuration(classItem.attributes.duration)}
-                            </p>
-                          </div>
-                          {expandedClassId === classItem.id ? (
-                            <ChevronUpIcon className="h-5 w-5 ml-2 text-gray-400" />
-                          ) : (
-                            <ChevronDownIcon className="h-5 w-5 ml-2 text-gray-400" />
-                          )}
-                        </button>
-                      </div>
+            {classes.map((classItem, index) => (
+              <li key={classItem.id} className="hover:bg-gray-50">
+                <div className="px-6 py-4 flex items-center justify-between">
+                  <div className="flex items-center" style={{ width: "70%" }}>
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-purple-100 text-purple-800 rounded-full mr-4 font-medium">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <button
+                        onClick={() =>
+                          setExpandedClassId(
+                            expandedClassId === classItem.id
+                              ? null
+                              : classItem.id
+                          )
+                        }
+                        className="flex items-center text-left"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {classItem.attributes.title}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDuration(classItem.attributes.duration)}
+                          </p>
+                        </div>
+                        {expandedClassId === classItem.id ? (
+                          <ChevronUpIcon className="h-5 w-5 ml-2 text-gray-400" />
+                        ) : (
+                          <ChevronDownIcon className="h-5 w-5 ml-2 text-gray-400" />
+                        )}
+                      </button>
                     </div>
-                    <div className="flex space-x-2">
+                  </div>
+                  <div className="flex space-x-2">
+                    {index > 0 && (
                       <button
                         onClick={() => handleReorderClass(classItem.id, "up")}
-                        className={`text-gray-600 hover:text-gray-900 ${
-                          index === 0 ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                        disabled={index === 0}
+                        className="text-gray-600 hover:text-gray-900"
                         title="Move up"
                       >
                         <svg
@@ -769,14 +480,11 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
                           />
                         </svg>
                       </button>
+                    )}
+                    {index < classes.length - 1 && (
                       <button
                         onClick={() => handleReorderClass(classItem.id, "down")}
-                        className={`text-gray-600 hover:text-gray-900 ${
-                          index === classes.length - 1
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                        disabled={index === classes.length - 1}
+                        className="text-gray-600 hover:text-gray-900"
                         title="Move down"
                       >
                         <svg
@@ -792,40 +500,33 @@ const CourseClassManager = ({ courseId }: CourseClassManagerProps) => {
                           />
                         </svg>
                       </button>
-                      <Link
-                        href={`/dashboard/admin/course/${courseId}/class/${classItem.id}/edit`}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Edit class content"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </Link>
-                      <button
-                        onClick={() => handleEdit(classItem)}
-                        className="text-gray-600 hover:text-gray-900"
-                        title="Edit class details"
-                      >
-                        <DocumentTextIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(classItem)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete class"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
+                    )}
+                    <Link
+                      href={`/dashboard/admin/course/${courseId}/class/${classItem.id}/edit`}
+                      className="text-blue-600 hover:text-blue-900"
+                      title="Edit class content"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteClick(classItem)}
+                      className="text-red-600 hover:text-red-900"
+                      title="Delete class"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
                   </div>
+                </div>
 
-                  {/* Expanded content section */}
-                  {renderClassContent(classItem)}
-                </li>
-              ))}
+                {/* Expanded content section */}
+                {renderClassContent(classItem)}
+              </li>
+            ))}
           </ul>
         )}
       </div>
 
       {/* Modals */}
-      {showEditModal && <ClassFormModal />}
       {showDeleteModal && <DeleteConfirmationModal />}
     </div>
   );

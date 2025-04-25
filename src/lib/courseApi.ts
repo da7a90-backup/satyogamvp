@@ -174,17 +174,16 @@ export const courseApi = {
    */
   getClasses: async (courseId: string) => {
     try {
-      const url = buildStrapiUrl(
-        "/api/classes",
-        { course: { id: { $eq: courseId } } },
-        undefined,
-        "orderIndex:asc",
-        ["content"]
-      );
+      console.log(`Fetching classes for course ID "${courseId}"`);
 
+      // Use the correct endpoint name: course-class instead of classes
+      const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&sort=orderIndex:asc&populate=content`;
+
+      console.log(`Requesting URL: ${url}`);
       return await fetchAPI(url);
     } catch (error) {
       console.error(`Error fetching classes for course "${courseId}":`, error);
+      // Return empty data array on error so the UI can still render
       return { data: [] };
     }
   },
@@ -194,7 +193,9 @@ export const courseApi = {
    */
   getClass: async (id: string) => {
     try {
-      return await fetchAPI(`/api/classes/${id}?populate=course,content`);
+      return await fetchAPI(
+        `/api/course-classes/${id}?populate=course,content`
+      );
     } catch (error) {
       console.error(`Error fetching class with ID "${id}":`, error);
       throw error;
@@ -206,7 +207,7 @@ export const courseApi = {
    */
   createClass: async (classData: any) => {
     try {
-      return await fetchAPI("/api/classes", {
+      return await fetchAPI("/api/course-classes", {
         method: "POST",
         body: JSON.stringify({ data: classData }),
       });
@@ -221,7 +222,7 @@ export const courseApi = {
    */
   updateClass: async (id: string, classData: any) => {
     try {
-      return await fetchAPI(`/api/classes/${id}`, {
+      return await fetchAPI(`/api/course-classes/${id}`, {
         method: "PUT",
         body: JSON.stringify({ data: classData }),
       });
@@ -236,7 +237,7 @@ export const courseApi = {
    */
   deleteClass: async (id: string) => {
     try {
-      return await fetchAPI(`/api/classes/${id}`, {
+      return await fetchAPI(`/api/course-classes/${id}`, {
         method: "DELETE",
       });
     } catch (error) {
