@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -39,6 +39,21 @@ interface Course {
 }
 
 const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
+  // Prevent default form submission which can cause page refresh and focus loss
+  useEffect(() => {
+    const handleSubmit = (e: any) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+        e.stopPropagation();
+      }
+    };
+
+    document.addEventListener("submit", handleSubmit, true);
+
+    return () => {
+      document.removeEventListener("submit", handleSubmit, true);
+    };
+  }, []);
+
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
   const [courseId, setCourseId] = useState<string | null>(null);
@@ -47,6 +62,22 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [nextOrderIndex, setNextOrderIndex] = useState(1); // Minimum is now 1
+  const [errorField, setErrorField] = useState<string | null>(null);
+
+  // Refs for scrolling to elements
+  const formRef = useRef<HTMLFormElement>(null);
+  const successRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const inputRefs = useRef<
+    Record<string, HTMLInputElement | HTMLTextAreaElement | null>
+  >({});
+
+  // Track which section types already exist
+  const [existingSectionTypes, setExistingSectionTypes] = useState<Set<string>>(
+    new Set()
+  );
+  const [existingAdditionalMaterialTypes, setExistingAdditionalMaterialTypes] =
+    useState<Record<number, Set<string>>>({});
 
   // Form state
   const [formData, setFormData] = useState({
@@ -159,11 +190,49 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     fetchClasses();
   }, [courseId]);
 
-  // Handle basic input changes
+  // Scroll to success message when it appears
+  useEffect(() => {
+    if (successMessage && successRef.current) {
+      successRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [successMessage]);
+
+  // Scroll to error field when validation fails
+  useEffect(() => {
+    if (errorField && sectionRefs.current[errorField]) {
+      sectionRefs.current[errorField]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [errorField]);
+
+  // Register refs for inputs to maintain focus
+  const registerInputRef = (
+    id: string,
+    ref: HTMLInputElement | HTMLTextAreaElement | null
+  ) => {
+    inputRefs.current[id] = ref;
+  };
+
+  // Handle basic input changes with focus preservation
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const { name, value, selectionStart, selectionEnd } = e.target;
+    const inputId = e.target.id;
+
+    // Record current selection position
+    const currentSelection = {
+      start: selectionStart,
+      end: selectionEnd,
+    };
 
     // Ensure orderIndex stays at least 1
     if (name === "orderIndex") {
@@ -178,12 +247,34 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         [name]: name === "duration" ? parseInt(value) || 0 : value,
       }));
     }
+
+    // Schedule focus restoration after state update
+    setTimeout(() => {
+      const input = inputRefs.current[inputId];
+      if (input) {
+        input.focus();
+        if (currentSelection.start !== null && currentSelection.end !== null) {
+          input.selectionStart = currentSelection.start;
+          input.selectionEnd = currentSelection.end;
+        }
+      }
+    }, 0);
   };
 
-  // Add content section
+  // Add content section - now checks if the section type already exists
   const addContentSection = (
     type: "video" | "key-concepts" | "writing-prompts" | "additional-materials"
   ) => {
+    // Check if section type already exists (for all section types including additional-materials)
+    if (existingSectionTypes.has(type)) {
+      console.log(`Section type ${type} already exists, ignoring...`);
+      // Section already exists, don't add another one
+      return;
+    }
+
+    // First update the tracking state to prevent duplicate additions
+    setExistingSectionTypes((prev) => new Set([...prev, type]));
+
     const newSection = {
       type,
       duration: 0,
@@ -218,8 +309,31 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
   // Remove content section
   const removeContentSection = (index: number) => {
     setFormData((prev) => {
+      const section = prev.content[index];
       const newContent = [...prev.content];
       newContent.splice(index, 1);
+
+      // Remove the section type from existingSectionTypes if it's the last of its kind
+      const remainingSections = newContent.filter(
+        (s) => s.type === section.type
+      );
+      if (remainingSections.length === 0) {
+        setExistingSectionTypes((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(section.type);
+          return newSet;
+        });
+      }
+
+      // Remove any additional material types for this section
+      if (section.type === "additional-materials") {
+        const newExistingAdditionalMaterialTypes = {
+          ...existingAdditionalMaterialTypes,
+        };
+        delete newExistingAdditionalMaterialTypes[index];
+        setExistingAdditionalMaterialTypes(newExistingAdditionalMaterialTypes);
+      }
+
       return {
         ...prev,
         content: newContent,
@@ -240,8 +354,19 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     }
   };
 
-  // Update content section
+  // Update content section with focus preservation
   const updateContentSection = (index: number, data: any) => {
+    // Store the focused element to restore focus after state update
+    const focusedElement = document.activeElement;
+    const selectionStart =
+      focusedElement && "selectionStart" in focusedElement
+        ? focusedElement.selectionStart
+        : null;
+    const selectionEnd =
+      focusedElement && "selectionEnd" in focusedElement
+        ? focusedElement.selectionEnd
+        : null;
+
     setFormData((prev) => {
       const newContent = [...prev.content];
       newContent[index] = {
@@ -261,6 +386,28 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         duration: totalDuration,
       };
     });
+
+    // Restore focus after state update
+    setTimeout(() => {
+      if (focusedElement) {
+        // Attempt to refocus the element
+        (focusedElement as HTMLElement).focus();
+
+        // Restore selection if applicable
+        if (
+          "selectionStart" in focusedElement &&
+          selectionStart !== null &&
+          selectionEnd !== null
+        ) {
+          (
+            focusedElement as HTMLInputElement | HTMLTextAreaElement
+          ).selectionStart = selectionStart;
+          (
+            focusedElement as HTMLInputElement | HTMLTextAreaElement
+          ).selectionEnd = selectionEnd;
+        }
+      }
+    }, 0);
   };
 
   // Improved file change handler to avoid UI inconsistencies
@@ -270,6 +417,9 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     index: number,
     subIndex?: number
   ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const file = e.target.files?.[0] || null;
 
     // If no file was selected, don't change the current selection
@@ -305,11 +455,32 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     }
   };
 
-  // Add additional material
+  // Add additional material - now checks if material type already exists
   const addAdditionalMaterial = (
     sectionIndex: number,
     type: "video" | "essay" | "guided-meditation"
   ) => {
+    // First, check if this material type already exists in this section
+    // This check happens BEFORE we attempt to modify any state
+    if (existingAdditionalMaterialTypes[sectionIndex]?.has(type)) {
+      console.log(
+        `Material type ${type} already exists in section ${sectionIndex}, ignoring...`
+      );
+      // Material type already exists in this section, don't add another one
+      return;
+    }
+
+    // Update the tracking before adding the material to prevent race conditions
+    setExistingAdditionalMaterialTypes((prev) => {
+      const newState = { ...prev };
+      if (!newState[sectionIndex]) {
+        newState[sectionIndex] = new Set();
+      }
+      newState[sectionIndex].add(type);
+      return newState;
+    });
+
+    // Now add the new material to the form data
     setFormData((prev) => {
       const newContent = [...prev.content];
       const section = newContent[sectionIndex];
@@ -321,6 +492,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
           content: type === "essay" ? "" : undefined,
         };
 
+        // Create a new array with the added material
         section.additionalMaterialsContent = [
           ...(section.additionalMaterialsContent || []),
           newMaterial,
@@ -348,7 +520,26 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         section.type === "additional-materials" &&
         section.additionalMaterialsContent
       ) {
+        // Get the material type before removing it
+        const materialType =
+          section.additionalMaterialsContent[materialIndex].type;
+
+        // Remove the material
         section.additionalMaterialsContent.splice(materialIndex, 1);
+
+        // Remove this material type from the existingAdditionalMaterialTypes if it's the last one
+        const remainingMaterials = section.additionalMaterialsContent.filter(
+          (m) => m.type === materialType
+        );
+        if (remainingMaterials.length === 0) {
+          setExistingAdditionalMaterialTypes((prev) => {
+            const newState = { ...prev };
+            if (newState[sectionIndex]) {
+              newState[sectionIndex].delete(materialType);
+            }
+            return newState;
+          });
+        }
       }
 
       return {
@@ -366,12 +557,23 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     }
   };
 
-  // Update additional material
+  // Update additional material with focus preservation
   const updateAdditionalMaterial = (
     sectionIndex: number,
     materialIndex: number,
     data: any
   ) => {
+    // Store the focused element to restore focus after state update
+    const focusedElement = document.activeElement;
+    const selectionStart =
+      focusedElement && "selectionStart" in focusedElement
+        ? focusedElement.selectionStart
+        : null;
+    const selectionEnd =
+      focusedElement && "selectionEnd" in focusedElement
+        ? focusedElement.selectionEnd
+        : null;
+
     setFormData((prev) => {
       const newContent = [...prev.content];
       const section = newContent[sectionIndex];
@@ -392,6 +594,28 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         content: newContent,
       };
     });
+
+    // Restore focus after state update
+    setTimeout(() => {
+      if (focusedElement) {
+        // Attempt to refocus the element
+        (focusedElement as HTMLElement).focus();
+
+        // Restore selection if applicable
+        if (
+          "selectionStart" in focusedElement &&
+          selectionStart !== null &&
+          selectionEnd !== null
+        ) {
+          (
+            focusedElement as HTMLInputElement | HTMLTextAreaElement
+          ).selectionStart = selectionStart;
+          (
+            focusedElement as HTMLInputElement | HTMLTextAreaElement
+          ).selectionEnd = selectionEnd;
+        }
+      }
+    }, 0);
   };
 
   // Process uploads and prepare data
@@ -533,10 +757,13 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     }
   };
 
-  // Updated validateForm function to properly handle file uploads
+  // Updated validateForm function to properly handle file uploads and scrolling to error fields
   const validateForm = (): boolean => {
+    setErrorField(null);
+
     if (!formData.title.trim()) {
       setError("Class title is required");
+      setErrorField("title");
       return false;
     }
 
@@ -553,6 +780,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         // Check if video file exists
         if (!videoFiles[i]) {
           setError(`Video file is required for video section ${i + 1}`);
+          setErrorField(`section-${i}`);
           return false;
         }
         // Clear any possible mismatch between UI and actual file selection
@@ -570,12 +798,14 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         !section.keyConceptsContent?.trim()
       ) {
         setError(`Content is required for key concepts section ${i + 1}`);
+        setErrorField(`section-${i}`);
         return false;
       } else if (
         section.type === "writing-prompts" &&
         !section.writingPromptsContent?.trim()
       ) {
         setError(`Content is required for writing prompts section ${i + 1}`);
+        setErrorField(`section-${i}`);
         return false;
       } // Update the additional materials validation part of the validateForm function
       else if (section.type === "additional-materials") {
@@ -594,22 +824,14 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                   j + 1
                 } in section ${i + 1}`
               );
-              return false;
-            }
-
-            // Title is only required if material was added
-            if (!material.title?.trim()) {
-              setError(
-                `Title is required for additional material ${
-                  j + 1
-                } in section ${i + 1}`
-              );
+              setErrorField(`section-${i}-material-${j}`);
               return false;
             }
 
             // Only validate essay content if essay type was added
             if (material.type === "essay" && !material.content?.trim()) {
               setError(`Content is required for essay in section ${i + 1}`);
+              setErrorField(`section-${i}-material-${j}`);
               return false;
             }
           }
@@ -620,11 +842,10 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     return true;
   };
 
-  // Replace the submit handler with this improved version that
-  // uses custom validation rather than relying on HTML5 form validation
-
+  // Handle form submission with validation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!courseId) {
       setError("Cannot create class: course ID is missing");
@@ -649,10 +870,17 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
 
       setSuccessMessage("Class created successfully!");
 
+      // Scroll to success message
+      if (successRef.current) {
+        successRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+
       // Redirect back to course classes page after a delay
       setTimeout(() => {
-        // router.push(`/dashboard/admin/course/${courseSlug}/classes`);
-        router.push(`/dashboard/admin/course/${courseSlug}`);
+        router.push(`/dashboard/admin/course/${courseSlug}/classes`);
       }, 1500);
     } catch (error) {
       console.error("Error creating class:", error);
@@ -662,7 +890,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     }
   };
 
-  // Add this function to your component to completely disable HTML5 validation
+  // Disable HTML5 validation
   useEffect(() => {
     // Find the form element and disable native HTML5 validation
     const form = document.querySelector("form");
@@ -673,6 +901,12 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       );
     }
   }, []);
+
+  // Function to register refs for scrolling
+  const registerSectionRef = (id: string, ref: HTMLDivElement | null) => {
+    sectionRefs.current[id] = ref;
+  };
+
   // Render content section based on type
   const ContentSection = ({
     type,
@@ -684,10 +918,34 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     const handleInputChange = (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
+      e.preventDefault();
+      e.stopPropagation();
+
       const { name, value } = e.target;
+      const { selectionStart, selectionEnd } = e.target;
+      const inputId = e.target.id;
+
+      // Store selection position for restoration
+      const selection = {
+        start: selectionStart,
+        end: selectionEnd,
+      };
+
       onChange({
         [name]: name === "duration" ? parseInt(value) || 0 : value,
       });
+
+      // Re-focus the input after state update
+      setTimeout(() => {
+        const input = inputRefs.current[inputId];
+        if (input) {
+          input.focus();
+          if (selection.start !== null && selection.end !== null) {
+            input.selectionStart = selection.start;
+            input.selectionEnd = selection.end;
+          }
+        }
+      }, 0);
     };
 
     // Get section title and icon
@@ -714,7 +972,10 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     }
 
     return (
-      <div className="mb-6 border border-gray-200 rounded-lg p-4">
+      <div
+        className="mb-6 border border-gray-200 rounded-lg p-4"
+        ref={(el) => registerSectionRef(`section-${index}`, el)}
+      >
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
             <SectionIcon className="h-5 w-5 text-purple-600 mr-2" />
@@ -722,7 +983,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
           </div>
           <button
             type="button"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
             className="text-red-500 hover:text-red-700"
           >
             <TrashIcon className="h-5 w-5" />
@@ -745,6 +1010,9 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             min="0"
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             placeholder="0"
+            onFocus={(e) => e.stopPropagation()}
+            onBlur={(e) => e.stopPropagation()}
+            ref={(el) => registerInputRef(`section-${index}-duration`, el)}
           />
         </div>
 
@@ -763,7 +1031,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                   type="file"
                   id={`section-${index}-video`}
                   accept="video/*"
-                  onChange={(e) => handleFileChange(e, "video", index)}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFileChange(e, "video", index);
+                  }}
                   className="hidden" // Hide the default input
                 />
                 <label
@@ -800,6 +1072,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                 rows={3}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter video description"
+                onFocus={(e) => e.stopPropagation()}
+                onBlur={(e) => e.stopPropagation()}
+                ref={(el) =>
+                  registerInputRef(`section-${index}-video-description`, el)
+                }
               />
             </div>
 
@@ -818,6 +1095,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                 rows={5}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter video transcript"
+                onFocus={(e) => e.stopPropagation()}
+                onBlur={(e) => e.stopPropagation()}
+                ref={(el) =>
+                  registerInputRef(`section-${index}-video-transcript`, el)
+                }
               />
             </div>
 
@@ -833,7 +1115,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                   type="file"
                   id={`section-${index}-audio`}
                   accept="audio/*"
-                  onChange={(e) => handleFileChange(e, "audio", index)}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFileChange(e, "audio", index);
+                  }}
                   className="hidden" // Hide the default input
                 />
                 <label
@@ -873,6 +1159,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter key concepts in Markdown format"
               required
+              onFocus={(e) => e.stopPropagation()}
+              onBlur={(e) => e.stopPropagation()}
+              ref={(el) =>
+                registerInputRef(`section-${index}-key-concepts`, el)
+              }
             />
             <p className="mt-1 text-xs text-gray-500">
               You can use Markdown formatting for rich text
@@ -896,6 +1187,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter writing prompts in Markdown format"
               required
+              onFocus={(e) => e.stopPropagation()}
+              onBlur={(e) => e.stopPropagation()}
+              ref={(el) =>
+                registerInputRef(`section-${index}-writing-prompts`, el)
+              }
             />
             <p className="mt-1 text-xs text-gray-500">
               You can use Markdown formatting for rich text
@@ -909,26 +1205,62 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
               <div className="flex space-x-2">
                 <button
                   type="button"
-                  onClick={() => addAdditionalMaterial(index, "video")}
-                  className="inline-flex items-center px-2 py-1 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addAdditionalMaterial(index, "video");
+                  }}
+                  className={`inline-flex items-center px-2 py-1 text-sm rounded 
+                    ${
+                      existingAdditionalMaterialTypes[index]?.has("video")
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                    }`}
+                  disabled={existingAdditionalMaterialTypes[index]?.has(
+                    "video"
+                  )}
                 >
                   <PlayIcon className="h-4 w-4 mr-1" />
                   Add Video
                 </button>
                 <button
                   type="button"
-                  onClick={() => addAdditionalMaterial(index, "essay")}
-                  className="inline-flex items-center px-2 py-1 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addAdditionalMaterial(index, "essay");
+                  }}
+                  className={`inline-flex items-center px-2 py-1 text-sm rounded 
+                    ${
+                      existingAdditionalMaterialTypes[index]?.has("essay")
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-green-50 text-green-700 hover:bg-green-100"
+                    }`}
+                  disabled={existingAdditionalMaterialTypes[index]?.has(
+                    "essay"
+                  )}
                 >
                   <DocumentTextIcon className="h-4 w-4 mr-1" />
                   Add Essay
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    addAdditionalMaterial(index, "guided-meditation")
-                  }
-                  className="inline-flex items-center px-2 py-1 text-sm bg-purple-50 text-purple-700 rounded hover:bg-purple-100"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addAdditionalMaterial(index, "guided-meditation");
+                  }}
+                  className={`inline-flex items-center px-2 py-1 text-sm rounded 
+                    ${
+                      existingAdditionalMaterialTypes[index]?.has(
+                        "guided-meditation"
+                      )
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                    }`}
+                  disabled={existingAdditionalMaterialTypes[index]?.has(
+                    "guided-meditation"
+                  )}
                 >
                   <BookOpenIcon className="h-4 w-4 mr-1" />
                   Add Meditation
@@ -950,6 +1282,12 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                     <div
                       key={materialIndex}
                       className="border border-gray-200 rounded p-3"
+                      ref={(el) =>
+                        registerSectionRef(
+                          `section-${index}-material-${materialIndex}`,
+                          el
+                        )
+                      }
                     >
                       <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center">
@@ -968,9 +1306,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                         </div>
                         <button
                           type="button"
-                          onClick={() =>
-                            removeAdditionalMaterial(index, materialIndex)
-                          }
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeAdditionalMaterial(index, materialIndex);
+                          }}
                           className="text-red-500 hover:text-red-700"
                         >
                           <TrashIcon className="h-4 w-4" />
@@ -987,13 +1327,23 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                           type="text"
                           id={`material-${index}-${materialIndex}-title`}
                           value={material.title || ""}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             updateAdditionalMaterial(index, materialIndex, {
                               title: e.target.value,
-                            })
-                          }
+                            });
+                          }}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                           placeholder="Enter title"
+                          onFocus={(e) => e.stopPropagation()}
+                          onBlur={(e) => e.stopPropagation()}
+                          ref={(el) =>
+                            registerInputRef(
+                              `material-${index}-${materialIndex}-title`,
+                              el
+                            )
+                          }
                         />
                       </div>
 
@@ -1010,14 +1360,16 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                               type="file"
                               id={`material-${index}-${materialIndex}-file`}
                               accept="video/*"
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 handleFileChange(
                                   e,
                                   "additional",
                                   index,
                                   materialIndex
-                                )
-                              }
+                                );
+                              }}
                               className="hidden" // Hide the default input
                             />
                             <label
@@ -1058,14 +1410,16 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                               type="file"
                               id={`material-${index}-${materialIndex}-file`}
                               accept="audio/*"
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 handleFileChange(
                                   e,
                                   "additional",
                                   index,
                                   materialIndex
-                                )
-                              }
+                                );
+                              }}
                               className="hidden" // Hide the default input
                             />
                             <label
@@ -1104,14 +1458,24 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                           <textarea
                             id={`material-${index}-${materialIndex}-content`}
                             value={material.content || ""}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               updateAdditionalMaterial(index, materialIndex, {
                                 content: e.target.value,
-                              })
-                            }
+                              });
+                            }}
                             rows={5}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                             placeholder="Enter essay content in Markdown format"
+                            onFocus={(e) => e.stopPropagation()}
+                            onBlur={(e) => e.stopPropagation()}
+                            ref={(el) =>
+                              registerInputRef(
+                                `material-${index}-${materialIndex}-content`,
+                                el
+                              )
+                            }
                           />
                         </div>
                       )}
@@ -1135,52 +1499,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     );
   }
 
-  // Add this function to the NewClassForm.tsx component
-  const testSubmission = async () => {
-    try {
-      if (!courseId) {
-        console.error("Cannot test submission: course ID is missing");
-        return;
-      }
-
-      // Create the absolute minimum data needed
-      const minimalData = {
-        title: "Testing Class",
-        orderIndex: 2,
-        duration: 100,
-        course: 2,
-        content: {
-          video: {
-            videoFile: 86,
-            videoDescription:
-              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
-            videoTranscript:
-              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
-            AudioFile: 87,
-            duration: 50,
-          },
-          keyConcepts: {
-            content:
-              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
-            duration: 30,
-          },
-          writingPrompts: {
-            content:
-              "# Lorem Ipsum Demonstration\n\n**Lorem ipsum dolor** sit amet, *consectetur adipiscing elit*, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. `Inline code blocks` can be inserted for technical elements. [Hyperlinks](https://example.com) enhance navigation while ~~strikethrough text~~ shows edits. > Blockquotes like this one create visual emphasis for important concepts. Lists can be ordered:\n\n1. First important point\n2. Second critical element \n3. Third notable consideration\n\nOr unordered:\n* Key insight one\n* Critical factor two\n* Essential component three\n\n## Secondary Heading\n\nHorizontal rules separate sections:\n***\n\nTables organize information:\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Data A   | Data B   | Data C   |\n| Data D   | Data E   | Data F   |",
-            duration: 20,
-          },
-          additionalMaterials: null,
-        },
-      };
-
-      console.log("Testing with data:", minimalData);
-      await courseApi.createClass(minimalData);
-      console.log("Test submission successful");
-    } catch (error) {
-      console.error("Test submission error:", error);
-    }
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center">
@@ -1202,7 +1520,10 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
 
       {/* Success message */}
       {successMessage && (
-        <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-md">
+        <div
+          ref={successRef}
+          className="mb-6 p-4 bg-green-100 text-green-700 rounded-md"
+        >
           {successMessage}
         </div>
       )}
@@ -1216,8 +1537,10 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       )}
 
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         className="bg-white shadow-md rounded-lg p-6"
+        noValidate
       >
         {/* Basic class info */}
         <div className="mb-6">
@@ -1226,7 +1549,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div ref={(el) => registerSectionRef("title", el)}>
               <label
                 htmlFor="title"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -1242,6 +1565,9 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter class title"
                 required
+                onFocus={(e) => e.stopPropagation()}
+                onBlur={(e) => e.stopPropagation()}
+                ref={(el) => registerInputRef("title", el)}
               />
             </div>
 
@@ -1261,6 +1587,9 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                 min="1" // Minimum value is 1
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="1"
+                onFocus={(e) => e.stopPropagation()}
+                onBlur={(e) => e.stopPropagation()}
+                ref={(el) => registerInputRef("orderIndex", el)}
               />
               <p className="mt-1 text-xs text-gray-500">
                 Position in the course (1 = first regular class, 0 is reserved
@@ -1286,6 +1615,9 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100"
               placeholder="0"
               readOnly
+              onFocus={(e) => e.stopPropagation()}
+              onBlur={(e) => e.stopPropagation()}
+              ref={(el) => registerInputRef("duration", el)}
             />
             <p className="mt-1 text-xs text-gray-500">
               This will be calculated automatically from content sections
@@ -1302,32 +1634,72 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             <div className="flex space-x-2">
               <button
                 type="button"
-                onClick={() => addContentSection("video")}
-                className="inline-flex items-center px-3 py-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addContentSection("video");
+                }}
+                className={`inline-flex items-center px-3 py-2 rounded 
+                  ${
+                    existingSectionTypes.has("video")
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  }`}
+                disabled={existingSectionTypes.has("video")}
               >
                 <PlayIcon className="h-5 w-5 mr-2" />
                 Add Video
               </button>
               <button
                 type="button"
-                onClick={() => addContentSection("key-concepts")}
-                className="inline-flex items-center px-3 py-2 bg-green-50 text-green-700 rounded hover:bg-green-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addContentSection("key-concepts");
+                }}
+                className={`inline-flex items-center px-3 py-2 rounded 
+                  ${
+                    existingSectionTypes.has("key-concepts")
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-green-50 text-green-700 hover:bg-green-100"
+                  }`}
+                disabled={existingSectionTypes.has("key-concepts")}
               >
                 <DocumentTextIcon className="h-5 w-5 mr-2" />
                 Add Key Concepts
               </button>
               <button
                 type="button"
-                onClick={() => addContentSection("writing-prompts")}
-                className="inline-flex items-center px-3 py-2 bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addContentSection("writing-prompts");
+                }}
+                className={`inline-flex items-center px-3 py-2 rounded 
+                  ${
+                    existingSectionTypes.has("writing-prompts")
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
+                  }`}
+                disabled={existingSectionTypes.has("writing-prompts")}
               >
                 <BookOpenIcon className="h-5 w-5 mr-2" />
                 Add Writing Prompts
               </button>
               <button
                 type="button"
-                onClick={() => addContentSection("additional-materials")}
-                className="inline-flex items-center px-3 py-2 bg-purple-50 text-purple-700 rounded hover:bg-purple-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addContentSection("additional-materials");
+                }}
+                className={`inline-flex items-center px-3 py-2 rounded 
+                  ${
+                    existingSectionTypes.has("additional-materials")
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                  }`}
+                disabled={existingSectionTypes.has("additional-materials")}
               >
                 <QuestionMarkCircleIcon className="h-5 w-5 mr-2" />
                 Add Materials
@@ -1347,7 +1719,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
               </p>
               <button
                 type="button"
-                onClick={() => addContentSection("video")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addContentSection("video");
+                }}
                 className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
@@ -1378,15 +1754,6 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
           >
             Cancel
           </Link>
-
-          {/* Add this test button */}
-          <button
-            type="button"
-            onClick={testSubmission}
-            className="px-6 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-          >
-            Test Submission
-          </button>
 
           <button
             type="submit"

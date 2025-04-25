@@ -171,7 +171,7 @@ const CourseDetailPage = () => {
         </div>
         <div className="flex space-x-3">
           <Link
-            href={`/dashboard/admin/course/edit/${course.id}`}
+            href={`/dashboard/admin/course/edit/${course.attributes.slug}`}
             className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
           >
             <PencilSquareIcon className="h-5 w-5 mr-1" />
