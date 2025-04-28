@@ -7,13 +7,13 @@ import {
   CodeBracketIcon,
   ListBulletIcon,
   LinkIcon,
+  PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeftIcon,
   ExclamationCircleIcon,
   ArrowPathIcon,
-  PhotoIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { fetchAPI, blogApi } from "@/lib/strapi";
@@ -64,6 +64,9 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
     string | null
   >(null);
   const [currentMetaImage, setCurrentMetaImage] = useState<string | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
@@ -504,6 +507,14 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
         }
         cursorOffset = 4;
         break;
+      case "image":
+        // For images, insert the markdown image syntax
+        newText =
+          text.substring(0, start) +
+          `![${selectedText || "Image"}](image_url)` +
+          text.substring(end);
+        cursorOffset = selectedText ? 2 : 7;
+        break;
     }
 
     setFormData({ ...formData, content: newText });
@@ -539,6 +550,239 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
         textareaRef.current.focus();
       }
     }, 0);
+  };
+
+  // Insert image markdown at cursor position
+  const insertImageMarkdown = (imageUrl: string, altText = "Image") => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    // Create image markdown
+    const imageMarkdown = `![${altText}](${imageUrl})`;
+
+    // Insert at cursor position
+    const newContent =
+      text.substring(0, start) + imageMarkdown + text.substring(end);
+
+    setFormData({ ...formData, content: newContent });
+
+    // Set cursor position after the inserted image markdown
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newCursorPos = start + imageMarkdown.length;
+        textareaRef.current.selectionStart = newCursorPos;
+        textareaRef.current.selectionEnd = newCursorPos;
+        textareaRef.current.focus();
+      }
+    }, 0);
+  };
+
+  // Upload image to Strapi and get the URL
+  const uploadImageToStrapi = async (file: File): Promise<string> => {
+    setIsUploadingImage(true);
+    setUploadProgress(0);
+
+    try {
+      const formData = new FormData();
+      formData.append("files", file);
+
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
+      }, 200);
+
+      // Get API URL from environment variable
+      const apiUrl =
+        process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
+
+      // Get the token - try multiple sources
+      const token =
+        process.env.NEXT_PUBLIC_STRAPI_TOKEN ||
+        process.env.NEXT_PUBLIC_STRAPI_API_TOKEN ||
+        localStorage.getItem("jwt");
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Direct fetch instead of using fetchAPI helper
+      const response = await fetch(`${apiUrl}/api/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Don't set Content-Type header as it's automatically set by FormData
+        },
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error("Strapi upload response:", response.status, errorData);
+        throw new Error(
+          errorData?.error?.message ||
+            `Upload failed with status: ${response.status}`
+        );
+      }
+
+      const uploadResult = await response.json();
+      console.log("Upload result:", uploadResult);
+
+      // Get the URL of the uploaded image
+      if (
+        uploadResult &&
+        Array.isArray(uploadResult) &&
+        uploadResult[0] &&
+        uploadResult[0].url
+      ) {
+        let imageUrl = uploadResult[0].url;
+
+        // Check if the URL is already absolute (starts with http or https)
+        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+          // For Cloudinary or other external providers, use the URL as is
+          setUploadProgress(100);
+          return imageUrl;
+        } else {
+          // For local storage, prepend the API URL
+          imageUrl = `${apiUrl}${imageUrl}`;
+          setUploadProgress(100);
+          return imageUrl;
+        }
+      } else {
+        console.error("Unexpected upload response format:", uploadResult);
+        throw new Error("Failed to get image URL from upload response");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert(
+        `Failed to upload image: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+      throw error;
+    } finally {
+      // Reset upload state after a short delay to show complete progress
+      setTimeout(() => {
+        setIsUploadingImage(false);
+        setUploadProgress(0);
+      }, 500);
+    }
+  };
+
+  // Handle file drop
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length === 0) return;
+
+    // Process each dropped file
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Check if it's an image
+      if (!file.type.startsWith("image/")) {
+        alert(`File "${file.name}" is not an image`);
+        continue;
+      }
+
+      try {
+        // Upload the image and get its URL
+        const imageUrl = await uploadImageToStrapi(file);
+
+        // Insert image markdown at cursor position
+        insertImageMarkdown(imageUrl, file.name.split(".")[0]);
+      } catch (error) {
+        console.error(`Error processing image "${file.name}":`, error);
+        alert(`Failed to upload image "${file.name}". Please try again.`);
+      }
+    }
+  };
+
+  // Handle drag events
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
+
+  // Handle pasting images
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData.items;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      // Check if the pasted content is an image
+      if (item.type.indexOf("image") !== -1) {
+        e.preventDefault(); // Prevent the default paste behavior
+
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        try {
+          // Upload the image and get its URL
+          const imageUrl = await uploadImageToStrapi(file);
+
+          // Insert image markdown at cursor position
+          insertImageMarkdown(imageUrl, "Pasted image");
+        } catch (error) {
+          console.error("Error processing pasted image:", error);
+          alert("Failed to upload pasted image. Please try again.");
+        }
+
+        // Only process the first image in the clipboard
+        break;
+      }
+    }
+  };
+
+  // Handle manual image upload via button
+  const handleImageUploadClick = async () => {
+    // Create an input element
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    // Handle file selection
+    input.onchange = async (e) => {
+      const files = (e.target as HTMLInputElement).files;
+      if (!files || files.length === 0) return;
+
+      const file = files[0];
+
+      try {
+        console.log("Selected file:", file.name, file.type, file.size);
+
+        // Upload the image and get its URL
+        const imageUrl = await uploadImageToStrapi(file);
+
+        // Insert image markdown at cursor position
+        insertImageMarkdown(imageUrl, file.name.split(".")[0]);
+
+        console.log("Successfully uploaded and inserted image:", file.name);
+      } catch (error) {
+        // Error is already logged and alerted in uploadImageToStrapi
+        console.error("Failed to process selected image");
+        // Don't show another alert as the upload function already shows one
+      }
+    };
+
+    // Trigger file browser
+    input.click();
   };
 
   // Function to detect and apply markdown syntax on selection and shortcut keys
@@ -678,20 +922,55 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
 
   // Upload a file to Strapi
   const uploadFile = async (file: File): Promise<number> => {
-    const formData = new FormData();
-    formData.append("files", file);
+    try {
+      console.log("Starting file upload:", file.name);
+      const formData = new FormData();
+      formData.append("files", file);
 
-    // Use fetchAPI helper instead of direct fetch
-    const uploadResult: any = await fetchAPI("/api/upload", {
-      method: "POST",
-      headers: {
-        // Don't set Content-Type header as it's automatically set by FormData
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-      },
-      body: formData,
-    });
+      // Get API URL from environment variable
+      const apiUrl =
+        process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
 
-    return uploadResult[0].id;
+      // Get the token
+      const token =
+        process.env.NEXT_PUBLIC_STRAPI_API_TOKEN ||
+        process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Direct fetch for file upload
+      const response = await fetch(`${apiUrl}/api/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error("Strapi upload response:", response.status, errorData);
+        throw new Error(
+          errorData?.error?.message ||
+            `Upload failed with status: ${response.status}`
+        );
+      }
+
+      const uploadResult = await response.json();
+      console.log("Upload result:", uploadResult);
+
+      // Return just the ID of the first uploaded file
+      if (Array.isArray(uploadResult) && uploadResult.length > 0) {
+        return uploadResult[0].id;
+      } else {
+        throw new Error("Invalid upload response format");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
+    }
   };
 
   // Handle form submission
@@ -709,11 +988,31 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
       let metaImageId = null;
 
       if (featuredImage) {
-        featuredImageId = await uploadFile(featuredImage);
+        try {
+          console.log("Attempting to upload featured image...");
+          featuredImageId = await uploadFile(featuredImage);
+          console.log(
+            "Featured image uploaded successfully, ID:",
+            featuredImageId
+          );
+        } catch (uploadError) {
+          console.error("Featured image upload failed:", uploadError);
+          setErrors({
+            form: "Failed to upload featured image. Please try again or skip adding an image.",
+          });
+          setIsSaving(false);
+          return;
+        }
       }
 
       if (metaImage) {
-        metaImageId = await uploadFile(metaImage);
+        try {
+          metaImageId = await uploadFile(metaImage);
+          console.log("Meta image uploaded successfully, ID:", metaImageId);
+        } catch (uploadError) {
+          console.error("Meta image upload failed:", uploadError);
+          // Continue with form submission even if meta image fails
+        }
       }
 
       // Prepare request body with all the fields
@@ -735,28 +1034,21 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
           metaDescription: formData.metaDescription || undefined,
           keywords: formData.keywords || undefined,
           canonicalURL: formData.canonicalUrl || undefined,
-          metaImage: metaImageId ? { connect: [metaImageId] } : undefined,
+          ...(metaImageId ? { metaImage: metaImageId } : {}),
         },
 
-        // Handle featured image
-        featuredImage: featuredImageId
-          ? { connect: [featuredImageId] }
-          : undefined,
+        // Handle featured image - use direct ID as per Strapi docs
+        ...(featuredImageId ? { featuredImage: featuredImageId } : {}),
 
-        // If publishImmediately is true and it's a new post, set publishedAt to now
-        ...(formData.publishImmediately &&
-          !isEditMode && { publishedAt: new Date().toISOString() }),
-        // If we're editing a post and changing its published state
-        ...(isEditMode && {
-          publishedAt: formData.publishImmediately
-            ? // If it wasn't published before but should be now, set it to now
-              new Date().toISOString()
-            : // If it should be unpublished, set to null
-              null,
-        }),
+        // Handle published state
+        publishedAt: formData.publishImmediately
+          ? new Date().toISOString()
+          : null,
       };
 
-      // Use blogApi helpers instead of direct fetch
+      console.log("Submitting blog post data:", postData);
+
+      // Use blogApi helpers
       if (isEditMode) {
         await blogApi.updatePost(postId!, postData);
       } else {
@@ -769,7 +1061,7 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
           : "Blog post created successfully!"
       );
 
-      // If creating a new post, reset form or redirect
+      // If creating a new post, redirect after a brief delay
       if (!isEditMode) {
         setTimeout(() => {
           router.push("/dashboard/admin/blog");
@@ -793,6 +1085,7 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
       </div>
     );
   }
+
   // Return statement for BlogPostForm component
   return (
     <div className="container mx-auto px-4 py-8">
@@ -955,7 +1248,7 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
           </p>
         </div>
 
-        {/* Content - Further Enhanced Rich Text (Markdown) */}
+        {/* Content - Enhanced Rich Text Editor with Drag & Drop Image Support */}
         <div className="mb-6">
           <label
             htmlFor="content"
@@ -963,7 +1256,16 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
           >
             Content <span className="text-red-500">*</span>
           </label>
-          <div className="border border-gray-300 rounded-md overflow-hidden">
+          <div
+            className={`border ${
+              isDraggingOver
+                ? "border-purple-500 bg-purple-50"
+                : "border-gray-300"
+            } rounded-md overflow-hidden`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <div className="bg-gray-50 px-3 py-2 border-b border-gray-300 flex justify-between items-center">
               <span className="text-xs text-gray-500">Markdown Editor</span>
               <div className="flex space-x-2">
@@ -1057,26 +1359,64 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
                 >
                   <CodeBracketIcon className="h-4 w-4" />
                 </button>
+
+                {/* Add Image button */}
+                <button
+                  type="button"
+                  onClick={handleImageUploadClick}
+                  title="Insert Image"
+                  className="p-1 rounded hover:bg-gray-200"
+                >
+                  <PhotoIcon className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
             <div className="relative">
               {/* Editor */}
               {!showPreview && (
-                <textarea
-                  ref={textareaRef}
-                  id="content"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleChange}
-                  onKeyDown={handleContentKeyDown}
-                  onKeyUp={handleKeyUp}
-                  rows={15}
-                  className={`w-full px-4 py-2 border-0 focus:outline-none focus:ring-0 ${
-                    errors.content ? "bg-red-50" : "bg-white"
-                  }`}
-                  placeholder="Write your blog post content here using Markdown..."
-                />
+                <>
+                  <textarea
+                    ref={textareaRef}
+                    id="content"
+                    name="content"
+                    value={formData.content}
+                    onChange={handleChange}
+                    onKeyDown={handleContentKeyDown}
+                    onKeyUp={handleKeyUp}
+                    onPaste={handlePaste}
+                    rows={15}
+                    className={`w-full px-4 py-2 border-0 focus:outline-none focus:ring-0 ${
+                      errors.content ? "bg-red-50" : "bg-white"
+                    }`}
+                    placeholder="Write your blog post content here using Markdown... Drag and drop images to upload."
+                  />
+                  {isDraggingOver && (
+                    <div className="absolute inset-0 bg-purple-100 bg-opacity-70 flex items-center justify-center">
+                      <div className="p-4 bg-white rounded-lg shadow-md">
+                        <p className="text-purple-700 font-semibold">
+                          Drop images here to upload
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {isUploadingImage && (
+                    <div className="absolute bottom-4 right-4 bg-white p-2 rounded-md shadow-md">
+                      <div className="flex items-center">
+                        <ArrowPathIcon className="h-4 w-4 text-purple-600 animate-spin mr-2" />
+                        <span className="text-sm text-gray-700">
+                          Uploading image: {uploadProgress}%
+                        </span>
+                      </div>
+                      <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
+                        <div
+                          className="bg-purple-600 h-1.5 rounded-full"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
               {/* Preview */}
               {showPreview && (
@@ -1099,7 +1439,7 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
           <div className="mt-2 flex items-center justify-between">
             <p className="text-xs text-gray-500">
               Supports Markdown: **bold**, *italic*, headings, lists, code
-              blocks, and more
+              blocks, and drag & drop images
             </p>
             <div className="flex items-center space-x-2">
               <p className="text-xs text-gray-500">
