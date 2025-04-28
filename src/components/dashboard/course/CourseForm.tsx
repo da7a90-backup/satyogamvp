@@ -69,11 +69,7 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
     endDate: "",
     instructorIds: [] as number[],
     publishImmediately: false,
-
-    // Content fields
-    whatYouWillLearn: {
-      learningPoints: [] as LearningPoint[],
-    },
+    whatYouWillLearn: { learningPoints: [] as LearningPoint[] },
     courseFeatures: {
       videoClasses: "",
       guidedMeditations: "",
@@ -81,10 +77,9 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
       supportInfo: "",
       curriculumAids: "",
     },
-    featuredQuote: {
-      quoteText: "",
-      authorName: "",
-    },
+    featuredQuote: { quoteText: "", authorName: "" },
+    introduction: "",
+    addendum: "",
   });
 
   // UI states
@@ -205,13 +200,11 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
               : "",
             instructorIds: instructorIds,
             publishImmediately: !!data.attributes.publishedAt,
-
-            // Content fields
-            whatYouWillLearn: {
-              learningPoints: learningPoints,
-            },
+            whatYouWillLearn: { learningPoints: learningPoints },
             courseFeatures: courseFeatures,
             featuredQuote: featuredQuote,
+            introduction: data.attributes.introduction || "", // <-- New field
+            addendum: data.attributes.addendum || "", // <-- New field
           });
         } catch (error) {
           console.error("Error fetching course:", error);
@@ -609,6 +602,8 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
         price: formData.isFree ? 0 : formData.price,
         startDate: formData.startDate || null,
         endDate: formData.endDate || null,
+        introduction: formData.introduction,
+        addendum: formData.addendum,
 
         // Handle instructors correctly for Strapi v4
         instructors: {
@@ -668,7 +663,7 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
       // If creating a new course, redirect after a brief delay
       if (!isEditMode) {
         setTimeout(() => {
-          router.push("/dashboard/admin/course");
+          router.push("/dashboard/admin/course/${coureseId}");
         }, 1500);
       }
     } catch (error) {
@@ -1219,6 +1214,36 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Introduction Section */}
+        <div className="mb-6 border-t border-gray-200 pt-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Introduction
+          </h3>
+          <textarea
+            id="introduction"
+            name="introduction"
+            value={formData.introduction}
+            onChange={handleChange}
+            rows={6}
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Write an introductory text for the course..."
+          />
+        </div>
+
+        {/* Addendum Section */}
+        <div className="mb-6 border-t border-gray-200 pt-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Addendum</h3>
+          <textarea
+            id="addendum"
+            name="addendum"
+            value={formData.addendum}
+            onChange={handleChange}
+            rows={6}
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Write any additional notes or afterword for the course..."
+          />
         </div>
 
         {/* Preview Media */}

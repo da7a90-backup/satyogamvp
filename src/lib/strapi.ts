@@ -76,7 +76,7 @@ export async function fetchAPI<T>(
 export const buildStrapiUrl = (
   endpoint: string,
   filters?: Record<string, unknown>,
-  pagination?: { page?: number; pageSize?: number },
+  pagination?: { page?: number; pageSize?: number; publicationState?: string },
   sort?: string | string[],
   populate?: string | string[]
 ): string => {
@@ -107,6 +107,10 @@ export const buildStrapiUrl = (
     }
     if (pagination.pageSize) {
       params.append("pagination[pageSize]", String(pagination.pageSize));
+    }
+    // Add publication state if provided
+    if (pagination.publicationState) {
+      params.append("publicationState", pagination.publicationState);
     }
   }
 

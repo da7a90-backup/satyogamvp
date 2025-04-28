@@ -323,15 +323,17 @@ const CourseIndex = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
+                          {course.attributes.publishedAt && (
+                            <Link
+                              href={`/dashboard/admin/course/${course.attributes.slug}`}
+                              target="_blank"
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              <EyeIcon className="h-5 w-5" />
+                            </Link>
+                          )}
                           <Link
-                            href={`/dashboard/admin/course/${course.attributes.slug}`}
-                            target="_blank"
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            <EyeIcon className="h-5 w-5" />
-                          </Link>
-                          <Link
-                            href={`/dashboard/admin/course/${course.id}/classes`}
+                            href={`/dashboard/admin/course/${course.attributes.slug}/classes`}
                             className="text-green-600 hover:text-green-900"
                           >
                             <svg
@@ -350,7 +352,7 @@ const CourseIndex = () => {
                             </svg>
                           </Link>
                           <Link
-                            href={`/dashboard/admin/course/edit/${course.attributes.slug}`}
+                            href={`/dashboard/admin/course/${course.attributes.slug}/edit`}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             <PencilIcon className="h-5 w-5" />

@@ -18,6 +18,9 @@ import {
   ClipboardDocumentListIcon,
   PhotoIcon,
   ChatBubbleBottomCenterTextIcon,
+  DocumentTextIcon,
+  PlayIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import ReactMarkdown from "react-markdown";
 
@@ -27,6 +30,7 @@ const CourseDetailPage = () => {
   const slug = params.slug as string;
 
   const [course, setCourse] = useState<any>(null);
+  const [classes, setClasses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
@@ -49,6 +53,23 @@ const CourseDetailPage = () => {
         }
 
         setCourse(response);
+
+        // Fetch classes after we have the course
+        if (response.id) {
+          try {
+            const classesResponse = await courseApi.getClasses(
+              response.id.toString()
+            );
+            console.log("Classes Response:", classesResponse);
+
+            if (classesResponse.data) {
+              setClasses(classesResponse.data);
+            }
+          } catch (classError) {
+            console.error("Error fetching classes:", classError);
+            // Continue even if classes fail to load
+          }
+        }
       } catch (err) {
         console.error("Error fetching course:", err);
         setError(
@@ -92,6 +113,22 @@ const CourseDetailPage = () => {
     // Otherwise, prepend the Strapi URL
     const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "";
     return `${strapiUrl}${urlPath}`;
+  };
+
+  // Format duration in minutes to hours and minutes
+  const formatDuration = (minutes: number) => {
+    if (!minutes || isNaN(minutes)) return "Duration not set";
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (hours > 0) {
+      return `${hours} hr${hours > 1 ? "s" : ""} ${
+        remainingMinutes > 0 ? `${remainingMinutes} min` : ""
+      }`;
+    } else {
+      return `${remainingMinutes} min`;
+    }
   };
 
   if (isLoading) {
@@ -147,6 +184,8 @@ const CourseDetailPage = () => {
   const courseFeatures = course?.attributes?.courseFeatures || {};
   const previewMedia = course?.attributes?.previewMedia;
   const featuredQuote = course?.attributes?.featuredQuote;
+  const introduction = course?.attributes?.introduction || "";
+  const addendum = course?.attributes?.addendum || "";
 
   const formattedStartDate = startDate
     ? new Date(startDate).toLocaleDateString()
@@ -171,7 +210,7 @@ const CourseDetailPage = () => {
         </div>
         <div className="flex space-x-3">
           <Link
-            href={`/dashboard/admin/course/edit/${course.attributes.slug}`}
+            href={`/dashboard/admin/course/${course.attributes.slug}/edit`}
             className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
           >
             <PencilSquareIcon className="h-5 w-5 mr-1" />
@@ -468,16 +507,128 @@ const CourseDetailPage = () => {
                 Course Classes
               </h3>
               <Link
-                href={`/dashboard/admin/course/${course.attributes.slug}/class/new`}
+                href={`/dashboard/admin/course/${course.attributes.slug}/classes`}
                 className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
               >
-                Add Class
+                Manage Classes
               </Link>
             </div>
 
-            {/* This would be populated with actual class data */}
-            <div className="bg-gray-50 p-4 rounded-md text-center text-gray-500">
-              No classes have been added to this course yet.
+            {/* Display course classes including intro and addendum */}
+            <div className="space-y-4">
+              {/* Introduction as the first item */}
+              {introduction && (
+                <div className="bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="p-4 border-l-4 border-blue-500">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-lg text-gray-900">
+                        Introduction
+                      </h4>
+                    </div>
+                    <div className="prose max-w-none mt-2">
+                      <ReactMarkdown>{introduction}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Regular classes */}
+              {classes.length > 0 ? (
+                classes
+                  .sort(
+                    (a, b) => a.attributes.orderIndex - b.attributes.orderIndex
+                  )
+                  .map((classItem, index) => (
+                    <div
+                      key={classItem.id}
+                      className="bg-gray-50 rounded-lg overflow-hidden"
+                    >
+                      <div className="p-4 border-l-4 border-purple-500">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-lg text-gray-900">
+                            {index + 1}. {classItem.attributes.title}
+                          </h4>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <ClockIcon className="h-4 w-4 mr-1" />
+                            {formatDuration(classItem.attributes.duration)}
+                          </div>
+                        </div>
+
+                        {/* Display class content types */}
+                        {classItem.attributes.content && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {classItem.attributes.content.video && (
+                              <div className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs">
+                                <PlayIcon className="h-3 w-3 mr-1" />
+                                Video
+                              </div>
+                            )}
+                            {classItem.attributes.content.essay && (
+                              <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs">
+                                <DocumentTextIcon className="h-3 w-3 mr-1" />
+                                Essay
+                              </div>
+                            )}
+                            {classItem.attributes.content.guidedMeditation && (
+                              <div className="inline-flex items-center px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-xs">
+                                <DocumentTextIcon className="h-3 w-3 mr-1" />
+                                Guided Meditation
+                              </div>
+                            )}
+                            {classItem.attributes.content
+                              .additionalMaterials && (
+                              <div className="inline-flex items-center px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-xs">
+                                <DocumentTextIcon className="h-3 w-3 mr-1" />
+                                Additional Materials
+                              </div>
+                            )}
+                            {classItem.attributes.content.writingPrompts && (
+                              <div className="inline-flex items-center px-2 py-1 bg-rose-100 text-rose-800 rounded-md text-xs">
+                                <DocumentTextIcon className="h-3 w-3 mr-1" />
+                                Writing Prompts
+                              </div>
+                            )}
+                            {classItem.attributes.content.keyConceptc && (
+                              <div className="inline-flex items-center px-2 py-1 bg-cyan-100 text-cyan-800 rounded-md text-xs">
+                                <DocumentTextIcon className="h-3 w-3 mr-1" />
+                                Key Concepts
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="mt-2 flex justify-end">
+                          <Link
+                            href={`/dashboard/admin/course/${course.attributes.slug}/class/edit/${classItem.id}`}
+                            className="text-purple-600 hover:text-purple-800 text-sm"
+                          >
+                            Edit Class
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+              ) : (
+                <div className="bg-gray-50 p-4 rounded-md text-center text-gray-500">
+                  No classes have been added to this course yet.
+                </div>
+              )}
+
+              {/* Addendum as the last item */}
+              {addendum && (
+                <div className="bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="p-4 border-l-4 border-green-500">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-lg text-gray-900">
+                        Addendum
+                      </h4>
+                    </div>
+                    <div className="prose max-w-none mt-2">
+                      <ReactMarkdown>{addendum}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
