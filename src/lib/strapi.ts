@@ -239,6 +239,66 @@ export const blogApi = {
         return null;
       }
     },
+
+    /**
+ * Get all blog categories
+ */
+getAllCategories: async () => {
+  try {
+    const url = buildStrapiUrl(
+      "/api/blog-categories",
+      undefined,
+      { pageSize: 100 },
+      "name:asc",
+      []
+    );
+    
+    console.log("Fetching all blog categories:", url);
+    
+    const response: any = await fetchAPI(url);
+    
+    // Log the first category for debugging
+    if (response?.data?.length > 0) {
+      console.log("Sample category structure:", {
+        id: response.data[0].id,
+        name: response.data[0].attributes?.name,
+        slug: response.data[0].attributes?.slug
+      });
+    }
+    
+    return response;
+  } catch (error) {
+    console.error("Error fetching blog categories:", error);
+    return { data: [] };
+  }
+},
+
+/**
+ * Get blog posts by category slug
+ */
+getPostsByCategory: async (
+  categorySlug: string,
+  page = 1,
+  pageSize = 10,
+  sort = "publishedAt:desc"
+) => {
+  try {
+    const url = buildStrapiUrl(
+      "/api/blog-posts",
+      { "category.slug": { $eq: categorySlug } },
+      { page, pageSize },
+      sort,
+      ["featuredImage", "category"]
+    );
+    
+    console.log(`Fetching posts for category slug "${categorySlug}":`, url);
+    
+    return await fetchAPI(url);
+  } catch (error) {
+    console.error(`Error fetching posts for category slug "${categorySlug}":`, error);
+    return { data: [] };
+  }
+},
  
   /**
    * Get related blog posts (posts in the same category)
@@ -389,51 +449,22 @@ getHomePageData: async () => {
   }
 },
 /**
- * Get featured blog posts for homepage
+ * Get featured blog posts for homepage with simple populate
  */
 getFeaturedBlogPosts: async (limit = 5) => {
   try {
-    // First, try a straightforward approach with populate
-    const url = `/api/blog-posts?sort=publishedAt:desc&pagination[pageSize]=${limit}&populate=featuredImage,author,category`;
-    console.log("Fetching blog posts from:", url);
+    // Simple populate for featured image and basic fields
+    const url = `/api/blog-posts?sort=publishedAt:desc&pagination[pageSize]=${limit}&populate=featuredImage,category`;
+    console.log("Fetching blog posts:", url);
     
-    // Request with detailed logging
-    try {
-      const response: any = await fetchAPI(url);
-      
-      // Log information about the response structure
-      console.log("Blog API response structure:", 
-        Object.keys(response).join(', '),
-        response.data ? `Data array length: ${response.data.length}` : "No data array"
-      );
-      
-      // Log sample of first post if available
-      if (response.data && response.data.length > 0) {
-        const firstPost = response.data[0];
-        console.log("First post ID:", firstPost.id);
-        console.log("First post attributes keys:", 
-          Object.keys(firstPost.attributes || {}).join(', ')
-        );
-        
-        // Check for image data
-        if (firstPost.attributes?.featuredImage) {
-          console.log("Image data structure:", 
-            JSON.stringify(firstPost.attributes.featuredImage, null, 2).substring(0, 200) + "..."
-          );
-        }
-      }
-      
-      return response;
-    } catch (error) {
-      console.error("First blog fetch approach failed:", error);
-      
-      // Try an alternative approach with deep populate
-      const url2 = `/api/blog-posts?sort=publishedAt:desc&pagination[pageSize]=${limit}&populate[featuredImage][populate]=*&populate[author][populate]=*&populate[category][populate]=*`;
-      console.log("Trying alternative blog fetch approach:", url2);
-      
-      const response2 = await fetchAPI(url2);
-      return response2;
-    }
+    const response: any = await fetchAPI(url);
+    
+    // Log the basic structure of the response
+    console.log("Blog API response:", 
+      response.data ? `Found ${response.data.length} posts` : "No posts found"
+    );
+    
+    return response;
   } catch (error) {
     console.error("Error fetching featured blog posts:", error);
     // Return an empty result instead of throwing

@@ -1,52 +1,55 @@
+// app/blog/page.tsx
 import { Metadata } from 'next';
 import { BlogPage } from '@/components/blog/Blog';
 import { blogApi } from '@/lib/strapi';
+import { transformBlogPosts } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Blog - Sat Yoga',
   description: 'Explore transformative insights, spiritual wisdom, and practical guidance from the Sat Yoga community.',
 };
 
-// Transform Strapi data to the format expected by the BlogPage component
-function transformStrapiData(strapiData: any) {
-  if (!strapiData || !strapiData.data) return [];
-  
-  return strapiData.data.map((post: any) => {
-    const attrs = post.attributes;
-    return {
-      id: post.id.toString(),
-      title: attrs.title || '',
-      slug: attrs.slug || '',
-      excerpt: attrs.excerpt || '',
-      content: attrs.content || '',
-      featuredImage: attrs.featuredImage?.data?.attributes?.url || '',
-      category: attrs.category?.data?.attributes?.name || 'Uncategorized',
-      author: {
-        id: attrs.author?.data?.id?.toString() || '0',
-        name: attrs.author?.data?.attributes?.name || 'Unknown',
-        imageUrl: attrs.author?.data?.attributes?.avatar?.data?.attributes?.url || '',
-      },
-      publishedAt: attrs.publishedAt || new Date().toISOString(),
-      readTime: attrs.readTime || Math.ceil(((attrs.content || '').length / 1000) * 2), // Estimate reading time
-      isFeatured: attrs.isFeatured || false,
-    };
-  });
-}
-
-// This is a server component that fetches blog posts from the API
+// This is a server component that fetches blog posts and categories from the API
 export default async function BlogPageRoute() {
   try {
-    // Fetch blog posts from Strapi using blogApi
-    const data = await blogApi.getPosts(1, 12); // page 1, 12 posts per page
+    // Fetch all blog posts
+    console.log("Fetching blog posts for blog page...");
+    const blogResponse: any = await blogApi.getPosts(1, 20, "", "publishedAt:desc");
+    console.log(`Fetched ${blogResponse?.data?.length || 0} blog posts`);
     
-    // Transform data for the component
-    const posts = transformStrapiData(data);
+    // Fetch all blog categories from Strapi
+    console.log("Fetching blog categories...");
+    const categoriesResponse = await blogApi.getAllCategories();
+    const strapiCategories = categoriesResponse?.data || [];
+    console.log(`Fetched ${strapiCategories.length} categories from Strapi`);
     
-    return <BlogPage initialPosts={posts} />;
+    // Transform the categories from Strapi format to simple strings
+    const categoryNames = strapiCategories.map((cat:any) => 
+      cat.attributes.name as string
+    );
+    
+    // Create the full categories array with 'All' and 'Featured articles' at the beginning
+    const allCategories = ['All', 'Featured articles', ...categoryNames];
+    console.log("All categories:", allCategories);
+    
+    // Transform the blog posts to match the BlogPage component format
+    const transformedPosts = transformBlogPosts(blogResponse?.data || []);
+    
+    // Render the BlogPage component with the transformed posts and categories
+    return <BlogPage 
+      initialPosts={transformedPosts} 
+      initialCategories={allCategories}
+    />;
   } catch (error) {
-    console.error('Error fetching blog posts:', error);
+    console.error("Error loading blog page data:", error);
     
-    // Return empty array if fetch fails - you could show an error state instead
-    return <BlogPage initialPosts={[]} />;
+    // Render the BlogPage with an empty array in case of error
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Blog</h1>
+        <p className="mb-4">We encountered a problem while loading the blog content.</p>
+        <p className="text-gray-600 mb-8">Please try again later.</p>
+      </div>
+    );
   }
 }

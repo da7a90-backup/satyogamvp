@@ -16,7 +16,17 @@ import {
   QuestionMarkCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  XMarkIcon
+  XMarkIcon,
+  ClipboardDocumentListIcon,
+  ClockIcon,
+  CalendarIcon,
+  BookmarkIcon,
+  UserGroupIcon,
+  BookmarkSquareIcon,
+  ChatBubbleLeftRightIcon,
+  InboxArrowDownIcon,
+  PaperAirplaneIcon,
+  TicketIcon
 } from '@heroicons/react/24/outline';
 
 const AdminSidebar = () => {
@@ -54,6 +64,52 @@ const AdminSidebar = () => {
         { name: 'Memberships', href: '/dashboard/admin/users/memberships' },
         { name: 'Permissions', href: '/dashboard/admin/users/permissions' },
       ]
+    },
+    {
+      name: 'Activity Log',
+      href: '/dashboard/admin/activity-log',
+      icon: ClockIcon,
+    },
+    {
+      name: 'Forms',
+      href: '/dashboard/admin/forms',
+      icon: ClipboardDocumentListIcon,
+      subItems: [
+        { name: 'Retreat Applications', href: '/dashboard/admin/forms/retreat-applications' },
+        { name: 'Contact', href: '/dashboard/admin/forms/contact' },
+        { name: 'Support Tickets', href: '/dashboard/admin/forms/support-tickets' },
+      ]
+    },
+    {
+      name: 'Events',
+      href: '/dashboard/admin/events',
+      icon: CalendarIcon,
+      subItems: [
+        { name: 'Calendar', href: '/dashboard/admin/events/calendar' },
+        { name: 'Event Types', href: '/dashboard/admin/events/event-types' },
+        { name: 'Registrations', href: '/dashboard/admin/events/registrations' },
+      ]
+    },
+    {
+      name: 'Library',
+      href: '/dashboard/admin/library',
+      icon: BookmarkIcon,
+      subItems: [
+        { name: 'Teachings', href: '/dashboard/admin/library/teachings' },
+        { name: 'Guided Meditations', href: '/dashboard/admin/library/meditations' },
+        { name: 'Q & A', href: '/dashboard/admin/library/qanda' },
+        { name: 'Essays', href: '/dashboard/admin/library/essays' },
+      ]
+    },
+    {
+      name: 'Book Groups',
+      href: '/dashboard/admin/book-groups',
+      icon: BookmarkSquareIcon,
+    },
+    {
+      name: 'Shunyamurti Recommends',
+      href: '/dashboard/admin/shunya-recommends',
+      icon: BookOpenIcon,
     },
     {
       name: 'Courses',
@@ -238,23 +294,6 @@ const AdminSidebar = () => {
           </svg>
         </button>
       </div>
-
-      {/* Upgrade modal */}
-      {showUpgradeModal && (
-        <div className="mx-4 mb-4 p-4 bg-white rounded-lg border border-gray-200 relative">
-          <button 
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-            onClick={() => setShowUpgradeModal(false)}
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
-          <h3 className="text-sm font-medium mb-1">Admin Pro Upgrade</h3>
-          <p className="text-xs text-gray-500 mb-3">Get advanced analytics and batch operations</p>
-          <button className="w-full bg-purple-600 text-white py-2 rounded-md text-sm font-medium hover:bg-purple-700">
-            Upgrade now
-          </button>
-        </div>
-      )}
     </div>
   );
 };

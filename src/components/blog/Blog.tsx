@@ -26,7 +26,7 @@ export interface BlogPost {
   isFeatured?: boolean;
 }
 
-export type BlogCategory = 'All' | 'Featured articles' | 'Ashram Life' | 'Arts & Culture' | 'Recipes' | 'Essays';
+export type BlogCategory = string;
 
 // Featured Blog Component
 interface FeaturedBlogProps {
@@ -192,10 +192,11 @@ export const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
 
 // Blog Category Filter
 interface BlogCategoryFilterProps {
-  categories: Array<BlogCategory>;
-  activeCategory: BlogCategory;
-  onCategoryChange: (category: BlogCategory) => void;
+  categories: Array<string>;  // Changed from Array<BlogCategory>
+  activeCategory: string;     // Changed from BlogCategory
+  onCategoryChange: (category: string) => void;  // Changed from (category: BlogCategory) => void
 }
+
 
 export const BlogCategoryFilter: React.FC<BlogCategoryFilterProps> = ({
   categories,
@@ -358,31 +359,34 @@ export const BlogControls: React.FC<BlogControlsProps> = ({
   );
 };
 
-// Main Blog Page Component
+// Main Blog Page Component with Dynamic Categories
 interface BlogPageProps {
   initialPosts?: BlogPost[];
-  initialCategory?: BlogCategory;
+  initialCategory?: string;
+  initialCategories?: string[];
 }
 
 export const BlogPage: React.FC<BlogPageProps> = ({
   initialPosts = [],
   initialCategory = 'All',
+  initialCategories,
 }) => {
   const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
   const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>(initialPosts);
-  const [activeCategory, setActiveCategory] = useState<BlogCategory>(initialCategory);
+  const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('newest');
   const postsPerPage = 6;
   
-  // Available categories - could be dynamic based on your data
-  const categories: BlogCategory[] = ['All', 'Featured articles', 'Ashram Life', 'Arts & Culture', 'Recipes', 'Essays'];
-  //TODO: set these categories in strapi and fetch them dynamically from there while giving the category all by default to all blog posts
+  // Use the categories passed from the server or fallback to default
+  // This is where we replace the hardcoded array with dynamic categories from Strapi
+  const categories = initialCategories || ['All', 'Featured articles'];
+  
   // Featured post is the first featured post or the first post
   const featuredPost = posts.find(post => post.isFeatured) || posts[0];
   
   // Filter posts based on active category
-  const filterPosts = (category: BlogCategory, allPosts: BlogPost[]) => {
+  const filterPosts = (category: string, allPosts: BlogPost[]) => {
     if (category === 'All') {
       return allPosts;
     } else if (category === 'Featured articles') {
@@ -431,7 +435,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   };
   
   // Change category
-  const handleCategoryChange = (category: BlogCategory) => {
+  const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
   };
   
@@ -459,12 +463,24 @@ export const BlogPage: React.FC<BlogPageProps> = ({
       {/* Featured Blog Post */}
       {featuredPost && <FeaturedBlog post={featuredPost} />}
       
-      {/* Category Filter */}
-      <BlogCategoryFilter
-        categories={categories}
-        activeCategory={activeCategory}
-        onCategoryChange={handleCategoryChange}
-      />
+      {/* Category Filter - Using dynamic categories */}
+      <div className="border-b border-gray-200 mb-8 overflow-x-auto">
+        <div className="flex min-w-max">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => handleCategoryChange(category)}
+              className={`py-3 px-4 text-sm font-medium whitespace-nowrap ${
+                activeCategory === category
+                  ? 'text-gray-900 border-b-2 border-purple-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:border-b-2 hover:border-gray-300'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
       
       {/* Blog Controls */}
       <BlogControls
