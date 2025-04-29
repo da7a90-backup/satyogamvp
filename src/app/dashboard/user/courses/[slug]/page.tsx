@@ -12,20 +12,6 @@ export default async function CourseDetailRoute({
   // Get the user session
   const session = await getServerSession(authOptions);
 
-  // Debug - log the session information
-  console.log(
-    "Course detail page - session:",
-    JSON.stringify(
-      {
-        authenticated: !!session,
-        user: session?.user,
-        role: session?.user?.role,
-      },
-      null,
-      2
-    )
-  );
-
   // Check if the course exists
   try {
     const courseResponse = await courseApi.getCourseBySlug(params.slug);

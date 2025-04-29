@@ -111,14 +111,118 @@ export const courseApi = {
    */
   getUserCourses: async () => {
     try {
-      // Use our custom API endpoint instead of direct Strapi call
-      const response = await fetch("/api/user-courses");
-
-      if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
+      const token = localStorage.getItem("jwt");
+      if (!token) {
+        throw new Error("User not authenticated");
       }
 
-      return await response.json();
+      const apiUrl =
+        process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
+
+      // Step 1: Get the current user's ID
+      const meResponse = await fetch(`${apiUrl}/api/users/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!meResponse.ok) {
+        throw new Error(`Failed to fetch user: ${meResponse.status}`);
+      }
+
+      const userData = await meResponse.json();
+      const userId = userData.id;
+      // console.log(`Got user ID: ${userId}`);
+
+      // Step 2: Fetch the user's enrolled courses with deep population for images
+      const coursesResponse = await fetch(
+        `${apiUrl}/api/users/${userId}?populate[enrolledCourses][populate]=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!coursesResponse.ok) {
+        throw new Error(
+          `Failed to fetch enrolled courses: ${coursesResponse.status}`
+        );
+      }
+
+      const coursesData = await coursesResponse.json();
+      // console.log("User with courses data:", coursesData);
+
+      // Step 3: Extract and format enrolled courses
+      const enrolledCourses = coursesData.enrolledCourses || [];
+
+      // Format the courses to match our expected Course[] structure
+      const formattedCourses = enrolledCourses.map((course) => {
+        // Create the correctly formatted featuredImage object
+        let featuredImage = undefined;
+
+        if (course.featuredImage) {
+          // Extract the formats directly from the featuredImage object
+          const formats = course.featuredImage.formats || {};
+
+          // Get the URL from the formats or use a fallback URL
+          const url =
+            formats.large?.url ||
+            formats.small?.url ||
+            `https://res.cloudinary.com/dxg19p7wn/image/upload/v1745531111/Chat_GPT_Image_Apr_24_2025_11_33_46_AM_168d1c0388.png`;
+
+          featuredImage = {
+            data: {
+              attributes: {
+                url: url,
+                formats: formats,
+              },
+            },
+          };
+        }
+
+        // Extract instructors if they exist
+        let instructors = undefined;
+
+        if (course.instructors) {
+          instructors = {
+            data: Array.isArray(course.instructors)
+              ? course.instructors.map((instructor) => ({
+                  id: instructor.id,
+                  attributes: {
+                    name: instructor.name || "Instructor",
+                  },
+                }))
+              : [],
+          };
+        }
+
+        return {
+          id: course.id,
+          attributes: {
+            title: course.title || "",
+            slug: course.slug || "",
+            description: course.description || "",
+            price: course.price || 0,
+            isFree: course.free || false,
+            ...(featuredImage && { featuredImage }),
+            ...(instructors && { instructors }),
+          },
+        };
+      });
+
+      // Log a sample of the formatted courses to verify structure
+      // if (formattedCourses.length > 0) {
+      //   console.log(
+      //     "Sample formatted course:",
+      //     JSON.stringify(formattedCourses[0], null, 2)
+      //   );
+      // }
+
+      return {
+        data: formattedCourses,
+        meta: { pagination: { total: formattedCourses.length } },
+      };
     } catch (error) {
       console.error("Error fetching user courses:", error);
       throw error;
@@ -126,7 +230,7 @@ export const courseApi = {
   },
 
   /**
-   * Enroll user in a course using the correct relationship format
+   * Enroll user in a course using the correct Strapi v4 relationship format
    */
   enrollInCourse: async (courseId: string) => {
     try {
@@ -152,39 +256,10 @@ export const courseApi = {
 
       const userData = await userResponse.json();
       const userId = userData.id;
-      console.log(`Got user ID: ${userId}`);
+      // console.log(`Got user ID: ${userId}`);
 
-      // Step 2: Get the course with its current enrolledUsers
-      console.log(
-        `Fetching course ${courseId} with its current enrolledUsers...`
-      );
-      const courseResponse = await fetch(
-        `${apiUrl}/api/courses/${courseId}?populate=enrolledUsers`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!courseResponse.ok) {
-        throw new Error("Failed to fetch course data.");
-      }
-
-      const courseData = await courseResponse.json();
-      const enrolledUsers =
-        courseData.data?.attributes?.enrolledUsers?.data || [];
-      console.log("courseData:", courseData);
-
-      // Check if user is already enrolled
-      const alreadyEnrolled = enrolledUsers.some((user) => user.id === userId);
-      if (alreadyEnrolled) {
-        console.log("User already enrolled!");
-        return { success: true, message: "Already enrolled in this course" };
-      }
-
-      // Step 3: Use the connect format that Strapi v4 expects for relationships
-      console.log(`Updating course ${courseId} with updated enrolledUsers...`);
+      // Step 2: Update the course with the user relationship using proper Strapi v4 connect syntax
+      // console.log(`Updating course ${courseId} with new enrolledUser...`);
       const updateResponse = await fetch(`${apiUrl}/api/courses/${courseId}`, {
         method: "PUT",
         headers: {
@@ -216,36 +291,53 @@ export const courseApi = {
         );
       }
 
-      // Step 5: Verify the enrollment was successful
-      console.log("Verifying enrollment success...");
-      const verifyResponse = await fetch(
-        `${apiUrl}/api/courses/${courseId}?populate=enrolledUsers`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // // Step 3: Verify the enrollment was successful
+      // console.log("Verifying enrollment success...");
+      // const verifyResponse = await fetch(
+      //   `${apiUrl}/api/courses/${courseId}?populate[enrolledUsers][fields][0]=id`,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
 
-      if (verifyResponse.ok) {
-        const verifyData = await verifyResponse.json();
-        const updatedEnrolledUsers =
-          verifyData.data?.attributes?.enrolledUsers?.data || [];
-        const isEnrolled = updatedEnrolledUsers.some(
-          (user) => user.id === userId
-        );
+      // if (verifyResponse.ok) {
+      //   const verifyData = await verifyResponse.json();
+      //   console.log("Verification data:", verifyData);
 
-        console.log("Verification - User is enrolled:", isEnrolled);
-        console.log("Updated enrolled users:", updatedEnrolledUsers);
+      //   // Check the structure of the response to debug
+      //   if (verifyData.data && verifyData.data.attributes) {
+      //     console.log(
+      //       "Course attributes:",
+      //       Object.keys(verifyData.data.attributes)
+      //     );
 
-        if (!isEnrolled) {
-          console.log(
-            "Enrollment verification failed - user not added to enrolledUsers"
-          );
-          // Even if verification failed, return success if the update request was successful
-          // This handles cases where the API might have a delay in reflecting changes
-        }
-      }
+      //     if (verifyData.data.attributes.enrolledUsers) {
+      //       console.log(
+      //         "enrolledUsers structure:",
+      //         verifyData.data.attributes.enrolledUsers
+      //       );
+
+      //       const updatedEnrolledUsers =
+      //         verifyData.data.attributes.enrolledUsers.data || [];
+      //       const isEnrolled = updatedEnrolledUsers.some(
+      //         (user) => user.id === userId
+      //       );
+
+      //       console.log("Verification - User is enrolled:", isEnrolled);
+      //       console.log("Updated enrolled users:", updatedEnrolledUsers);
+
+      //       if (!isEnrolled) {
+      //         console.log(
+      //           "Enrollment verification failed - user not added to enrolledUsers"
+      //         );
+      //       }
+      //     } else {
+      //       console.log("enrolledUsers field not found in response");
+      //     }
+      //   }
+      // }
 
       return { success: true, message: "Successfully enrolled in course" };
     } catch (error) {
@@ -255,12 +347,67 @@ export const courseApi = {
   },
 
   /**
-   * Get available courses - courses the user is not enrolled in
+   * Get available courses (courses the user is not enrolled in)
    */
   getAvailableCourses: async () => {
     try {
-      // Use the server-side API endpoint
-      const response = await fetch("/api/available-courses");
+      const apiUrl =
+        process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
+      const token = localStorage.getItem("jwt");
+
+      // For unauthenticated users, fetch all published courses
+      if (!token) {
+        console.log("No token found - fetching all published courses");
+        const response = await fetch(
+          `${apiUrl}/api/courses?filters[publishedAt][$notNull]=true&populate=featuredImage,instructors`
+        );
+
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
+
+        return await response.json();
+      }
+
+      // For authenticated users, exclude courses they're already enrolled in
+      // First get the user's enrolled course IDs
+      // console.log(
+      //   "Fetching user with enrolled courses to filter available courses"
+      // );
+      const meResponse = await fetch(
+        `${apiUrl}/api/users/me?populate=enrolledCourses`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!meResponse.ok) {
+        throw new Error(`Failed to fetch user: ${meResponse.status}`);
+      }
+
+      const userData = await meResponse.json();
+      const enrolledCourseIds = userData.enrolledCourses
+        ? userData.enrolledCourses.map((course) => course.id)
+        : [];
+
+      console.log("User is enrolled in courses with IDs:", enrolledCourseIds);
+
+      // Build a URL to fetch available courses (published, not enrolled)
+      let url = `${apiUrl}/api/courses?filters[publishedAt][$notNull]=true&populate=featuredImage,instructors`;
+
+      // Add filter to exclude enrolled courses if the user has any
+      if (enrolledCourseIds.length > 0) {
+        const idsParam = enrolledCourseIds.join(",");
+        url += `&filters[id][$notIn]=${idsParam}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`API returned ${response.status}`);
@@ -355,7 +502,8 @@ export const courseApi = {
           "featuredQuote",
           "featuredQuote.authorImage",
           "introVideo",
-          "introVideo.video", // Added this to populate the video field in the introVideo component
+          "introVideo.video",
+          "enrolledUsers", // Add this to populate the enrolledUsers field
         ]
       );
 
@@ -386,7 +534,6 @@ export const courseApi = {
       // We need to use deep populate to get nested components
       const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&sort=orderIndex:asc&populate[content][populate]=*&populate=*`;
 
-      console.log(`Requesting URL: ${url}`);
       const response = await fetchAPI(url);
 
       // // Log the response structure to help with debugging

@@ -31,8 +31,8 @@ interface Course {
       data?: {
         attributes: {
           url: string;
-          formats: {
-            thumbnail: {
+          formats?: {
+            thumbnail?: {
               url: string;
             };
           };
@@ -45,17 +45,6 @@ interface Course {
   };
 }
 
-// Create a function to store the JWT where the courseApi can find it
-const setupApiJwt = (jwt: string | null) => {
-  if (jwt) {
-    // Store the JWT where your API getToken function expects it
-    localStorage.setItem("jwt", jwt);
-  } else {
-    // Clean up if no JWT
-    localStorage.removeItem("jwt");
-  }
-};
-
 const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
   const [activeTab, setActiveTab] = useState<"my-courses" | "available">(
     "my-courses"
@@ -64,11 +53,6 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Setup the JWT for API calls when it changes
-  useEffect(() => {
-    setupApiJwt(userJwt);
-  }, [userJwt]);
 
   // After component mounts, check localStorage
   useEffect(() => {
@@ -89,8 +73,16 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     localStorage.setItem("coursesActiveTab", tab);
   };
 
+  // Store JWT in localStorage when it changes
+  useEffect(() => {
+    if (userJwt) {
+      localStorage.setItem("jwt", userJwt);
+    } else {
+      localStorage.removeItem("jwt");
+    }
+  }, [userJwt]);
+
   // Fetch user's courses
-  // Inside fetchUserCourses function in CoursesClient.tsx
   const fetchUserCourses = async () => {
     if (!isAuthenticated || !userJwt) {
       setIsLoading(false);
@@ -101,17 +93,19 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     setError(null);
 
     try {
-      // Explicitly set the JWT right before making the API call
+      // Ensure JWT is set before making the API call
       localStorage.setItem("jwt", userJwt);
 
-      //   // For debugging - log what we're using for authentication
-      //   console.log(
-      //     "Fetching user courses with JWT:",
-      //     userJwt.substring(0, 15) + "..."
-      //   );
-
+      // Use the updated getUserCourses function from courseApi
       const response = await courseApi.getUserCourses();
-      setMyCourses(response.data || []);
+      // console.log("User courses response:", response);
+
+      if (response && response.data) {
+        setMyCourses(response.data);
+      } else {
+        console.log("No courses found or invalid response format");
+        setMyCourses([]);
+      }
     } catch (err) {
       console.error("Error fetching user courses:", err);
       setError("Failed to load your courses. Please try again.");
@@ -126,9 +120,18 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     setError(null);
 
     try {
-      // Use the available courses endpoint for both authenticated and unauthenticated users
+      // console.log("Fetching available courses via courseApi...");
+
+      // Use the updated getAvailableCourses function from courseApi
       const response = await courseApi.getAvailableCourses();
-      setAvailableCourses(response.data || []);
+      // console.log("Available courses response:", response);
+
+      if (response && response.data) {
+        setAvailableCourses(response.data);
+      } else {
+        console.log("No available courses found or invalid response format");
+        setAvailableCourses([]);
+      }
     } catch (err) {
       console.error("Error fetching available courses:", err);
       setError("Failed to load available courses. Please try again.");
@@ -144,7 +147,7 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     } else {
       fetchAvailableCourses();
     }
-  }, [activeTab, isAuthenticated]);
+  }, [activeTab, isAuthenticated, userJwt]);
 
   // Format instructor names for display
   const formatInstructors = (course: Course) => {
@@ -159,15 +162,40 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
       .join(", ");
   };
 
-  // Get course image URL
+  // Get course image URL with proper handling for different data structures
   const getCourseImageUrl = (course: Course) => {
+    // First check if featuredImage exists and has data with url
     if (course.attributes.featuredImage?.data?.attributes?.url) {
-      return course.attributes.featuredImage.data.attributes.url;
+      const url = course.attributes.featuredImage.data.attributes.url;
+
+      // Check if it's already a full URL
+      if (url.startsWith("http")) {
+        return url;
+      }
+
+      // Otherwise, prepend the API URL
+      const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "";
+      return `${baseUrl}${url}`;
     }
-    return "/placeholder-course.jpg"; // Replace with your placeholder image path
+
+    // Fallback: Try to find large format URL directly (seen in the logs)
+    if (
+      course.attributes.featuredImage?.data?.attributes?.formats?.large?.url
+    ) {
+      return course.attributes.featuredImage.data.attributes.formats.large.url;
+    }
+
+    // Fallback: Try to find small format URL directly
+    if (
+      course.attributes.featuredImage?.data?.attributes?.formats?.small?.url
+    ) {
+      return course.attributes.featuredImage.data.attributes.formats.small.url;
+    }
+
+    return "/placeholder-course.jpg"; // Return placeholder if no image found
   };
 
-  // Corrected handleEnroll function
+  // Handle enrollment/purchase button click
   const handleEnroll = (course: Course) => {
     if (!isAuthenticated) {
       // Redirect to login page with a return URL
@@ -177,7 +205,7 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
       return;
     }
 
-    // Redirect to the course detail page - fixed path
+    // Redirect to the course detail page
     window.location.href = `/dashboard/user/courses/${course.attributes.slug}`;
   };
 
@@ -336,7 +364,7 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                           </p>
 
                           <Link
-                            href={`/courses/${course.attributes.slug}`}
+                            href={`/dashboard/user/courses/${course.attributes.slug}`}
                             className="block w-full text-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
                           >
                             Open
