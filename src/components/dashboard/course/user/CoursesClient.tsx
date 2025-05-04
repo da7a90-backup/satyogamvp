@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { courseApi } from "@/lib/courseApi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -53,6 +54,7 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // After component mounts, check localStorage
   useEffect(() => {
@@ -209,6 +211,11 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     window.location.href = `/dashboard/user/courses/${course.attributes.slug}`;
   };
 
+  // Handle opening an enrolled course - redirect to the overview page
+  const handleOpenCourse = (slug: string) => {
+    router.push(`/dashboard/user/courses/${slug}/overview`);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Courses</h1>
@@ -363,12 +370,14 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                             {course.attributes.description}
                           </p>
 
-                          <Link
-                            href={`/dashboard/user/courses/${course.attributes.slug}`}
+                          <button
+                            onClick={() =>
+                              handleOpenCourse(course.attributes.slug)
+                            }
                             className="block w-full text-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
                           >
                             Open
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     ))}

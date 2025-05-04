@@ -62,6 +62,7 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
+    subtitle: "", // New subtitle field
     description: "",
     isFree: false,
     price: 0,
@@ -189,6 +190,7 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
           setFormData({
             title: data.attributes.title || "",
             slug: data.attributes.slug || "",
+            subtitle: data.attributes.subtitle || "",
             description: data.attributes.description || "",
             isFree: data.attributes.isFree || false,
             price: data.attributes.price || 0,
@@ -597,6 +599,7 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
       const courseData = {
         title: formData.title,
         slug: formData.slug,
+        subtitle: formData.subtitle,
         description: formData.description,
         isFree: formData.isFree,
         price: formData.isFree ? 0 : formData.price,
@@ -745,7 +748,28 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
             </p>
           )}
         </div>
-
+        {/* Subtitle */}
+        <div className="mb-6">
+          <label
+            htmlFor="subtitle"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Subtitle
+          </label>
+          <input
+            type="text"
+            id="subtitle"
+            name="subtitle"
+            value={formData.subtitle}
+            onChange={handleChange}
+            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 border-gray-300 focus:ring-purple-500`}
+            placeholder="Enter a short subtitle to display on the course page"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            A brief subtitle to display on the course page (will be shown
+            instead of the full description)
+          </p>
+        </div>
         {/* Slug */}
         <div className="mb-6">
           <label

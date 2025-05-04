@@ -75,8 +75,6 @@ export const courseApi = {
     }
   },
 
-  // Add to your courseApi.ts file
-
   /**
    * Get all published courses without requiring authentication
    */
@@ -106,6 +104,7 @@ export const courseApi = {
       throw error;
     }
   },
+
   /**
    * Get courses for the current user
    */
@@ -132,7 +131,6 @@ export const courseApi = {
 
       const userData = await meResponse.json();
       const userId = userData.id;
-      // console.log(`Got user ID: ${userId}`);
 
       // Step 2: Fetch the user's enrolled courses with deep population for images
       const coursesResponse = await fetch(
@@ -151,7 +149,6 @@ export const courseApi = {
       }
 
       const coursesData = await coursesResponse.json();
-      // console.log("User with courses data:", coursesData);
 
       // Step 3: Extract and format enrolled courses
       const enrolledCourses = coursesData.enrolledCourses || [];
@@ -211,14 +208,6 @@ export const courseApi = {
         };
       });
 
-      // Log a sample of the formatted courses to verify structure
-      // if (formattedCourses.length > 0) {
-      //   console.log(
-      //     "Sample formatted course:",
-      //     JSON.stringify(formattedCourses[0], null, 2)
-      //   );
-      // }
-
       return {
         data: formattedCourses,
         meta: { pagination: { total: formattedCourses.length } },
@@ -256,10 +245,8 @@ export const courseApi = {
 
       const userData = await userResponse.json();
       const userId = userData.id;
-      // console.log(`Got user ID: ${userId}`);
 
       // Step 2: Update the course with the user relationship using proper Strapi v4 connect syntax
-      // console.log(`Updating course ${courseId} with new enrolledUser...`);
       const updateResponse = await fetch(`${apiUrl}/api/courses/${courseId}`, {
         method: "PUT",
         headers: {
@@ -290,54 +277,6 @@ export const courseApi = {
           `Failed to enroll in course (${updateResponse.status})`
         );
       }
-
-      // // Step 3: Verify the enrollment was successful
-      // console.log("Verifying enrollment success...");
-      // const verifyResponse = await fetch(
-      //   `${apiUrl}/api/courses/${courseId}?populate[enrolledUsers][fields][0]=id`,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
-
-      // if (verifyResponse.ok) {
-      //   const verifyData = await verifyResponse.json();
-      //   console.log("Verification data:", verifyData);
-
-      //   // Check the structure of the response to debug
-      //   if (verifyData.data && verifyData.data.attributes) {
-      //     console.log(
-      //       "Course attributes:",
-      //       Object.keys(verifyData.data.attributes)
-      //     );
-
-      //     if (verifyData.data.attributes.enrolledUsers) {
-      //       console.log(
-      //         "enrolledUsers structure:",
-      //         verifyData.data.attributes.enrolledUsers
-      //       );
-
-      //       const updatedEnrolledUsers =
-      //         verifyData.data.attributes.enrolledUsers.data || [];
-      //       const isEnrolled = updatedEnrolledUsers.some(
-      //         (user) => user.id === userId
-      //       );
-
-      //       console.log("Verification - User is enrolled:", isEnrolled);
-      //       console.log("Updated enrolled users:", updatedEnrolledUsers);
-
-      //       if (!isEnrolled) {
-      //         console.log(
-      //           "Enrollment verification failed - user not added to enrolledUsers"
-      //         );
-      //       }
-      //     } else {
-      //       console.log("enrolledUsers field not found in response");
-      //     }
-      //   }
-      // }
 
       return { success: true, message: "Successfully enrolled in course" };
     } catch (error) {
@@ -371,9 +310,6 @@ export const courseApi = {
 
       // For authenticated users, exclude courses they're already enrolled in
       // First get the user's enrolled course IDs
-      // console.log(
-      //   "Fetching user with enrolled courses to filter available courses"
-      // );
       const meResponse = await fetch(
         `${apiUrl}/api/users/me?populate=enrolledCourses`,
         {
@@ -477,6 +413,7 @@ export const courseApi = {
       throw error;
     }
   },
+
   /**
    * Get a single course by slug
    */
@@ -523,6 +460,198 @@ export const courseApi = {
       throw error;
     }
   },
+
+  /**
+   * Get classes for a course with minimal data population
+   * This is the base function used by ClassComponentLayout
+   */
+  getClassBySlugAndIndex: async (slug: string, orderIndex: number) => {
+    try {
+      // Step 1: Get the course by slug
+      const course = await courseApi.getCourseBySlug(slug);
+      if (!course) {
+        throw new Error(`Course with slug "${slug}" not found`);
+      }
+
+      // Step 2: Fetch the class with the specific orderIndex for this course
+      const courseId = course.id;
+
+      // Use only basic populate parameters for minimal data
+      const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&filters[orderIndex][$eq]=${orderIndex}&populate=course`;
+
+      const response = await fetchAPI(url);
+
+      // If no matching class is found, return null
+      if (!response.data || response.data.length === 0) {
+        console.log(
+          `No class found for course ${courseId} with orderIndex ${orderIndex}`
+        );
+        return null;
+      }
+
+      return response.data[0];
+    } catch (error) {
+      console.error(
+        `Error fetching class for course "${slug}" with orderIndex ${orderIndex}:`,
+        error
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * Get a specific class by course slug and orderIndex with full video-related content
+   * This is optimized for the video component
+   */
+  getClassWithVideoContent: async (slug: string, orderIndex: number) => {
+    try {
+      // Step 1: Get the course by slug
+      const course = await courseApi.getCourseBySlug(slug);
+      if (!course) {
+        throw new Error(`Course with slug "${slug}" not found`);
+      }
+
+      // Step 2: Fetch the class with the specific orderIndex for this course
+      const courseId = course.id;
+
+      // Use a very specific populate parameter to get all nested content including the video content with all possible field names
+      const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&filters[orderIndex][$eq]=${orderIndex}&populate[content][populate][video][populate][videoFile][populate]=*&populate[content][populate][video][populate][AudioFile][populate]=*&populate[content][populate][video][populate][audioFile][populate]=*&populate[content][populate][video][populate][audio][populate]=*&populate[content][populate][video][populate]=videoDescription,videoTranscript&populate=*`;
+
+      const response = await fetchAPI(url);
+
+      // If no matching class is found, return null
+      if (!response.data || response.data.length === 0) {
+        console.log(
+          `No class found for course ${courseId} with orderIndex ${orderIndex}`
+        );
+        return null;
+      }
+
+      return response.data[0];
+    } catch (error) {
+      console.error(
+        `Error fetching class for video component for course "${slug}" with orderIndex ${orderIndex}:`,
+        error
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * Get a specific class by course slug and orderIndex with keyConcepts content
+   */
+  getClassWithKeyConcepts: async (slug: string, orderIndex: number) => {
+    try {
+      // Use a reference to prevent multiple identical requests
+      const cacheKey = `key-concepts-${slug}-${orderIndex}`;
+
+      // Step 1: Get the course by slug - but only once
+      const course = await courseApi.getCourseBySlug(slug);
+      if (!course) {
+        throw new Error(`Course with slug "${slug}" not found`);
+      }
+
+      // Step 2: Fetch the class with the specific orderIndex for this course
+      const courseId = course.id;
+
+      // Use explicit path to content.keyConcepts to ensure deep population
+      const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&filters[orderIndex][$eq]=${orderIndex}&populate=*,content.keyConcepts`;
+
+      const response = await fetchAPI(url);
+
+      // If no matching class is found, return null
+      if (!response.data || response.data.length === 0) {
+        console.log(
+          `No class found for course ${courseId} with orderIndex ${orderIndex}`
+        );
+        return null;
+      }
+
+      // Only log the keys once to avoid logging loops
+      console.log(
+        "Key Concepts class data found with ID:",
+        response.data[0].id
+      );
+
+      return response.data[0];
+    } catch (error) {
+      console.error(`Error fetching class with key concepts:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get a specific class by course slug and orderIndex with writingPrompts content
+   */
+  getClassWithWritingPrompts: async (slug: string, orderIndex: number) => {
+    try {
+      // Step 1: Get the course by slug
+      const course = await courseApi.getCourseBySlug(slug);
+      if (!course) {
+        throw new Error(`Course with slug "${slug}" not found`);
+      }
+
+      // Step 2: Fetch the class with the specific orderIndex for this course
+      const courseId = course.id;
+
+      // Use a populate parameter specifically for writing prompts
+      const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&filters[orderIndex][$eq]=${orderIndex}&populate[content][populate]=*&populate=*`;
+
+      const response = await fetchAPI(url);
+
+      // If no matching class is found, return null
+      if (!response.data || response.data.length === 0) {
+        return null;
+      }
+
+      // Return the first class that matches the criteria
+      return response.data[0];
+    } catch (error) {
+      console.error(`Error fetching class with writing prompts:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get a specific class by course slug and orderIndex with additionalMaterials content
+   */
+  getClassWithAdditionalMaterials: async (slug: string, orderIndex: number) => {
+    try {
+      // Step 1: Get the course by slug
+      const course = await courseApi.getCourseBySlug(slug);
+      if (!course) {
+        throw new Error(`Course with slug "${slug}" not found`);
+      }
+
+      // Step 2: Fetch the class with the specific orderIndex for this course
+      const courseId = course.id;
+
+      // Use explicit path to content.additionalMaterials to ensure deep population with video and guidedMeditation content
+      const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&filters[orderIndex][$eq]=${orderIndex}&populate=content,content.additionalMaterials,content.additionalMaterials.video,content.additionalMaterials.guidedMeditation,content.additionalMaterials.video.data,content.additionalMaterials.guidedMeditation.data,content.additionalMaterials.videoDescription,content.additionalMaterials.essay`;
+
+      const response = await fetchAPI(url);
+
+      // If no matching class is found, return null
+      if (!response.data || response.data.length === 0) {
+        console.log(
+          `No class found for course ${courseId} with orderIndex ${orderIndex}`
+        );
+        return null;
+      }
+
+      // Log the retrieved data structure for debugging
+      console.log(
+        "Additional Materials class data found with ID:",
+        response.data[0].id
+      );
+
+      return response.data[0];
+    } catch (error) {
+      console.error(`Error fetching class with additional materials:`, error);
+      throw error;
+    }
+  },
+
   /**
    * Get classes for a course with complete content
    */
@@ -535,25 +664,6 @@ export const courseApi = {
       const url = `/api/course-classes?filters[course][id][$eq]=${courseId}&sort=orderIndex:asc&populate[content][populate]=*&populate=*`;
 
       const response = await fetchAPI(url);
-
-      // // Log the response structure to help with debugging
-      // if (response.data && response.data.length > 0) {
-      //   console.log(
-      //     "First class structure sample:",
-      //     JSON.stringify(response.data[0], null, 2).substring(0, 300) + "..."
-      //   );
-
-      //   // Check if content is properly populated
-      //   const firstClass = response.data[0];
-      //   if (firstClass.attributes.content) {
-      //     console.log(
-      //       "Content structure:",
-      //       JSON.stringify(firstClass.attributes.content, null, 2)
-      //     );
-      //   } else {
-      //     console.log("Content not properly populated in response");
-      //   }
-      // }
 
       return response;
     } catch (error) {
