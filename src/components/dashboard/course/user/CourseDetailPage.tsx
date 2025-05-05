@@ -13,6 +13,7 @@ import Link from "next/link";
 import { courseApi } from "@/lib/courseApi";
 import ReactMarkdown from "react-markdown";
 import SuccessNotification from "@/components/dashboard/course/user/SuccessNotificationPage";
+import CourseTestimonialsComponent from "@/components/dashboard/course/user/CourseTestimonialsComponent";
 
 interface CourseDetailPageProps {
   slug: string;
@@ -132,28 +133,6 @@ interface Course {
     };
   };
 }
-
-// Mock testimonial data
-const mockTestimonials = [
-  {
-    id: 1,
-    text: "This course is presenting truth very simply and eloquently. It's healing and as another reviewer said, no nonsense. At 65 years of age, these teachings are helping me to see how little I know about the dynamics of mind and spirit. Thank you.",
-    authorName: "Richard",
-    location: "UK",
-  },
-  {
-    id: 2,
-    text: "I absolutely LOVED this course. It was such a beautiful experience-to feel my heart slowly open up, because you have created such a loving and safe contained environment-it goes beyond words. The light in me appreciates it. I am in deep gratitude to everyone at the Ashram for making this possible.",
-    authorName: "Name Surname",
-    location: "Position, Company name",
-  },
-  {
-    id: 3,
-    text: "It has been an opening of rare grace to receive the teachings and consciousness maps which Shunyamurti has distilled through his decades of scholarship and Self-inquiry. All of it speaks to me clearly and has allowed me to open the door to a deeper and clearer sense.",
-    authorName: "Scott",
-    location: "Scotland",
-  },
-];
 
 const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
   const [course, setCourse] = useState<Course | null>(null);
@@ -390,11 +369,6 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
         ? prevIds.filter((id) => id !== classId)
         : [...prevIds, classId]
     );
-  };
-
-  // Navigate testimonial carousel
-  const handleTestimonialNavigation = (index: number) => {
-    setCurrentTestimonialPage(index);
   };
 
   // Calculate duration for each class using the duration field from class attributes
@@ -1032,47 +1006,12 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           </h2>
           <p className="text-gray-600 mb-8">What students say about us</p>
 
-          <div className="relative">
-            {/* Testimonial cards - show only current page */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[mockTestimonials[currentTestimonialPage]].map((testimonial) => (
-                <div key={testimonial.id} className="bg-white p-6 rounded-lg">
-                  <p className="text-gray-700 italic mb-6">
-                    {testimonial.text}
-                  </p>
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 mr-3">
-                      <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {testimonial.authorName}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {testimonial.location}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination dots */}
-            <div className="flex justify-center mt-6 space-x-2">
-              {mockTestimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleTestimonialNavigation(index)}
-                  className={`h-2 w-2 rounded-full ${
-                    index === currentTestimonialPage
-                      ? "bg-black"
-                      : "bg-gray-300"
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
+          {course && (
+            <CourseTestimonialsComponent
+              courseId={course.id.toString()}
+              maxDisplay={3}
+            />
+          )}
         </div>
 
         {/* Final CTA */}

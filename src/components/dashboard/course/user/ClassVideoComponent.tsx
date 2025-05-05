@@ -4,6 +4,7 @@ import { courseApi } from "@/lib/courseApi";
 import courseProgressApi from "@/lib/courseProgressApi"; // Import progress API with default export
 import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
 import ReactMarkdown from "react-markdown";
+import CourseCommentsComponent from "@/components/dashboard/course/user/CourseCommentsComponent";
 
 interface ClassVideoComponentProps {
   slug: string;
@@ -907,43 +908,13 @@ const ClassVideoComponent = ({
 
         {activeTab === "comments" && (
           <div>
-            {/* Comments section */}
-            <div className="space-y-4 mb-6">
-              {[1, 2, 3, 4].map((index) => (
-                <div key={index} className="border-t border-gray-100 pt-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 mr-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-center mb-1">
-                        <div className="font-medium">Name Lastname</div>
-                        <div className="text-xs text-gray-500">2 min ago</div>
-                      </div>
-                      <p className="text-gray-600 text-sm">
-                        Lorem ipsum dolor sit amet consectetur Lorem ipsum dolor
-                        sit amet consecteturLorem ipsum dolor sit amet
-                        consecteturLorem ipsum dolor sit amet consectetur
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Comment input */}
-            <div className="border-t border-gray-100 pt-4 mt-4">
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  placeholder="Write a post"
-                  className="flex-grow border-none outline-none text-sm"
-                />
-                <button className="ml-2 px-4 py-1 bg-purple-600 text-white rounded-md text-sm">
-                  Send
-                </button>
-              </div>
-            </div>
+            {course && courseClass && (
+              <CourseCommentsComponent
+                courseId={course.id.toString()}
+                classIndex={classIndex}
+                sectionType="video"
+              />
+            )}
           </div>
         )}
       </div>

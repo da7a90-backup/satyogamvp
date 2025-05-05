@@ -13,6 +13,7 @@ import {
   PlayIcon,
   PauseIcon,
 } from "@heroicons/react/24/outline";
+import CourseCommentsComponent from "@/components/dashboard/course/user/CourseCommentsComponent";
 
 interface ClassAdditionalMaterialsComponentProps {
   slug: string;
@@ -573,93 +574,13 @@ const ClassAdditionalMaterialsComponent = ({
       case "comments":
         return (
           <div>
-            {/* Comments list */}
-            <div className="space-y-4 mb-6">
-              {mockComments.map((comment) => (
-                <div key={comment.id} className="border-t border-gray-100 pt-4">
-                  <div className="flex items-start">
-                    <div className="h-8 w-8 bg-gray-200 rounded-full mr-3 flex-shrink-0 flex items-center justify-center text-gray-400">
-                      {comment.author.charAt(0)}
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{comment.author}</span>
-                        <span className="text-xs text-gray-500">
-                          {comment.time}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 text-sm mt-1">
-                        {comment.content}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Comment input */}
-            <div className="border rounded-md p-3">
-              <textarea
-                placeholder="Write a post"
-                className="w-full border-none resize-none focus:outline-none text-sm"
-                rows={3}
-              ></textarea>
-              <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                <div className="flex space-x-2">
-                  <button className="text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                      />
-                    </svg>
-                  </button>
-                  <button className="text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </button>
-                  <button className="text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <button className="bg-purple-600 text-white px-4 py-1 rounded-md text-sm">
-                  Send
-                </button>
-              </div>
-            </div>
+            {course && courseClass && (
+              <CourseCommentsComponent
+                courseId={course.id.toString()}
+                classIndex={classIndex}
+                sectionType="additionalMaterials"
+              />
+            )}
           </div>
         );
 
