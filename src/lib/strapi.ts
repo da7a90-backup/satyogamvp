@@ -236,70 +236,6 @@ export const blogApi = {
       if (!data || !data.data || data.data.length === 0) {
         return null;
       }
-<<<<<<< HEAD
-    },
-
-    /**
- * Get all blog categories
- */
-getAllCategories: async () => {
-  try {
-    const url = buildStrapiUrl(
-      "/api/blog-categories",
-      undefined,
-      { pageSize: 100 },
-      "name:asc",
-      []
-    );
-    
-    console.log("Fetching all blog categories:", url);
-    
-    const response: any = await fetchAPI(url);
-    
-    // Log the first category for debugging
-    if (response?.data?.length > 0) {
-      console.log("Sample category structure:", {
-        id: response.data[0].id,
-        name: response.data[0].attributes?.name,
-        slug: response.data[0].attributes?.slug
-      });
-    }
-    
-    return response;
-  } catch (error) {
-    console.error("Error fetching blog categories:", error);
-    return { data: [] };
-  }
-},
-
-/**
- * Get blog posts by category slug
- */
-getPostsByCategory: async (
-  categorySlug: string,
-  page = 1,
-  pageSize = 10,
-  sort = "publishedAt:desc"
-) => {
-  try {
-    const url = buildStrapiUrl(
-      "/api/blog-posts",
-      { "category.slug": { $eq: categorySlug } },
-      { page, pageSize },
-      sort,
-      ["featuredImage", "category"]
-    );
-    
-    console.log(`Fetching posts for category slug "${categorySlug}":`, url);
-    
-    return await fetchAPI(url);
-  } catch (error) {
-    console.error(`Error fetching posts for category slug "${categorySlug}":`, error);
-    return { data: [] };
-  }
-},
- 
-=======
 
       return data.data[0];
     } catch (error) {
@@ -308,7 +244,6 @@ getPostsByCategory: async (
     }
   },
 
->>>>>>> e1b6f6dac03e810142184f578f60c67e52a32dc7
   /**
    * Get related blog posts (posts in the same category)
    */
@@ -377,122 +312,6 @@ export const homeApi = {
     try {
       // Try three different approaches to populate data and use the first one that works
 
-<<<<<<< HEAD
-/**
- * Get homepage data with all sections
- */
-getHomePageData: async () => {
-  try {
-    // Try three different approaches to populate data and use the first one that works
-    
-    // Approach 1: Simple populate parameter string
-    const url1 = "/api/home-page?populate=hero,aboutSection,shunyamurtiSection,learningOptions.tabs,membershipCta,seo";
-    console.log("Trying URL approach 1:", url1);
-    
-    try {
-      const result1: any = await fetchAPI(url1);
-      console.log("Approach 1 succeeded! Response structure:", Object.keys(result1));
-      
-      // Check if we have the expected data structure
-      if (result1.data && result1.data.attributes) {
-        console.log("Data attributes available:", Object.keys(result1.data.attributes));
-        return result1.data.attributes;
-      } else {
-        console.log("Expected data structure not found in approach 1 response");
-        // Continue to next approach if we don't have the expected structure
-      }
-    } catch (error1) {
-      console.log("Approach 1 failed:", error1 instanceof Error ? error1.message : String(error1));
-      // Continue to next approach if this one fails
-    }
-    
-    // Approach 2: Expanded populate syntax
-    const url2 = "/api/home-page?populate[hero][populate]=*&populate[aboutSection][populate]=*&populate[shunyamurtiSection][populate]=*&populate[learningOptions][populate][tabs][populate]=*&populate[membershipCta][populate]=*&populate[seo][populate]=*";
-    console.log("Trying URL approach 2:", url2);
-    
-    try {
-      const result2: any = await fetchAPI(url2);
-      console.log("Approach 2 succeeded! Response structure:", Object.keys(result2));
-      
-      if (result2.data && result2.data.attributes) {
-        console.log("Data attributes available:", Object.keys(result2.data.attributes));
-        return result2.data.attributes;
-      } else {
-        console.log("Expected data structure not found in approach 2 response");
-      }
-    } catch (error2) {
-      console.log("Approach 2 failed:", error2 instanceof Error ? error2.message : String(error2));
-    }
-    
-    // Approach 3: Deep populate with nested objects
-    const populateObj = {
-      populate: {
-        hero: { populate: '*' },
-        aboutSection: { populate: '*' },
-        shunyamurtiSection: { populate: '*' },
-        learningOptions: {
-          populate: {
-            tabs: { populate: '*' }
-          }
-        },
-        membershipCta: { populate: '*' },
-        seo: { populate: '*' }
-      }
-    };
-    
-    // Convert to query string manually
-    const url3 = `/api/home-page?${new URLSearchParams({
-      populate: JSON.stringify(populateObj.populate)
-    }).toString()}`;
-    console.log("Trying URL approach 3:", url3);
-    
-    try {
-      const result3: any = await fetchAPI(url3);
-      console.log("Approach 3 succeeded! Response structure:", Object.keys(result3));
-      
-      if (result3.data && result3.data.attributes) {
-        console.log("Data attributes available:", Object.keys(result3.data.attributes));
-        return result3.data.attributes;
-      } else {
-        console.log("Expected data structure not found in approach 3 response");
-      }
-    } catch (error3) {
-      console.log("Approach 3 failed:", error3 instanceof Error ? error3.message : String(error3));
-    }
-    
-    // If we get here, all approaches failed but didn't throw
-    // Return a minimal structure to prevent errors
-    console.log("All approaches completed but didn't return valid data structure. Returning minimal structure.");
-    return {};
-  } catch (error) {
-    console.error("Error fetching homepage data:", error);
-    throw error;
-  }
-},
-/**
- * Get featured blog posts for homepage with simple populate
- */
-getFeaturedBlogPosts: async (limit = 5) => {
-  try {
-    // Simple populate for featured image and basic fields
-    const url = `/api/blog-posts?sort=publishedAt:desc&pagination[pageSize]=${limit}&populate=featuredImage,category`;
-    console.log("Fetching blog posts:", url);
-    
-    const response: any = await fetchAPI(url);
-    
-    // Log the basic structure of the response
-    console.log("Blog API response:", 
-      response.data ? `Found ${response.data.length} posts` : "No posts found"
-    );
-    
-    return response;
-  } catch (error) {
-    console.error("Error fetching featured blog posts:", error);
-    // Return an empty result instead of throwing
-    return { data: [] };
-  }
-},
-=======
       // Approach 1: Simple populate parameter string
       const url1 =
         "/api/home-page?populate=hero,aboutSection,shunyamurtiSection,learningOptions.tabs,membershipCta,seo";
@@ -675,7 +494,6 @@ getFeaturedBlogPosts: async (limit = 5) => {
       return { data: [] };
     }
   },
->>>>>>> e1b6f6dac03e810142184f578f60c67e52a32dc7
   /**
    * Get upcoming events
    */
