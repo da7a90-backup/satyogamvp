@@ -4,40 +4,34 @@ import CourseDetailPage from "@/components/dashboard/course/user/CourseDetailPag
 import { courseApi } from "@/lib/courseApi";
 import { notFound } from "next/navigation";
 
+interface CourseDetailRouteProps {
+  params: Promise<{
+    slug: string;
+  }>;
+}
+
 export default async function CourseDetailRoute({
   params,
-}: {
-  params: { slug: string };
-}) {
+}: CourseDetailRouteProps) {
+  // Properly unwrap the params object
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
+
   // Get the user session
   const session = await getServerSession(authOptions);
 
-  // Debug - log the session information
-  console.log(
-    "Course detail page - session:",
-    JSON.stringify(
-      {
-        authenticated: !!session,
-        user: session?.user,
-        role: session?.user?.role,
-      },
-      null,
-      2
-    )
-  );
-
   // Check if the course exists
   try {
-    const courseResponse = await courseApi.getCourseBySlug(params.slug);
+    const courseResponse = await courseApi.getCourseBySlug(slug);
 
     if (!courseResponse) {
       return notFound();
     }
 
     // Pass the slug to the client component
-    return <CourseDetailPage slug={params.slug} />;
+    return <CourseDetailPage slug={slug} />;
   } catch (error) {
-    console.error(`Error fetching course with slug "${params.slug}":`, error);
+    console.error(`Error fetching course with slug "${slug}":`, error);
     return notFound();
   }
 }

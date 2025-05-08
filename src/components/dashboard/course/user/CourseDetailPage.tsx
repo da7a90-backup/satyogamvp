@@ -12,6 +12,8 @@ import {
 import Link from "next/link";
 import { courseApi } from "@/lib/courseApi";
 import ReactMarkdown from "react-markdown";
+import SuccessNotification from "@/components/dashboard/course/user/SuccessNotificationPage";
+import CourseTestimonialsComponent from "@/components/dashboard/course/user/CourseTestimonialsComponent";
 
 interface CourseDetailPageProps {
   slug: string;
@@ -132,28 +134,6 @@ interface Course {
   };
 }
 
-// Mock testimonial data
-const mockTestimonials = [
-  {
-    id: 1,
-    text: "This course is presenting truth very simply and eloquently. It's healing and as another reviewer said, no nonsense. At 65 years of age, these teachings are helping me to see how little I know about the dynamics of mind and spirit. Thank you.",
-    authorName: "Richard",
-    location: "UK",
-  },
-  {
-    id: 2,
-    text: "I absolutely LOVED this course. It was such a beautiful experience-to feel my heart slowly open up, because you have created such a loving and safe contained environment-it goes beyond words. The light in me appreciates it. I am in deep gratitude to everyone at the Ashram for making this possible.",
-    authorName: "Name Surname",
-    location: "Position, Company name",
-  },
-  {
-    id: 3,
-    text: "It has been an opening of rare grace to receive the teachings and consciousness maps which Shunyamurti has distilled through his decades of scholarship and Self-inquiry. All of it speaks to me clearly and has allowed me to open the door to a deeper and clearer sense.",
-    authorName: "Scott",
-    location: "Scotland",
-  },
-];
-
 const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
   const [course, setCourse] = useState<Course | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -162,6 +142,9 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
   const [classes, setClasses] = useState<CourseClass[]>([]);
   const [expandedClassIds, setExpandedClassIds] = useState<number[]>([]);
   const [currentTestimonialPage, setCurrentTestimonialPage] = useState(0);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Refs for media slider
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -290,16 +273,68 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
     }
   }, [slug]);
 
+  useEffect(() => {
+    // Check if we're returning from a successful enrollment
+    const checkEnrollmentSuccess = () => {
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const enrolled = urlParams.get("enrolled");
+
+        if (enrolled === "true") {
+          // Show success notification
+          setShowSuccessNotification(true);
+
+          // Remove the query parameter using history API
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+      }
+    };
+
+    checkEnrollmentSuccess();
+  }, []);
+
+  // Updated handlePurchase function with redirection
   const handlePurchase = async () => {
     if (!course) return;
 
     try {
-      await courseApi.enrollInCourse(course.id.toString());
-      // Redirect to the course page after successful enrollment
-      router.push(`/dashboard/user/courses/${slug}`);
+      // Check if the course is free or paid
+      if (course.attributes.isFree || course.attributes.price === 0) {
+        setIsEnrolling(true);
+        setErrorMessage(null);
+
+        try {
+          // Enroll in the free course
+          await courseApi.enrollInCourse(course.id.toString());
+
+          // Show success notification
+          setShowSuccessNotification(true);
+
+          // Redirect after a short delay
+          setTimeout(() => {
+            // Redirect to the courses page with the "my-courses" tab active
+            // We can use local storage to set the active tab before redirecting
+            localStorage.setItem("coursesActiveTab", "my-courses");
+            router.push("/dashboard/user/courses");
+          }, 3000); // 3 second delay to allow user to see the notification
+        } catch (enrollError: any) {
+          console.error("Error enrolling in course:", enrollError);
+          setErrorMessage(
+            enrollError.message ||
+              "Failed to enroll in course. Please try again."
+          );
+        } finally {
+          setIsEnrolling(false);
+        }
+      } else {
+        // For paid courses, redirect to payment page
+        router.push(`/dashboard/user/courses/${slug}/payment`);
+      }
     } catch (err) {
-      console.error("Error enrolling in course:", err);
-      // Handle enrollment error
+      console.error("Error in purchase flow:", err);
+      setIsEnrolling(false);
+      setErrorMessage("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -334,11 +369,6 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
         ? prevIds.filter((id) => id !== classId)
         : [...prevIds, classId]
     );
-  };
-
-  // Navigate testimonial carousel
-  const handleTestimonialNavigation = (index: number) => {
-    setCurrentTestimonialPage(index);
   };
 
   // Calculate duration for each class using the duration field from class attributes
@@ -430,7 +460,6 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           Back
         </Link>
       </div>
-
       {/* Course header with featured image, title and enrollment details */}
       <div className="bg-gray-100">
         <div className="container mx-auto px-4 py-6">
@@ -513,10 +542,26 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
               {/* Enroll button */}
               <button
                 onClick={handlePurchase}
-                className="w-full py-3 px-6 rounded-md bg-black text-white font-medium hover:bg-gray-800"
+                className="w-full py-3 px-6 rounded-md bg-black text-white font-medium hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled={isEnrolling}
               >
-                Enroll now
+                {isEnrolling ? (
+                  <span className="flex items-center justify-center">
+                    <span className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></span>
+                    Enrolling...
+                  </span>
+                ) : course.attributes.isFree ||
+                  course.attributes.price === 0 ? (
+                  "Enroll now (Free)"
+                ) : (
+                  `Purchase ($${course.attributes.price})`
+                )}
               </button>
+              {errorMessage && (
+                <div className="mt-2 text-sm text-red-600">
+                  <p>{errorMessage}</p>
+                </div>
+              )}
 
               {/* Membership discovery link */}
               <p className="text-xs text-center mt-2">
@@ -527,7 +572,6 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           </div>
         </div>
       </div>
-
       {/* Main course content */}
       <div className="container mx-auto px-4 py-8">
         {/* Featured video section */}
@@ -962,57 +1006,37 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           </h2>
           <p className="text-gray-600 mb-8">What students say about us</p>
 
-          <div className="relative">
-            {/* Testimonial cards - show only current page */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[mockTestimonials[currentTestimonialPage]].map((testimonial) => (
-                <div key={testimonial.id} className="bg-white p-6 rounded-lg">
-                  <p className="text-gray-700 italic mb-6">
-                    {testimonial.text}
-                  </p>
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 mr-3">
-                      <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {testimonial.authorName}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {testimonial.location}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination dots */}
-            <div className="flex justify-center mt-6 space-x-2">
-              {mockTestimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleTestimonialNavigation(index)}
-                  className={`h-2 w-2 rounded-full ${
-                    index === currentTestimonialPage
-                      ? "bg-black"
-                      : "bg-gray-300"
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
+          {course && (
+            <CourseTestimonialsComponent
+              courseId={course.id.toString()}
+              maxDisplay={3}
+            />
+          )}
         </div>
 
         {/* Final CTA */}
         <div className="text-center mb-16">
           <button
             onClick={handlePurchase}
-            className="py-3 px-8 bg-black text-white font-medium rounded-md hover:bg-gray-800"
+            className="w-full py-3 px-6 rounded-md bg-black text-white font-medium hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isEnrolling}
           >
-            Enroll now
+            {isEnrolling ? (
+              <span className="flex items-center justify-center">
+                <span className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></span>
+                Enrolling...
+              </span>
+            ) : course.attributes.isFree || course.attributes.price === 0 ? (
+              "Enroll now (Free)"
+            ) : (
+              `Purchase ($${course.attributes.price})`
+            )}
           </button>
+          {errorMessage && (
+            <div className="mt-2 text-sm text-red-600">
+              <p>{errorMessage}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1022,6 +1046,52 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           display: none;
         }
       `}</style>
+      {/* Success notification */}
+      {showSuccessNotification && (
+        <div className="fixed bottom-4 right-4 bg-green-50 border border-green-200 rounded-md shadow-md max-w-md z-50">
+          <div className="p-4 flex items-start">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div className="flex-grow">
+              <p className="text-green-800 font-medium">
+                Course successfully added to your courses! You can find it in
+                the 'My Courses' tab.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSuccessNotification(false)}
+              className="ml-4 text-green-500 hover:text-green-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
