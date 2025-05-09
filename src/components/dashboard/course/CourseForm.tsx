@@ -766,8 +766,8 @@ const CourseForm = ({ courseId }: CourseFormProps) => {
             placeholder="Enter a short subtitle to display on the course page"
           />
           <p className="mt-1 text-xs text-gray-500">
-            A brief subtitle to display on the course page (will be shown
-            instead of the full description)
+            A brief subtitle to display on the course selling page (will be
+            shown instead of the full description)
           </p>
         </div>
         {/* Slug */}

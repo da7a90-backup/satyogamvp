@@ -21,6 +21,8 @@ import {
   DocumentTextIcon,
   PlayIcon,
   ClockIcon,
+  PlusIcon,
+  ArrowsUpDownIcon,
 } from "@heroicons/react/24/outline";
 import ReactMarkdown from "react-markdown";
 
@@ -36,6 +38,12 @@ const CourseDetailPage = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // State for drag-and-drop reordering
+  const [originalOrder, setOriginalOrder] = useState<any[]>([]);
+  const [draggedItem, setDraggedItem] = useState<any | null>(null);
+  const [orderChanged, setOrderChanged] = useState(false);
+  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -63,7 +71,13 @@ const CourseDetailPage = () => {
             console.log("Classes Response:", classesResponse);
 
             if (classesResponse.data) {
-              setClasses(classesResponse.data);
+              // Sort classes by orderIndex
+              const sortedClasses = [...classesResponse.data].sort(
+                (a, b) => a.attributes.orderIndex - b.attributes.orderIndex
+              );
+              setClasses(sortedClasses);
+              // Store original order for comparison
+              setOriginalOrder(sortedClasses.map((c) => c.id));
             }
           } catch (classError) {
             console.error("Error fetching classes:", classError);
@@ -98,6 +112,66 @@ const CourseDetailPage = () => {
       console.error("Error deleting course:", err);
       setError("Failed to delete the course");
       setIsDeleting(false);
+    }
+  };
+
+  // Drag-and-drop handlers
+  const handleDragStart = (classItem: any) => {
+    setDraggedItem(classItem);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+
+    // Create a copy of the current classes array
+    const draggedItemIndex = classes.findIndex((c) => c.id === draggedItem.id);
+    if (draggedItemIndex === index) return;
+
+    const newClasses = [...classes];
+    // Remove item from its original position
+    const [removed] = newClasses.splice(draggedItemIndex, 1);
+    // Insert at the new position
+    newClasses.splice(index, 0, removed);
+
+    setClasses(newClasses);
+
+    // Check if the order has changed from the original
+    const newOrder = newClasses.map((c) => c.id);
+    const hasOrderChanged = !newOrder.every((id, i) => id === originalOrder[i]);
+    setOrderChanged(hasOrderChanged);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
+  // Update class order in the database
+  const updateClassOrder = async () => {
+    if (!course?.id) return;
+
+    setIsUpdatingOrder(true);
+    try {
+      // Prepare the updated classes with new orderIndex values
+      const promises = classes.map((classItem, index) => {
+        return courseApi.updateClass(classItem.id.toString(), {
+          orderIndex: index + 1, // Start from 1
+        });
+      });
+
+      await Promise.all(promises);
+
+      // Update the original order after successful save
+      setOriginalOrder(classes.map((c) => c.id));
+      setOrderChanged(false);
+
+      // Show success message or notification
+      alert("Class order updated successfully!");
+    } catch (error) {
+      console.error("Error updating class order:", error);
+      setError("Failed to update class order. Please try again.");
+    } finally {
+      setIsUpdatingOrder(false);
     }
   };
 
@@ -506,12 +580,28 @@ const CourseDetailPage = () => {
               <h3 className="text-lg font-medium text-gray-900">
                 Course Classes
               </h3>
-              <Link
-                href={`/dashboard/admin/course/${course.attributes.slug}/classes`}
-                className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
-              >
-                Manage Classes
-              </Link>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center text-gray-500 text-sm">
+                  <ArrowsUpDownIcon className="h-4 w-4 mr-1" />
+                  Drag to reorder
+                </div>
+                {orderChanged && (
+                  <button
+                    onClick={updateClassOrder}
+                    disabled={isUpdatingOrder}
+                    className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm flex items-center"
+                  >
+                    {isUpdatingOrder ? (
+                      <>
+                        <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Order"
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Display course classes including intro and addendum */}
@@ -532,22 +622,30 @@ const CourseDetailPage = () => {
                 </div>
               )}
 
-              {/* Regular classes */}
+              {/* Regular classes - now with drag-and-drop */}
               {classes.length > 0 ? (
-                classes
-                  .sort(
-                    (a, b) => a.attributes.orderIndex - b.attributes.orderIndex
-                  )
-                  .map((classItem, index) => (
+                <div className="space-y-2">
+                  {classes.map((classItem, index) => (
                     <div
                       key={classItem.id}
-                      className="bg-gray-50 rounded-lg overflow-hidden"
+                      draggable
+                      onDragStart={() => handleDragStart(classItem)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`bg-gray-50 rounded-lg overflow-hidden cursor-move ${
+                        draggedItem?.id === classItem.id ? "opacity-50" : ""
+                      }`}
                     >
                       <div className="p-4 border-l-4 border-purple-500">
                         <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-bold text-lg text-gray-900">
-                            {index + 1}. {classItem.attributes.title}
-                          </h4>
+                          <div className="flex items-center">
+                            <span className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3 text-purple-700 font-bold">
+                              {index + 1}
+                            </span>
+                            <h4 className="font-bold text-lg text-gray-900">
+                              {classItem.attributes.title}
+                            </h4>
+                          </div>
                           <div className="flex items-center text-sm text-gray-500">
                             <ClockIcon className="h-4 w-4 mr-1" />
                             {formatDuration(classItem.attributes.duration)}
@@ -600,19 +698,32 @@ const CourseDetailPage = () => {
                         <div className="mt-2 flex justify-end">
                           <Link
                             href={`/dashboard/admin/course/${course.attributes.slug}/class/edit/${classItem.id}`}
-                            className="text-purple-600 hover:text-purple-800 text-sm"
+                            className="text-purple-600 hover:text-purple-800 text-sm flex items-center"
                           >
+                            <PencilSquareIcon className="h-4 w-4 mr-1" />
                             Edit Class
                           </Link>
                         </div>
                       </div>
                     </div>
-                  ))
+                  ))}
+                </div>
               ) : (
                 <div className="bg-gray-50 p-4 rounded-md text-center text-gray-500">
                   No classes have been added to this course yet.
                 </div>
               )}
+
+              {/* Add Class button positioned between classes and addendum */}
+              <div className="flex justify-center">
+                <Link
+                  href={`/dashboard/admin/course/${course.attributes.slug}/class/new`}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Add New Class
+                </Link>
+              </div>
 
               {/* Addendum as the last item */}
               {addendum && (

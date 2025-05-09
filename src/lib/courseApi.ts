@@ -676,11 +676,35 @@ export const courseApi = {
   /**
    * Get a single class by ID
    */
+  // Update the getClass function in courseApi.ts to ensure it deeply populates all content sections
+
+  /**
+   * Get a single class by ID with complete content population
+   */
   getClass: async (id: string) => {
     try {
-      return await fetchAPI(
-        `/api/course-classes/${id}?populate=course,content`
-      );
+      // Use a much more complete populate parameter to ensure we get all content sections
+      const url = `/api/course-classes/${id}?populate[content][populate][video][populate]=*&populate[content][populate][keyConcepts][populate]=*&populate[content][populate][writingPrompts][populate]=*&populate[content][populate][additionalMaterials][populate]=*&populate=*`;
+
+      console.log(`Fetching class with ID "${id}" using URL: ${url}`);
+
+      const response = await fetchAPI(url);
+
+      // Log what we got back to help debug
+      if (
+        response.data &&
+        response.data.attributes &&
+        response.data.attributes.content
+      ) {
+        console.log(
+          "Class content sections found:",
+          Object.keys(response.data.attributes.content).join(", ")
+        );
+      } else {
+        console.log("No content sections found in response");
+      }
+
+      return response;
     } catch (error) {
       console.error(`Error fetching class with ID "${id}":`, error);
       throw error;
