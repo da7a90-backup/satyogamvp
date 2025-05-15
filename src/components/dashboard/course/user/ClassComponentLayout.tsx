@@ -1,17 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react"; // Add useRef here
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeftIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  CheckIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { courseApi } from "@/lib/courseApi";
 import { courseProgressApi } from "@/lib/courseProgressApi";
+
 interface ClassComponentLayoutProps {
   slug: string;
   classIndex: number;
@@ -192,31 +187,6 @@ const ClassComponentLayout = ({
     }
   };
 
-  // Mark as complete
-  const markAsComplete = async () => {
-    if (!course || !courseClass) return;
-
-    setIsUpdatingProgress(true);
-
-    try {
-      // Mark component as complete in API (100% progress)
-      await courseProgressApi.markComponentComplete(
-        course.id.toString(),
-        courseClass.id.toString(),
-        getComponentType(componentIndex)
-      );
-
-      // Update local state
-      setProgress(100);
-
-      // Navigate back to the course overview
-      router.push(`/dashboard/user/courses/${slug}/overview`);
-    } catch (error) {
-      console.error("Error marking as complete:", error);
-      setIsUpdatingProgress(false);
-    }
-  };
-
   // Calculate component title
   const getComponentTitle = () => {
     if (!courseClass) return "";
@@ -294,35 +264,40 @@ const ClassComponentLayout = ({
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation header */}
-      <div className="bg-gray-100 border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation header - redesigned based on Figma */}
+      <div className="bg-gray-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center">
+          <div className="flex items-center justify-between">
             <Link
               href={`/dashboard/user/courses/${slug}/overview`}
-              className="text-gray-600 hover:text-gray-900 flex items-center mr-6"
+              className="text-purple-600 hover:text-purple-800 flex items-center"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-1" />
-              Back to course
+              Back
             </Link>
 
-            <div className="text-sm text-gray-500">
-              {course.attributes.title}{" "}
-              <ChevronRightIcon className="h-3 w-3 inline mx-1" />
-              Class {classIndex}: {courseClass.attributes.title}{" "}
-              <ChevronRightIcon className="h-3 w-3 inline mx-1" />
-              {componentLabels[
-                componentIndex as keyof typeof componentLabels
-              ] || ""}
+            <div className="flex space-x-2">
+              <button
+                onClick={navigateToPrevious}
+                className="px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded hover:bg-gray-50 font-medium text-sm"
+              >
+                Previous
+              </button>
+              <button
+                onClick={navigateToNext}
+                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 font-medium text-sm"
+              >
+                Next class
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Component title */}
-      <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <div className="container mx-auto px-4 py-4">
+        <h1 className="text-xl font-bold text-gray-900 mb-6">
           {getComponentTitle()}
         </h1>
 
@@ -334,45 +309,9 @@ const ClassComponentLayout = ({
           ></div>
         </div>
 
-        {/* Main content */}
-        <div className="mb-12">{children}</div>
-
-        {/* Navigation buttons */}
-        <div className="flex justify-between mt-8 mb-16">
-          <button
-            onClick={navigateToPrevious}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center"
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-2" />
-            Previous
-          </button>
-
-          <button
-            onClick={markAsComplete}
-            className={`px-6 py-2 ${
-              isUpdatingProgress
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-purple-600 hover:bg-purple-700"
-            } text-white rounded-md`}
-            disabled={isUpdatingProgress}
-          >
-            {isUpdatingProgress ? (
-              <span className="flex items-center">
-                <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-white rounded-full"></span>
-                Updating...
-              </span>
-            ) : (
-              "Mark as Complete"
-            )}
-          </button>
-
-          <button
-            onClick={navigateToNext}
-            className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 flex items-center"
-          >
-            Next
-            <ChevronRightIcon className="h-4 w-4 ml-2" />
-          </button>
+        {/* Main content - white container */}
+        <div className="bg-white rounded-lg p-6 shadow-sm mb-12">
+          {children}
         </div>
       </div>
     </div>

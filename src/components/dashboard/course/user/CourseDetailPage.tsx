@@ -10,6 +10,7 @@ import {
   ChevronDownIcon,
   PlayIcon,
   MagnifyingGlassIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { courseApi } from "@/lib/courseApi";
 import ReactMarkdown from "react-markdown";
@@ -147,6 +148,13 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [modalMedia, setModalMedia] = useState<{
+    type: string;
+    url: string;
+    title: string;
+  } | null>(null);
 
   // Refs for media slider
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -183,17 +191,6 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           setError("Course not found");
           return;
         }
-
-        // // Log the full course data to debug image issues
-        // console.log("Full course data:", response);
-
-        // // Check instructor data specifically
-        // if (response.attributes.instructors?.data) {
-        //   console.log(
-        //     "Instructors data:",
-        //     response.attributes.instructors.data
-        //   );
-        // }
 
         setCourse(response);
 
@@ -276,6 +273,28 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
     }
   };
 
+  // Function to handle playing a preview video
+  const handlePlayMedia = (index: number) => {
+    setActiveMediaIndex(index);
+
+    // Get the media item
+    const media = course?.attributes.previewMedia?.data[index];
+    if (!media) return;
+
+    // For videos or images, open in modal
+    if (
+      media.attributes.mime.startsWith("video/") ||
+      media.attributes.mime.startsWith("image/")
+    ) {
+      setModalMedia({
+        type: media.attributes.mime,
+        url: getImageUrl(media.attributes.url),
+        title: media.attributes.name || "Media Preview",
+      });
+      setShowMediaModal(true);
+    }
+  };
+
   // Updated handlePurchase function with redirection
   const handlePurchase = async () => {
     if (!course) return;
@@ -330,16 +349,26 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
     });
   };
 
-  // Slider navigation
+  // Slider navigation with dot update
   const scrollLeft = () => {
     if (sliderRef.current) {
       sliderRef.current.scrollBy({ left: -300, behavior: "smooth" });
+      // Move to previous media item (with circular loop)
+      setActiveMediaIndex((prev) => {
+        const mediaCount = course?.attributes.previewMedia?.data.length || 0;
+        return (prev - 1 + mediaCount) % mediaCount;
+      });
     }
   };
 
   const scrollRight = () => {
     if (sliderRef.current) {
       sliderRef.current.scrollBy({ left: 300, behavior: "smooth" });
+      // Move to next media item (with circular loop)
+      setActiveMediaIndex((prev) => {
+        const mediaCount = course?.attributes.previewMedia?.data.length || 0;
+        return (prev + 1) % mediaCount;
+      });
     }
   };
 
@@ -351,11 +380,6 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
         : [...prevIds, classId]
     );
   };
-
-  // // Navigate testimonial carousel
-  // const handleTestimonialNavigation = (index: number) => {
-  //   setCurrentTestimonialPage(index);
-  // };
 
   // Calculate duration for each class using the duration field from class attributes
   const calculateDuration = (courseClass: CourseClass): string => {
@@ -807,83 +831,94 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
         </div>
       )}
 
-      {/* Preview Media Slider - gray background */}
+      {/* Preview Media Slider - gray background (updated) */}
       {course.attributes.previewMedia?.data &&
         course.attributes.previewMedia.data.length > 0 && (
-          <div className="bg-gray-50 py-8">
+          <div className="bg-gray-50 py-16">
             <div className="container mx-auto px-4">
               <div
-                className="mb-8"
+                className="relative"
                 ref={(el) => registerSectionRef("preview-media", el)}
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Preview Media
-                </h2>
-                <div className="relative">
-                  <div
-                    ref={sliderRef}
-                    className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar"
-                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                  >
-                    {course.attributes.previewMedia.data.map((media) => (
-                      <div
-                        key={media.id}
-                        className="flex-shrink-0 w-72 h-48 bg-gray-100 rounded-lg overflow-hidden"
-                      >
-                        {media.attributes.mime.startsWith("image/") ? (
-                          <img
-                            src={getImageUrl(media.attributes.url)}
-                            alt={media.attributes.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : media.attributes.mime.startsWith("video/") ? (
-                          <div className="relative w-full h-full bg-black flex items-center justify-center">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-16 h-16 bg-white bg-opacity-75 rounded-full flex items-center justify-center">
-                                <PlayIcon className="h-8 w-8 text-purple-600" />
+                {/* Slider container with larger images */}
+                <div
+                  ref={sliderRef}
+                  className="flex space-x-6 overflow-x-auto hide-scrollbar pb-6"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+                  {course.attributes.previewMedia.data.map((media, index) => (
+                    <div
+                      key={media.id}
+                      className="flex-shrink-0 w-96 h-64 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                      onClick={() => handlePlayMedia(index)}
+                    >
+                      {media.attributes.mime.startsWith("image/") ? (
+                        <img
+                          src={getImageUrl(media.attributes.url)}
+                          alt={media.attributes.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : media.attributes.mime.startsWith("video/") ? (
+                        <div className="relative w-full h-full bg-black">
+                          {/* Use actual thumbnail from video if available */}
+                          <div className="w-full h-full bg-gray-800">
+                            <img
+                              src={
+                                getImageUrl(media.attributes.url) + "?preview=1"
+                              }
+                              alt="Video thumbnail"
+                              className="w-full h-full object-cover opacity-80"
+                              onError={(e) => {
+                                // Fallback if thumbnail generation fails
+                                e.currentTarget.src = "/video-placeholder.jpg";
+                              }}
+                            />
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-20 h-20 rounded-full flex items-center justify-center">
+                              <div className="bg-white bg-opacity-80 w-16 h-16 rounded-full flex items-center justify-center">
+                                <div className="ml-1 bg-purple-600 w-12 h-12 rounded-full flex items-center justify-center">
+                                  <PlayIcon className="h-6 w-6 text-white" />
+                                </div>
                               </div>
                             </div>
-                            <span className="text-white text-sm">
+                            <div className="absolute bottom-4 left-4 bg-black bg-opacity-60 px-3 py-1 rounded text-white text-sm">
                               Video Preview
-                            </span>
+                            </div>
                           </div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-gray-500">Media Preview</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Navigation arrows */}
-                  <button
-                    onClick={scrollLeft}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-white rounded-full shadow-md flex items-center justify-center z-10"
-                  >
-                    <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={scrollRight}
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-white rounded-full shadow-md flex items-center justify-center z-10"
-                  >
-                    <ChevronRightIcon className="h-4 w-4 text-gray-600" />
-                  </button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-gray-500">Media Preview</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
 
+                {/* Navigation arrows - better positioned for larger media items */}
+                <button
+                  onClick={scrollLeft}
+                  className="absolute -left-5 top-1/2 transform -translate-y-1/2 h-12 w-12 bg-white rounded-full shadow-lg flex items-center justify-center z-10 border border-gray-200"
+                >
+                  <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
+                </button>
+                <button
+                  onClick={scrollRight}
+                  className="absolute -right-5 top-1/2 transform -translate-y-1/2 h-12 w-12 bg-white rounded-full shadow-lg flex items-center justify-center z-10 border border-gray-200"
+                >
+                  <ChevronRightIcon className="h-5 w-5 text-gray-600" />
+                </button>
+
                 {/* Pagination dots */}
-                <div className="flex justify-center mt-4 space-x-2">
-                  {Array.from({
-                    length: Math.min(
-                      6,
-                      course.attributes.previewMedia.data.length
-                    ),
-                  }).map((_, index) => (
+                <div className="flex justify-center mt-6 space-x-2">
+                  {course.attributes.previewMedia.data.map((_, index) => (
                     <div
                       key={index}
-                      className={`h-2 w-2 rounded-full ${
-                        index === 0 ? "bg-black" : "bg-gray-300"
+                      className={`h-2 w-2 rounded-full cursor-pointer ${
+                        index === activeMediaIndex ? "bg-black" : "bg-gray-300"
                       }`}
+                      onClick={() => setActiveMediaIndex(index)}
                     ></div>
                   ))}
                 </div>
@@ -892,15 +927,15 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           </div>
         )}
 
-      {/* Featured Quote - white background */}
+      {/* Featured Quote - white background (updated with bold text) */}
       {course.attributes.featuredQuote?.quoteText && (
-        <div className="bg-white py-8">
+        <div className="bg-white py-16">
           <div className="container mx-auto px-4">
             <div
-              className="mb-8 text-center"
+              className="mb-8 text-center max-w-4xl mx-auto"
               ref={(el) => registerSectionRef("featured-quote", el)}
             >
-              <blockquote className="text-xl italic font-medium text-gray-900 mb-6">
+              <blockquote className="text-2xl font-bold italic text-gray-900 mb-10 leading-relaxed">
                 "{course.attributes.featuredQuote.quoteText}"
               </blockquote>
 
@@ -913,16 +948,16 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
                         .attributes.url
                     )}
                     alt={course.attributes.featuredQuote.authorName}
-                    className="w-16 h-16 object-cover rounded-full mb-2"
+                    className="w-16 h-16 object-cover rounded-full mb-3"
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-3">
                     <span className="text-gray-500 text-xl font-medium">
                       {course.attributes.featuredQuote.authorName.charAt(0)}
                     </span>
                   </div>
                 )}
-                <cite className="font-medium text-gray-900 not-italic">
+                <cite className="font-medium text-gray-900 not-italic text-lg">
                   {course.attributes.featuredQuote.authorName}
                 </cite>
               </div>
@@ -944,65 +979,70 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
                   The instructors
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {course.attributes.instructors.data.map((instructor) => {
-                    // Check if picture field exists and has data
-                    const hasPicture =
-                      instructor.attributes.picture &&
-                      instructor.attributes.picture.data &&
-                      instructor.attributes.picture.data.attributes &&
-                      instructor.attributes.picture.data.attributes.url;
+                  {/* Sort instructors alphabetically by name */}
+                  {[...course.attributes.instructors.data]
+                    .sort((a, b) =>
+                      a.attributes.name.localeCompare(b.attributes.name)
+                    )
+                    .map((instructor) => {
+                      // Check if picture field exists and has data
+                      const hasPicture =
+                        instructor.attributes.picture &&
+                        instructor.attributes.picture.data &&
+                        instructor.attributes.picture.data.attributes &&
+                        instructor.attributes.picture.data.attributes.url;
 
-                    const imageUrl = hasPicture
-                      ? getImageUrl(
-                          instructor.attributes.picture.data.attributes.url
-                        )
-                      : null;
+                      const imageUrl = hasPicture
+                        ? getImageUrl(
+                            instructor.attributes.picture.data.attributes.url
+                          )
+                        : null;
 
-                    return (
-                      <div key={instructor.id} className="flex">
-                        <div className="flex-shrink-0 mr-4">
-                          {imageUrl ? (
-                            <img
-                              src={imageUrl}
-                              alt={instructor.attributes.name}
-                              className="h-32 w-32 object-cover rounded-sm"
-                            />
-                          ) : (
-                            <div className="h-32 w-32 bg-gray-100 flex items-center justify-center rounded-sm">
-                              <span className="text-gray-500 text-6xl font-medium">
-                                {instructor.attributes.name.charAt(0)}
-                              </span>
-                            </div>
-                          )}
+                      return (
+                        <div key={instructor.id} className="flex">
+                          <div className="flex-shrink-0 mr-4">
+                            {imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={instructor.attributes.name}
+                                className="h-32 w-32 object-cover rounded-sm"
+                              />
+                            ) : (
+                              <div className="h-32 w-32 bg-gray-100 flex items-center justify-center rounded-sm">
+                                <span className="text-gray-500 text-6xl font-medium">
+                                  {instructor.attributes.name.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">
+                              {instructor.attributes.name}
+                            </h3>
+                            {instructor.attributes.title && (
+                              <p className="text-gray-500 text-sm mb-2">
+                                {instructor.attributes.title}
+                              </p>
+                            )}
+                            {instructor.attributes.bio && (
+                              <p className="text-gray-600 text-sm">
+                                {instructor.attributes.bio}
+                              </p>
+                            )}
+                            {instructor.attributes.website && (
+                              <a
+                                href={instructor.attributes.website}
+                                className="text-purple-600 hover:underline text-sm mt-2 inline-block"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Visit website
+                              </a>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900 mb-2">
-                            {instructor.attributes.name}
-                          </h3>
-                          {instructor.attributes.title && (
-                            <p className="text-gray-500 text-sm mb-2">
-                              {instructor.attributes.title}
-                            </p>
-                          )}
-                          {instructor.attributes.bio && (
-                            <p className="text-gray-600 text-sm">
-                              {instructor.attributes.bio}
-                            </p>
-                          )}
-                          {instructor.attributes.website && (
-                            <a
-                              href={instructor.attributes.website}
-                              className="text-purple-600 hover:underline text-sm mt-2 inline-block"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Visit website
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </div>
             </div>
@@ -1075,7 +1115,10 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           )}
 
           {/* Testimonials */}
-          <div className="mb-16">
+          <div
+            className="mb-16"
+            ref={(el) => registerSectionRef("testimonials", el)}
+          >
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               Testimonials
             </h2>
@@ -1088,6 +1131,26 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
               />
             )}
           </div>
+
+          {/* Enroll Now button at bottom of page */}
+          <div className="py-12 flex justify-center">
+            <button
+              onClick={handlePurchase}
+              className="px-12 py-4 bg-black text-white text-lg font-medium rounded-md hover:bg-gray-800 transition-colors"
+              disabled={isEnrolling}
+            >
+              {isEnrolling ? (
+                <span className="flex items-center justify-center">
+                  <span className="animate-spin mr-2 h-5 w-5 border-t-2 border-b-2 border-white rounded-full"></span>
+                  Enrolling...
+                </span>
+              ) : course.attributes.isFree || course.attributes.price === 0 ? (
+                "Enroll Now"
+              ) : (
+                `Purchase Now (${course.attributes.price})`
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1096,51 +1159,92 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
+        .modal-backdrop {
+          background-color: rgba(0, 0, 0, 0.75);
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 50;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          backdrop-filter: blur(2px);
+        }
+        .modal-content {
+          max-width: 90vw;
+          max-height: 90vh;
+          background-color: #000;
+          border-radius: 0.5rem;
+          overflow: hidden;
+          position: relative;
+        }
+        .modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background-color: rgba(255, 255, 255, 0.2);
+          color: white;
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 9999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 60;
+          transition: background-color 0.2s;
+        }
+        .modal-close:hover {
+          background-color: rgba(255, 255, 255, 0.3);
+        }
       `}</style>
 
       {/* Success notification */}
       {showSuccessNotification && (
-        <div className="fixed bottom-4 right-4 bg-green-50 border border-green-200 rounded-md shadow-md max-w-md z-50">
-          <div className="p-4 flex items-start">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div className="flex-grow">
-              <p className="text-green-800 font-medium">
-                Course successfully added to your courses! You can find it in
-                the 'My Courses' tab.
-              </p>
-            </div>
+        <SuccessNotification
+          message="Course successfully added to your courses! You can find it in the 'My Courses' tab."
+          duration={5000}
+          onClose={() => setShowSuccessNotification(false)}
+        />
+      )}
+
+      {/* Media Modal */}
+      {showMediaModal && modalMedia && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setShowMediaModal(false)}
+        >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => setShowSuccessNotification(false)}
-              className="ml-4 text-green-500 hover:text-green-700"
+              className="modal-close"
+              onClick={() => setShowMediaModal(false)}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <XMarkIcon className="h-6 w-6" />
             </button>
+
+            {modalMedia.type.startsWith("video/") ? (
+              <video
+                className="max-w-full max-h-[80vh] mx-auto"
+                controls
+                autoPlay
+                src={modalMedia.url}
+                title={modalMedia.title}
+              />
+            ) : modalMedia.type.startsWith("image/") ? (
+              <img
+                className="max-w-full max-h-[80vh] mx-auto object-contain"
+                src={modalMedia.url}
+                alt={modalMedia.title}
+              />
+            ) : (
+              <div className="p-8 text-white">Unsupported media type</div>
+            )}
+
+            <div className="p-4 text-white">
+              <h3 className="text-lg font-medium">{modalMedia.title}</h3>
+            </div>
           </div>
         </div>
       )}

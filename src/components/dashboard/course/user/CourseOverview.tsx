@@ -55,9 +55,35 @@ interface CourseProgressData {
   };
 }
 
+// Interface for section durations
+interface ClassContent {
+  video?: {
+    duration?: number;
+  };
+  keyConcepts?: {
+    duration?: number;
+  };
+  writingPrompts?: {
+    duration?: number;
+  };
+  additionalMaterials?: {
+    duration?: number;
+  };
+}
+
+interface CourseClass {
+  id: number;
+  attributes: {
+    title: string;
+    orderIndex: number;
+    description?: string;
+    content?: ClassContent;
+  };
+}
+
 const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
   const [course, setCourse] = useState<any>(null);
-  const [classes, setClasses] = useState<any[]>([]);
+  const [classes, setClasses] = useState<CourseClass[]>([]);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -218,18 +244,28 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
     let totalMinutes = 0;
 
     classes.forEach((classItem) => {
-      if (classItem.attributes.duration) {
-        totalMinutes += parseInt(classItem.attributes.duration, 10) || 0;
+      // Sum up all section durations for this class
+      const content = classItem.attributes.content;
+      if (content) {
+        // Add each section's duration if available
+        if (content.video?.duration) totalMinutes += content.video.duration;
+        if (content.keyConcepts?.duration)
+          totalMinutes += content.keyConcepts.duration;
+        if (content.writingPrompts?.duration)
+          totalMinutes += content.writingPrompts.duration;
+        if (content.additionalMaterials?.duration)
+          totalMinutes += content.additionalMaterials.duration;
       }
     });
 
+    // Format as hours:minutes
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:00`;
+      return `${hours}:${minutes.toString().padStart(2, "0")}:00 hours`;
     } else {
-      return `${minutes}:00`;
+      return `${minutes}:00 min`;
     }
   };
 
@@ -237,6 +273,64 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
   const getComponentProgress = (classIndex: number, componentIndex: number) => {
     const key = `${classIndex}.${componentIndex}`;
     return progress[key] || { started: false, completed: false, progress: 0 };
+  };
+
+  // Check if a section exists for a given class
+  const sectionExists = (
+    courseClass: CourseClass,
+    sectionType: string
+  ): boolean => {
+    if (!courseClass.attributes.content) return false;
+
+    const content = courseClass.attributes.content;
+
+    switch (sectionType) {
+      case "video":
+        return !!content.video;
+      case "keyConcepts":
+        return !!content.keyConcepts;
+      case "writingPrompts":
+        return !!content.writingPrompts;
+      case "additionalMaterials":
+        return !!content.additionalMaterials;
+      default:
+        return false;
+    }
+  };
+
+  // Get section duration
+  const getSectionDuration = (
+    courseClass: CourseClass,
+    sectionType: string
+  ): string => {
+    if (!courseClass.attributes.content) return "";
+
+    const content = courseClass.attributes.content;
+    let duration = 0;
+
+    switch (sectionType) {
+      case "video":
+        duration = content.video?.duration || 0;
+        break;
+      case "keyConcepts":
+        duration = content.keyConcepts?.duration || 0;
+        break;
+      case "writingPrompts":
+        duration = content.writingPrompts?.duration || 0;
+        break;
+      case "additionalMaterials":
+        duration = content.additionalMaterials?.duration || 0;
+        break;
+    }
+
+    // Format the duration
+    if (duration >= 60) {
+      const hours = Math.floor(duration / 60);
+      const minutes = duration % 60;
+      return `${hours}:${minutes.toString().padStart(2, "0")} hours`;
+    } else {
+      return `${duration} min`;
+    }
   };
 
   // Calculate course completion percentage
@@ -337,7 +431,7 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-gray-50 min-h-screen">
       {/* Back button */}
       <div className="container mx-auto px-4 py-4">
         <Link
@@ -378,15 +472,6 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
         </div>
       </div>
 
-      {/* Introduction content - Now directly below the course title and image */}
-      {course?.attributes.introduction && (
-        <div className="container mx-auto px-4 py-8">
-          <div className="prose max-w-none">
-            <ReactMarkdown>{course.attributes.introduction}</ReactMarkdown>
-          </div>
-        </div>
-      )}
-
       {/* Course content - No longer inside a tab */}
       <div className="container mx-auto px-4 py-6">
         <h2 className="text-xl font-bold mb-2">Course content</h2>
@@ -394,23 +479,23 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
           <div className="text-sm text-gray-600">
             {classes.length} {classes.length === 1 ? "class" : "classes"}
           </div>
-          <div className="text-sm text-gray-600">{getTotalDuration()} min</div>
+          <div className="text-sm text-gray-600">{getTotalDuration()}</div>
         </div>
 
         {/* Welcome section */}
         <div className="space-y-4">
-          <div className="border border-gray-200 rounded-md overflow-hidden">
+          <div className="border border-gray-200 rounded-md overflow-hidden bg-white">
             <button
               onClick={() => toggleSection("welcome")}
               className="w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50"
             >
+              <span className="font-medium">Welcome!</span>
               <div className="flex items-center">
                 {expandedSections.includes("welcome") ? (
-                  <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
+                  <ChevronDownIcon className="h-5 w-5 text-gray-400 ml-2" />
                 ) : (
-                  <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
+                  <ChevronRightIcon className="h-5 w-5 text-gray-400 ml-2" />
                 )}
-                <span className="font-medium">Welcome!</span>
               </div>
             </button>
 
@@ -421,7 +506,7 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
                   onClick={handleIntroductionClick}
                 >
                   <div className="flex items-center">
-                    <div className="w-10 flex justify-center">
+                    <div className="w-8 flex justify-center">
                       {renderProgressIndicator(
                         progress["introduction"] || {
                           started: false,
@@ -432,14 +517,11 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
                     </div>
                     <div>
                       <span className="text-sm font-medium">Introduction</span>
-                      <div className="text-xs text-gray-500 mt-1">
-                        15 minutes
-                      </div>
                     </div>
                   </div>
 
                   {progress["introduction"]?.completed ? (
-                    <div className="flex items-center">
+                    <div className="flex items-center w-1/3">
                       <div className="w-full bg-purple-100 h-1 rounded-full">
                         <div
                           className="bg-purple-600 h-1 rounded-full"
@@ -471,25 +553,22 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
             return (
               <div
                 key={classItem.id}
-                className="border border-gray-200 rounded-md overflow-hidden"
+                className="border border-gray-200 rounded-md overflow-hidden bg-white"
               >
                 {/* Class header (always visible) */}
                 <button
                   onClick={() => toggleSection(classId)}
                   className="w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50"
                 >
+                  <span className="font-medium">
+                    Class {classIndex} - {classItem.attributes.title}
+                  </span>
                   <div className="flex items-center">
                     {isExpanded ? (
-                      <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <ChevronDownIcon className="h-5 w-5 text-gray-400 ml-2" />
                     ) : (
-                      <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <ChevronRightIcon className="h-5 w-5 text-gray-400 ml-2" />
                     )}
-                    <span className="font-medium">
-                      Class {classIndex} - {classItem.attributes.title}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {classItem.attributes.duration || "150"} min
                   </div>
                 </button>
 
@@ -497,228 +576,240 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
                 {isExpanded && (
                   <div className="border-t border-gray-200 divide-y divide-gray-200">
                     {/* Video section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 1)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 1)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.1 Video: {classItem.attributes.title}
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
+                    {sectionExists(classItem, "video") && (
+                      <div
+                        className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleComponentClick(classIndex, 1)}
+                      >
+                        <div className="flex items-center">
+                          <div className="w-8 flex justify-center">
+                            {renderProgressIndicator(
+                              getComponentProgress(classIndex, 1)
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium">
+                              {classIndex}.1 Video: {classItem.attributes.title}
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              {getSectionDuration(classItem, "video")}
+                            </span>
                           </div>
                         </div>
-                      </div>
 
-                      {getComponentProgress(classIndex, 1).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
+                        {getComponentProgress(classIndex, 1).completed ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-purple-100 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{ width: "100%" }}
+                              ></div>
+                            </div>
+                            <span className="text-sm whitespace-nowrap">
+                              100% completed
+                            </span>
                           </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
-                        </div>
-                      ) : getComponentProgress(classIndex, 1).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 1).progress
-                                }%`,
-                              }}
-                            ></div>
+                        ) : getComponentProgress(classIndex, 1).started ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-gray-200 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{
+                                  width: `${
+                                    getComponentProgress(classIndex, 1).progress
+                                  }%`,
+                                }}
+                              ></div>
+                            </div>
+                            <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
+                              Continue
+                            </button>
                           </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
+                        ) : (
+                          <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                            Start
                           </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Key Concepts section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 2)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 2)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.2 Key Concepts
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
+                    {sectionExists(classItem, "keyConcepts") && (
+                      <div
+                        className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleComponentClick(classIndex, 2)}
+                      >
+                        <div className="flex items-center">
+                          <div className="w-8 flex justify-center">
+                            {renderProgressIndicator(
+                              getComponentProgress(classIndex, 2)
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium">
+                              {classIndex}.2 Key Concepts
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              {getSectionDuration(classItem, "keyConcepts")}
+                            </span>
                           </div>
                         </div>
-                      </div>
 
-                      {getComponentProgress(classIndex, 2).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
+                        {getComponentProgress(classIndex, 2).completed ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-purple-100 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{ width: "100%" }}
+                              ></div>
+                            </div>
+                            <span className="text-sm whitespace-nowrap">
+                              100% completed
+                            </span>
                           </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
-                        </div>
-                      ) : getComponentProgress(classIndex, 2).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 2).progress
-                                }%`,
-                              }}
-                            ></div>
+                        ) : getComponentProgress(classIndex, 2).started ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-gray-200 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{
+                                  width: `${
+                                    getComponentProgress(classIndex, 2).progress
+                                  }%`,
+                                }}
+                              ></div>
+                            </div>
+                            <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
+                              Continue
+                            </button>
                           </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
+                        ) : (
+                          <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                            Start
                           </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Writing Prompts section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 3)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 3)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.3 Writing Prompts & Further Reflection
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
+                    {sectionExists(classItem, "writingPrompts") && (
+                      <div
+                        className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleComponentClick(classIndex, 3)}
+                      >
+                        <div className="flex items-center">
+                          <div className="w-8 flex justify-center">
+                            {renderProgressIndicator(
+                              getComponentProgress(classIndex, 3)
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium">
+                              {classIndex}.3 Writing Prompts & Further
+                              Reflection
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              {getSectionDuration(classItem, "writingPrompts")}
+                            </span>
                           </div>
                         </div>
-                      </div>
 
-                      {getComponentProgress(classIndex, 3).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
+                        {getComponentProgress(classIndex, 3).completed ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-purple-100 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{ width: "100%" }}
+                              ></div>
+                            </div>
+                            <span className="text-sm whitespace-nowrap">
+                              100% completed
+                            </span>
                           </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
-                        </div>
-                      ) : getComponentProgress(classIndex, 3).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 3).progress
-                                }%`,
-                              }}
-                            ></div>
+                        ) : getComponentProgress(classIndex, 3).started ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-gray-200 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{
+                                  width: `${
+                                    getComponentProgress(classIndex, 3).progress
+                                  }%`,
+                                }}
+                              ></div>
+                            </div>
+                            <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
+                              Continue
+                            </button>
                           </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
+                        ) : (
+                          <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                            Start
                           </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Additional Materials section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 4)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 4)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.4 Additional Materials
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
-                          </div>
-                        </div>
+                        )}
                       </div>
+                    )}
 
-                      {getComponentProgress(classIndex, 4).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
+                    {/* Additional Materials section - only show if it exists */}
+                    {sectionExists(classItem, "additionalMaterials") && (
+                      <div
+                        className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleComponentClick(classIndex, 4)}
+                      >
+                        <div className="flex items-center">
+                          <div className="w-8 flex justify-center">
+                            {renderProgressIndicator(
+                              getComponentProgress(classIndex, 4)
+                            )}
                           </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium">
+                              {classIndex}.4 Additional Materials
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              {getSectionDuration(
+                                classItem,
+                                "additionalMaterials"
+                              )}
+                            </span>
+                          </div>
                         </div>
-                      ) : getComponentProgress(classIndex, 4).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 4).progress
-                                }%`,
-                              }}
-                            ></div>
+
+                        {getComponentProgress(classIndex, 4).completed ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-purple-100 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{ width: "100%" }}
+                              ></div>
+                            </div>
+                            <span className="text-sm whitespace-nowrap">
+                              100% completed
+                            </span>
                           </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
+                        ) : getComponentProgress(classIndex, 4).started ? (
+                          <div className="flex items-center">
+                            <div className="w-24 bg-gray-200 h-1 rounded-full mr-2">
+                              <div
+                                className="bg-purple-600 h-1 rounded-full"
+                                style={{
+                                  width: `${
+                                    getComponentProgress(classIndex, 4).progress
+                                  }%`,
+                                }}
+                              ></div>
+                            </div>
+                            <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
+                              Continue
+                            </button>
+                          </div>
+                        ) : (
+                          <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                            Start
                           </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -726,25 +817,25 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
           })}
 
           {/* Course completion section (shown in-place without redirection) */}
-          <div className="border border-gray-200 rounded-md overflow-hidden">
+          <div className="border border-gray-200 rounded-md overflow-hidden bg-white">
             <button
               onClick={() => toggleSection("course-completed")}
               className="w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50"
             >
+              <span className="font-medium">
+                {getCourseCompletionPercentage() === 100
+                  ? "Course completed"
+                  : "Course completion"}
+              </span>
               <div className="flex items-center">
+                <div className="text-sm text-gray-500 mr-2">
+                  {getCourseCompletionPercentage()}% completed
+                </div>
                 {expandedSections.includes("course-completed") ? (
-                  <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
+                  <ChevronDownIcon className="h-5 w-5 text-gray-400" />
                 ) : (
-                  <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
+                  <ChevronRightIcon className="h-5 w-5 text-gray-400" />
                 )}
-                <span className="font-medium">
-                  {getCourseCompletionPercentage() === 100
-                    ? "Course completed"
-                    : "Course completion"}
-                </span>
-              </div>
-              <div className="text-sm text-gray-500">
-                {getCourseCompletionPercentage()}% completed
               </div>
             </button>
 
@@ -786,7 +877,7 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
           {/* Course addendum section (if exists) */}
           {course?.attributes.addendum && (
             <div
-              className={`border border-gray-200 rounded-md overflow-hidden ${
+              className={`border border-gray-200 rounded-md overflow-hidden bg-white ${
                 !isCourseCompleted ? "opacity-70" : ""
               }`}
             >
@@ -796,23 +887,23 @@ const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
                   isCourseCompleted ? "hover:bg-gray-50" : "cursor-not-allowed"
                 }`}
               >
+                <span className="font-medium">Course addendum</span>
                 <div className="flex items-center">
+                  {!isCourseCompleted ? (
+                    <div className="text-sm text-gray-500 mr-2">
+                      Unlocks when course is completed
+                    </div>
+                  ) : null}
                   {isCourseCompleted ? (
                     expandedSections.includes("course-addendum") ? (
-                      <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <ChevronDownIcon className="h-5 w-5 text-gray-400" />
                     ) : (
-                      <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <ChevronRightIcon className="h-5 w-5 text-gray-400" />
                     )
                   ) : (
-                    <LockClosedIcon className="h-5 w-5 text-gray-400 mr-2" />
+                    <LockClosedIcon className="h-5 w-5 text-gray-400" />
                   )}
-                  <span className="font-medium">Course addendum</span>
                 </div>
-                {!isCourseCompleted && (
-                  <div className="text-sm text-gray-500">
-                    Unlocks when course is completed
-                  </div>
-                )}
               </button>
 
               {expandedSections.includes("course-addendum") &&
