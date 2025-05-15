@@ -24,8 +24,9 @@ interface ContentSectionProps {
   data: any;
 }
 
-interface NewClassFormProps {
+interface EditClassFormProps {
   courseSlug: string;
+  classId: string;
 }
 
 // Type definitions
@@ -38,7 +39,24 @@ interface Course {
   };
 }
 
-const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
+interface ClassContent {
+  video?: any;
+  keyConcepts?: any;
+  writingPrompts?: any;
+  additionalMaterials?: any;
+}
+
+interface ClassData {
+  id: number;
+  attributes: {
+    title: string;
+    orderIndex: number;
+    duration: number;
+    content?: ClassContent;
+  };
+}
+
+const EditClassForm = ({ courseSlug, classId }: EditClassFormProps) => {
   // Prevent default form submission which can cause page refresh and focus loss
   useEffect(() => {
     const handleSubmit = (e: any) => {
@@ -57,11 +75,11 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
   const [courseId, setCourseId] = useState<string | null>(null);
+  const [classData, setClassData] = useState<ClassData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
-  const [nextOrderIndex, setNextOrderIndex] = useState(1); // Minimum is now 1
   const [errorField, setErrorField] = useState<string | null>(null);
 
   // Refs for scrolling to elements
@@ -82,7 +100,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
   // Form state
   const [formData, setFormData] = useState({
     title: "",
-    orderIndex: 1, // Set minimum to 1
+    orderIndex: 1,
     duration: 0,
     content: [] as Array<{
       type:
@@ -111,7 +129,18 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     Record<string, File | null>
   >({});
 
-  // Step 1: Fetch course by slug
+  // Existing media URLs for preview
+  const [existingVideoUrls, setExistingVideoUrls] = useState<
+    Record<number, string>
+  >({});
+  const [existingAudioUrls, setExistingAudioUrls] = useState<
+    Record<number, string>
+  >({});
+  const [existingAdditionalUrls, setExistingAdditionalUrls] = useState<
+    Record<string, string>
+  >({});
+
+  // Fetch course and then class data
   useEffect(() => {
     const fetchCourse = async () => {
       setIsLoading(true);
@@ -122,73 +151,261 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         const response = await courseApi.getCourseBySlug(courseSlug);
 
         if (response && response.id) {
-          // Success: We have a course
           setCourse(response);
           setCourseId(response.id.toString());
           console.log(
             `Found course: "${response.attributes.title}" with ID: ${response.id}`
           );
+
+          // Now fetch class data with the valid course ID
+          await fetchClassData(response.id.toString(), classId);
         } else {
           throw new Error("Course not found");
         }
       } catch (err) {
         console.error("Error fetching course:", err);
         setError("Failed to load course. Please check the URL and try again.");
-      } finally {
         setIsLoading(false);
       }
     };
 
-    if (courseSlug) {
+    if (courseSlug && classId) {
       fetchCourse();
     }
-  }, [courseSlug]);
+  }, [courseSlug, classId]);
 
-  // Step 2: After we have the course ID, fetch classes to determine order index
-  useEffect(() => {
-    if (!courseId) return;
+  // Helper function to get the base URL for media files
+  const getBaseUrl = () => {
+    return process.env.NEXT_PUBLIC_STRAPI_URL || "";
+  };
 
-    const fetchClasses = async () => {
-      try {
-        console.log(`Fetching classes for course ID "${courseId}"`);
-        const classesResponse = await courseApi.getClasses(courseId);
+  // Helper function to convert Strapi media object to URL
+  const getMediaUrl = (mediaObject: any) => {
+    if (!mediaObject || !mediaObject.data || !mediaObject.data.attributes) {
+      return null;
+    }
 
-        if (classesResponse && classesResponse.data) {
-          const existingClasses = classesResponse.data;
-          let nextIndex = 1; // Start with minimum 1
+    const url = mediaObject.data.attributes.url;
+    if (!url) return null;
 
-          if (existingClasses.length > 0) {
-            // Find the highest order index
-            const orderIndices = existingClasses.map(
-              (c: any) =>
-                c.attributes && typeof c.attributes.orderIndex === "number"
-                  ? c.attributes.orderIndex
-                  : 1 // Default to 1 if not found
-            );
+    // If it's already an absolute URL, return it as is
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
 
-            nextIndex = Math.max(...orderIndices, 0) + 1;
-          }
+    // Otherwise, prepend the base URL
+    return `${getBaseUrl()}${url}`;
+  };
 
-          console.log(`Setting next order index to ${nextIndex}`);
-          setNextOrderIndex(nextIndex);
+  // This function fetches the class data
+  const fetchClassData = async (courseId: string, classId: string) => {
+    try {
+      console.log(`Fetching class data for class ID "${classId}"`);
 
-          setFormData((prev) => ({
-            ...prev,
-            orderIndex: nextIndex,
-          }));
-        }
-      } catch (error) {
-        console.warn("Error fetching classes:", error);
-        // Default to 1 if we can't fetch classes
-        setFormData((prev) => ({
-          ...prev,
-          orderIndex: 1,
-        }));
+      // Use a more complete populate parameter to get all content sections
+      const response = await courseApi.getClass(classId);
+
+      if (!response || !response.data) {
+        throw new Error("Class not found");
       }
+
+      console.log("Class data received:", response.data);
+      setClassData(response.data);
+
+      // Convert class data to form data format
+      convertClassDataToFormData(response.data);
+    } catch (err) {
+      console.error("Error fetching class data:", err);
+      setError("Failed to load class data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const convertClassDataToFormData = (classData: ClassData) => {
+    const { attributes } = classData;
+    const content = attributes.content || {};
+
+    console.log("Converting class data to form data:", content);
+
+    // Initialize form data with basic class info
+    const newFormData = {
+      title: attributes.title || "",
+      orderIndex: attributes.orderIndex || 1,
+      duration: attributes.duration || 0,
+      content: [] as any[],
     };
 
-    fetchClasses();
-  }, [courseId]);
+    // Clear existing section types
+    setExistingSectionTypes(new Set());
+    setExistingAdditionalMaterialTypes({});
+
+    // Process video section if it exists
+    if (content.video) {
+      console.log("Processing video section:", content.video);
+
+      const videoContent = {
+        type: "video" as const,
+        duration: content.video.duration || 0,
+        videoDescription: content.video.videoDescription || "",
+        videoTranscript: content.video.videoTranscript || "",
+      };
+
+      newFormData.content.push(videoContent);
+      setExistingSectionTypes((prev) => new Set([...prev, "video"]));
+
+      // Store video URL for preview if available
+      if (content.video.videoFile) {
+        const videoUrl = getMediaUrl(content.video.videoFile);
+        if (videoUrl) {
+          setExistingVideoUrls((prev) => ({ ...prev, [0]: videoUrl }));
+        }
+      }
+
+      // Store audio URL for preview if available
+      if (content.video.AudioFile) {
+        const audioUrl = getMediaUrl(content.video.AudioFile);
+        if (audioUrl) {
+          setExistingAudioUrls((prev) => ({ ...prev, [0]: audioUrl }));
+        }
+      }
+    }
+
+    // Process key concepts section if it exists
+    if (content.keyConcepts) {
+      console.log("Processing key concepts section:", content.keyConcepts);
+
+      const keyConceptsContent = {
+        type: "key-concepts" as const,
+        duration: content.keyConcepts.duration || 0,
+        keyConceptsContent: content.keyConcepts.content || "",
+      };
+
+      newFormData.content.push(keyConceptsContent);
+      setExistingSectionTypes((prev) => new Set([...prev, "key-concepts"]));
+    }
+
+    // Process writing prompts section if it exists
+    if (content.writingPrompts) {
+      console.log(
+        "Processing writing prompts section:",
+        content.writingPrompts
+      );
+
+      const writingPromptsContent = {
+        type: "writing-prompts" as const,
+        duration: content.writingPrompts.duration || 0,
+        writingPromptsContent: content.writingPrompts.content || "",
+      };
+
+      newFormData.content.push(writingPromptsContent);
+      setExistingSectionTypes((prev) => new Set([...prev, "writing-prompts"]));
+    }
+
+    // Process additional materials section if it exists
+    if (content.additionalMaterials) {
+      console.log(
+        "Processing additional materials section:",
+        content.additionalMaterials
+      );
+
+      const additionalIndex = newFormData.content.length;
+      const additionalMaterialsContent = {
+        type: "additional-materials" as const,
+        duration: content.additionalMaterials.duration || 0,
+        additionalMaterialsContent: [] as any[],
+      };
+
+      // Initialize tracking set for additional material types
+      const materialTypes = new Set<string>();
+
+      // Process video in additional materials
+      if (content.additionalMaterials.video) {
+        console.log(
+          "Found video in additional materials",
+          content.additionalMaterials.video
+        );
+
+        materialTypes.add("video");
+        additionalMaterialsContent.additionalMaterialsContent.push({
+          type: "video" as const,
+          title: "Video", // Default title if none provided
+        });
+
+        // Store video URL
+        const videoUrl = getMediaUrl(content.additionalMaterials.video);
+        if (videoUrl) {
+          setExistingAdditionalUrls((prev) => ({
+            ...prev,
+            [`${additionalIndex}-0`]: videoUrl,
+          }));
+        }
+      }
+
+      // Process essay in additional materials
+      if (content.additionalMaterials.essay) {
+        console.log(
+          "Found essay in additional materials",
+          content.additionalMaterials.essay
+        );
+
+        materialTypes.add("essay");
+        additionalMaterialsContent.additionalMaterialsContent.push({
+          type: "essay" as const,
+          title: "Essay", // Default title if none provided
+          content: content.additionalMaterials.essay || "",
+        });
+      }
+
+      // Process guided meditation in additional materials
+      if (content.additionalMaterials.guidedMeditation) {
+        console.log(
+          "Found guided meditation in additional materials",
+          content.additionalMaterials.guidedMeditation
+        );
+
+        materialTypes.add("guided-meditation");
+
+        // Position matters here - need to know the index after adding other materials
+        const meditationIndex =
+          additionalMaterialsContent.additionalMaterialsContent.length;
+
+        additionalMaterialsContent.additionalMaterialsContent.push({
+          type: "guided-meditation" as const,
+          title: "Guided Meditation", // Default title if none provided
+        });
+
+        // Store audio URL
+        const audioUrl = getMediaUrl(
+          content.additionalMaterials.guidedMeditation
+        );
+        if (audioUrl) {
+          setExistingAdditionalUrls((prev) => ({
+            ...prev,
+            [`${additionalIndex}-${meditationIndex}`]: audioUrl,
+          }));
+        }
+      }
+
+      // Add additional materials section if it has content
+      if (additionalMaterialsContent.additionalMaterialsContent.length > 0) {
+        newFormData.content.push(additionalMaterialsContent);
+        setExistingSectionTypes(
+          (prev) => new Set([...prev, "additional-materials"])
+        );
+        setExistingAdditionalMaterialTypes((prev) => ({
+          ...prev,
+          [additionalIndex]: materialTypes,
+        }));
+      }
+    }
+
+    // Log the final form data
+    console.log("Final form data:", newFormData);
+
+    // Set the form data
+    setFormData(newFormData);
+  };
 
   // Scroll to success message when it appears
   useEffect(() => {
@@ -624,6 +841,52 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       // Upload files and keep track of media IDs
       const mediaIds: Record<string, number> = {};
 
+      // Get the original class data to preserve existing media IDs
+      if (classData && classData.attributes && classData.attributes.content) {
+        const content = classData.attributes.content;
+
+        // Save video file ID if it exists
+        if (content.video?.videoFile?.data?.id) {
+          mediaIds[`video_0_original`] = content.video.videoFile.data.id;
+        }
+
+        // Save audio file ID if it exists
+        if (content.video?.AudioFile?.data?.id) {
+          mediaIds[`audio_0_original`] = content.video.AudioFile.data.id;
+        }
+
+        // Save additional materials file IDs if they exist
+        if (content.additionalMaterials) {
+          if (content.additionalMaterials.video?.data?.id) {
+            mediaIds[`additional_0-0_original`] =
+              content.additionalMaterials.video.data.id;
+          }
+
+          if (content.additionalMaterials.guidedMeditation?.data?.id) {
+            // Find the index of guided meditation in additionalMaterialsContent
+            let meditationIndex = -1;
+            const additionalIndex = formData.content.findIndex(
+              (section) => section.type === "additional-materials"
+            );
+
+            if (additionalIndex >= 0) {
+              meditationIndex =
+                formData.content[
+                  additionalIndex
+                ].additionalMaterialsContent?.findIndex(
+                  (m) => m.type === "guided-meditation"
+                ) || -1;
+
+              if (meditationIndex >= 0) {
+                mediaIds[
+                  `additional_${additionalIndex}-${meditationIndex}_original`
+                ] = content.additionalMaterials.guidedMeditation.data.id;
+              }
+            }
+          }
+        }
+      }
+
       // Upload video files
       for (const [index, file] of Object.entries(videoFiles)) {
         if (file) {
@@ -678,14 +941,22 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       // Process each content section and map to the correct component structure
       formData.content.forEach((section, sectionIndex) => {
         if (section.type === "video") {
-          const videoId = mediaIds[`video_${sectionIndex}`];
-          const audioId = mediaIds[`audio_${sectionIndex}`];
+          // Use new uploaded file or fall back to original ID
+          const videoId =
+            mediaIds[`video_${sectionIndex}`] ||
+            mediaIds[`video_${sectionIndex}_original`] ||
+            null;
+
+          const audioId =
+            mediaIds[`audio_${sectionIndex}`] ||
+            mediaIds[`audio_${sectionIndex}_original`] ||
+            null;
 
           videoComponent = {
-            videoFile: videoId ? videoId : null,
+            videoFile: videoId,
             videoDescription: section.videoDescription || "",
             videoTranscript: section.videoTranscript || "",
-            AudioFile: audioId ? audioId : null,
+            AudioFile: audioId,
             duration: section.duration || 0,
           };
         } else if (section.type === "key-concepts") {
@@ -717,14 +988,21 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             (m) => m.type === "guided-meditation"
           );
 
+          // Use new uploaded file or fall back to original ID
           const videoFileId =
             videoIndex !== undefined && videoIndex >= 0
-              ? mediaIds[`additional_${sectionIndex}-${videoIndex}`]
+              ? mediaIds[`additional_${sectionIndex}-${videoIndex}`] ||
+                mediaIds[`additional_${sectionIndex}-${videoIndex}_original`] ||
+                null
               : null;
 
           const meditationFileId =
             meditationIndex !== undefined && meditationIndex >= 0
-              ? mediaIds[`additional_${sectionIndex}-${meditationIndex}`]
+              ? mediaIds[`additional_${sectionIndex}-${meditationIndex}`] ||
+                mediaIds[
+                  `additional_${sectionIndex}-${meditationIndex}_original`
+                ] ||
+                null
               : null;
 
           additionalMaterialsComponent = {
@@ -737,7 +1015,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       });
 
       // Create final structure for API
-      const classData = {
+      const updatedClassData = {
         title: formData.title,
         orderIndex: Math.max(formData.orderIndex, 1),
         duration: formData.duration,
@@ -750,7 +1028,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         },
       };
 
-      return classData;
+      return updatedClassData;
     } catch (error) {
       console.error("Error preparing data:", error);
       throw error;
@@ -777,21 +1055,14 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
       const section = formData.content[i];
 
       if (section.type === "video") {
-        // Check if video file exists
-        if (!videoFiles[i]) {
+        // For editing, we don't require a new video file if there's an existing one
+        const hasExistingVideo = existingVideoUrls[i];
+        const hasNewVideo = videoFiles[i];
+
+        if (!hasExistingVideo && !hasNewVideo) {
           setError(`Video file is required for video section ${i + 1}`);
           setErrorField(`section-${i}`);
           return false;
-        }
-        // Clear any possible mismatch between UI and actual file selection
-        const videoInput = document.getElementById(
-          `section-${i}-video`
-        ) as HTMLInputElement;
-        if (videoInput && !videoInput.files?.length && videoFiles[i]) {
-          // There's a potential mismatch, force the section to use the stored file
-          console.log(
-            `Ensuring video file is properly recognized for section ${i + 1}`
-          );
         }
       } else if (
         section.type === "key-concepts" &&
@@ -807,8 +1078,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         setError(`Content is required for writing prompts section ${i + 1}`);
         setErrorField(`section-${i}`);
         return false;
-      } // Update the additional materials validation part of the validateForm function
-      else if (section.type === "additional-materials") {
+      } else if (section.type === "additional-materials") {
         // Additional materials are optional, only validate if they exist
         if (
           section.additionalMaterialsContent &&
@@ -847,12 +1117,24 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     e.preventDefault();
     e.stopPropagation();
 
+    // Basic validation checks
     if (!courseId) {
-      setError("Cannot create class: course ID is missing");
+      setError("Cannot update class: course ID is missing");
       return;
     }
 
-    // Use our custom validation function instead of relying on HTML form validation
+    if (!classId) {
+      setError("Cannot update class: class ID is missing");
+      return;
+    }
+
+    // IMPORTANT CHANGE: Check if classData has loaded
+    if (!classData) {
+      setError("Cannot update class: class data is still loading");
+      return;
+    }
+
+    // Continue with form validation and submission
     if (!validateForm()) {
       return;
     }
@@ -863,12 +1145,17 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
 
     try {
       // Prepare data with file uploads
-      const classData = await prepareDataForSubmission();
+      const updatedClassData = await prepareDataForSubmission();
 
-      console.log("Submitting class data:", JSON.stringify(classData, null, 2));
-      await courseApi.createClass(classData);
+      console.log(
+        "Submitting updated class data:",
+        JSON.stringify(updatedClassData, null, 2)
+      );
 
-      setSuccessMessage("Class created successfully!");
+      // IMPORTANT CHANGE: Use classId prop directly instead of accessing it through classData
+      await courseApi.updateClass(classId, updatedClassData);
+
+      setSuccessMessage("Class updated successfully!");
 
       // Scroll to success message
       if (successRef.current) {
@@ -878,13 +1165,13 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         });
       }
 
-      // Redirect back to course classes page after a delay
+      // Redirect back to course page after a delay
       setTimeout(() => {
-        router.push(`/dashboard/admin/course/${courseSlug}/classes`);
+        router.push(`/dashboard/admin/course/${courseSlug}`);
       }, 1500);
     } catch (error) {
-      console.error("Error creating class:", error);
-      setError("Failed to create class. Please try again.");
+      console.error("Error updating class:", error);
+      setError("Failed to update class. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -1024,8 +1311,30 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                 htmlFor={`section-${index}-video`}
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Video File <span className="text-red-500">*</span>
+                Video File{" "}
+                {existingVideoUrls[index] ? (
+                  ""
+                ) : (
+                  <span className="text-red-500">*</span>
+                )}
               </label>
+
+              {/* Show existing video if available */}
+              {existingVideoUrls[index] && (
+                <div className="mb-2">
+                  <p className="text-sm text-gray-600 mb-1">
+                    Current video file:
+                  </p>
+                  <div className="bg-gray-100 p-2 rounded text-sm text-gray-700 flex items-center">
+                    <PlayIcon className="h-4 w-4 mr-2 text-purple-600" />
+                    <span className="truncate">
+                      {existingVideoUrls[index].split("/").pop() ||
+                        "Video file"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="mt-1 flex items-center">
                 <input
                   type="file"
@@ -1042,17 +1351,17 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                   htmlFor={`section-${index}-video`}
                   className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
                 >
-                  Choose file
+                  {existingVideoUrls[index] ? "Replace video" : "Choose file"}
                 </label>
                 <span className="ml-3 text-sm text-gray-500">
                   {videoFiles[index]
                     ? videoFiles[index].name
-                    : "No file chosen"}
+                    : "No new file chosen"}
                 </span>
               </div>
               {videoFiles[index] && (
                 <p className="mt-1 text-sm text-green-600">
-                  Selected: {videoFiles[index]?.name}
+                  Selected new file: {videoFiles[index]?.name}
                 </p>
               )}
             </div>
@@ -1110,6 +1419,36 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
               >
                 Audio File (Optional)
               </label>
+
+              {/* Show existing audio if available */}
+              {existingAudioUrls[index] && (
+                <div className="mb-2">
+                  <p className="text-sm text-gray-600 mb-1">
+                    Current audio file:
+                  </p>
+                  <div className="bg-gray-100 p-2 rounded text-sm text-gray-700 flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-2 text-purple-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                      />
+                    </svg>
+                    <span className="truncate">
+                      {existingAudioUrls[index].split("/").pop() ||
+                        "Audio file"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="mt-1 flex items-center">
                 <input
                   type="file"
@@ -1126,17 +1465,17 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                   htmlFor={`section-${index}-audio`}
                   className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
                 >
-                  Choose file
+                  {existingAudioUrls[index] ? "Replace audio" : "Choose file"}
                 </label>
                 <span className="ml-3 text-sm text-gray-500">
                   {audioFiles[index]
                     ? audioFiles[index].name
-                    : "No file chosen"}
+                    : "No new file chosen"}
                 </span>
               </div>
               {audioFiles[index] && (
                 <p className="mt-1 text-sm text-green-600">
-                  Selected: {audioFiles[index]?.name}
+                  Selected new file: {audioFiles[index]?.name}
                 </p>
               )}
             </div>
@@ -1355,6 +1694,29 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                           >
                             Video File
                           </label>
+
+                          {/* Show existing video if available */}
+                          {existingAdditionalUrls[
+                            `${index}-${materialIndex}`
+                          ] &&
+                            material.type === "video" && (
+                              <div className="mb-2">
+                                <p className="text-sm text-gray-600 mb-1">
+                                  Current video file:
+                                </p>
+                                <div className="bg-gray-100 p-2 rounded text-sm text-gray-700 flex items-center">
+                                  <PlayIcon className="h-4 w-4 mr-2 text-purple-600" />
+                                  <span className="truncate">
+                                    {existingAdditionalUrls[
+                                      `${index}-${materialIndex}`
+                                    ]
+                                      .split("/")
+                                      .pop() || "Video file"}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
                           <div className="mt-1 flex items-center">
                             <input
                               type="file"
@@ -1376,18 +1738,22 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                               htmlFor={`material-${index}-${materialIndex}-file`}
                               className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
                             >
-                              Choose file
+                              {existingAdditionalUrls[
+                                `${index}-${materialIndex}`
+                              ]
+                                ? "Replace video"
+                                : "Choose file"}
                             </label>
                             <span className="ml-3 text-sm text-gray-500">
                               {additionalFiles[`${index}-${materialIndex}`]
                                 ? additionalFiles[`${index}-${materialIndex}`]
                                     .name
-                                : "No file chosen"}
+                                : "No new file chosen"}
                             </span>
                           </div>
                           {additionalFiles[`${index}-${materialIndex}`] && (
                             <p className="mt-1 text-sm text-green-600">
-                              Selected:{" "}
+                              Selected new file:{" "}
                               {
                                 additionalFiles[`${index}-${materialIndex}`]
                                   ?.name
@@ -1405,6 +1771,42 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                           >
                             Audio File
                           </label>
+
+                          {/* Show existing audio if available */}
+                          {existingAdditionalUrls[
+                            `${index}-${materialIndex}`
+                          ] &&
+                            material.type === "guided-meditation" && (
+                              <div className="mb-2">
+                                <p className="text-sm text-gray-600 mb-1">
+                                  Current audio file:
+                                </p>
+                                <div className="bg-gray-100 p-2 rounded text-sm text-gray-700 flex items-center">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4 mr-2 text-purple-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                                    />
+                                  </svg>
+                                  <span className="truncate">
+                                    {existingAdditionalUrls[
+                                      `${index}-${materialIndex}`
+                                    ]
+                                      .split("/")
+                                      .pop() || "Audio file"}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
                           <div className="mt-1 flex items-center">
                             <input
                               type="file"
@@ -1426,18 +1828,22 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
                               htmlFor={`material-${index}-${materialIndex}-file`}
                               className="cursor-pointer px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 font-semibold text-sm"
                             >
-                              Choose file
+                              {existingAdditionalUrls[
+                                `${index}-${materialIndex}`
+                              ]
+                                ? "Replace audio"
+                                : "Choose file"}
                             </label>
                             <span className="ml-3 text-sm text-gray-500">
                               {additionalFiles[`${index}-${materialIndex}`]
                                 ? additionalFiles[`${index}-${materialIndex}`]
                                     .name
-                                : "No file chosen"}
+                                : "No new file chosen"}
                             </span>
                           </div>
                           {additionalFiles[`${index}-${materialIndex}`] && (
                             <p className="mt-1 text-sm text-green-600">
-                              Selected:{" "}
+                              Selected new file:{" "}
                               {
                                 additionalFiles[`${index}-${materialIndex}`]
                                   ?.name
@@ -1493,8 +1899,77 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <ArrowPathIcon className="h-8 w-8 text-purple-600 animate-spin" />
+      <div className="flex flex-col justify-center items-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-purple-600 animate-spin mb-4" />
+        <p className="text-gray-600">Loading class content...</p>
+      </div>
+    );
+  }
+  // Loading state with improved message
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-purple-600 animate-spin mb-4" />
+        <p className="text-gray-600">Loading class content...</p>
+      </div>
+    );
+  }
+
+  // Error state with more details
+  if (error || !classData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="bg-red-100 p-4 rounded-md text-red-700 max-w-lg text-center">
+          <p className="font-medium mb-2">
+            {error || "Class data could not be loaded"}
+          </p>
+          <p className="text-sm">
+            Please try again or{" "}
+            <Link
+              href={`/dashboard/admin/course/${courseSlug}`}
+              className="text-purple-600 hover:underline"
+            >
+              return to the course
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state for when no content is available despite loading properly
+  if (formData.content.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6 flex items-center">
+          <Link
+            href={`/dashboard/admin/course/${courseSlug}`}
+            className="mr-4 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Edit Class</h1>
+            {course && (
+              <p className="text-sm text-gray-500 mt-1">
+                Course: {course.attributes.title}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-6">
+          <h3 className="text-lg font-medium text-yellow-800 mb-2 flex items-center">
+            <ExclamationCircleIcon className="h-5 w-5 mr-2" />
+            No Content Sections Found
+          </h3>
+          <p className="text-yellow-700 mb-4">
+            This class exists but doesn't have any content sections defined yet.
+            You can add content sections below.
+          </p>
+        </div>
+
+        {/* Rest of your form will be here */}
       </div>
     );
   }
@@ -1503,13 +1978,13 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center">
         <Link
-          href={`/dashboard/admin/course/${courseSlug}/classes`}
+          href={`/dashboard/admin/course/${courseSlug}`}
           className="mr-4 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Class</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Class</h1>
           {course && (
             <p className="text-sm text-gray-500 mt-1">
               Course: {course.attributes.title}
@@ -1749,7 +2224,7 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
         {/* Submit buttons */}
         <div className="flex justify-end space-x-3 border-t border-gray-200 pt-6">
           <Link
-            href={`/dashboard/admin/course/${courseSlug}/classes`}
+            href={`/dashboard/admin/course/${courseSlug}`}
             className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
           >
             Cancel
@@ -1763,10 +2238,10 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
             {isSaving ? (
               <>
                 <ArrowPathIcon className="inline h-4 w-4 mr-2 animate-spin" />
-                Creating...
+                Updating...
               </>
             ) : (
-              "Create Class"
+              "Update Class"
             )}
           </button>
         </div>
@@ -1775,4 +2250,4 @@ const NewClassForm = ({ courseSlug }: NewClassFormProps) => {
   );
 };
 
-export default NewClassForm;
+export default EditClassForm;

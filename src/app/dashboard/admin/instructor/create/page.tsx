@@ -1,4 +1,4 @@
-import InstructorForm from "@/components/dashboard/course/InstructorForm";
+import InstructorForm from "@/components/dashboard/course/admin/InstructorForm";
 
 export const metadata = {
   title: "Add New Instructor - Admin Dashboard",

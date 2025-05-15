@@ -1,4 +1,4 @@
-import InstructorIndex from "@/components/dashboard/course/InstructorIndex";
+import InstructorIndex from "@/components/dashboard/course/admin/InstructorIndex";
 
 export const metadata = {
   title: "Instructors Management - Admin Dashboard",

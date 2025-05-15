@@ -23,6 +23,8 @@ import {
   ClockIcon,
   PlusIcon,
   ArrowsUpDownIcon,
+  CheckCircleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import ReactMarkdown from "react-markdown";
 
@@ -44,6 +46,11 @@ const CourseDetailPage = () => {
   const [draggedItem, setDraggedItem] = useState<any | null>(null);
   const [orderChanged, setOrderChanged] = useState(false);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+
+  // Success notification state
+  const [successNotification, setSuccessNotification] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -100,6 +107,17 @@ const CourseDetailPage = () => {
       fetchCourse();
     }
   }, [slug]);
+
+  // Auto-dismiss success notification after 5 seconds
+  useEffect(() => {
+    if (successNotification) {
+      const timer = setTimeout(() => {
+        setSuccessNotification(null);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successNotification]);
 
   const handleDelete = async () => {
     if (!course?.id) return;
@@ -165,8 +183,8 @@ const CourseDetailPage = () => {
       setOriginalOrder(classes.map((c) => c.id));
       setOrderChanged(false);
 
-      // Show success message or notification
-      alert("Class order updated successfully!");
+      // Show success notification instead of alert
+      setSuccessNotification("Class order updated successfully!");
     } catch (error) {
       console.error("Error updating class order:", error);
       setError("Failed to update class order. Please try again.");
@@ -271,6 +289,27 @@ const CourseDetailPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Success notification - simplified design with Tailwind's built-in animation */}
+      {successNotification && (
+        <div className="fixed inset-x-0 bottom-4 flex justify-center items-center z-[9999]">
+          <div className="bg-green-100 border border-green-300 rounded-md shadow-lg p-4 max-w-md mx-auto">
+            <div className="flex items-center">
+              <CheckCircleIcon className="h-5 w-5 text-green-600 mr-3 flex-shrink-0" />
+              <p className="text-sm font-medium text-green-800 flex-grow">
+                {successNotification}
+              </p>
+              <button
+                type="button"
+                className="ml-4 text-green-500 hover:text-green-700 flex-shrink-0"
+                onClick={() => setSuccessNotification(null)}
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header with navigation and actions */}
       <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center">
@@ -655,41 +694,36 @@ const CourseDetailPage = () => {
                         {/* Display class content types */}
                         {classItem.attributes.content && (
                           <div className="mt-3 flex flex-wrap gap-2">
+                            {/* Video - blue */}
                             {classItem.attributes.content.video && (
                               <div className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs">
                                 <PlayIcon className="h-3 w-3 mr-1" />
                                 Video
                               </div>
                             )}
-                            {classItem.attributes.content.essay && (
+
+                            {/* Key Concepts - green */}
+                            {classItem.attributes.content.keyConcepts && (
                               <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs">
                                 <DocumentTextIcon className="h-3 w-3 mr-1" />
-                                Essay
+                                Key Concepts
                               </div>
                             )}
-                            {classItem.attributes.content.guidedMeditation && (
-                              <div className="inline-flex items-center px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-xs">
-                                <DocumentTextIcon className="h-3 w-3 mr-1" />
-                                Guided Meditation
-                              </div>
-                            )}
-                            {classItem.attributes.content
-                              .additionalMaterials && (
-                              <div className="inline-flex items-center px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-xs">
-                                <DocumentTextIcon className="h-3 w-3 mr-1" />
-                                Additional Materials
-                              </div>
-                            )}
+
+                            {/* Writing Prompts - rose */}
                             {classItem.attributes.content.writingPrompts && (
                               <div className="inline-flex items-center px-2 py-1 bg-rose-100 text-rose-800 rounded-md text-xs">
                                 <DocumentTextIcon className="h-3 w-3 mr-1" />
                                 Writing Prompts
                               </div>
                             )}
-                            {classItem.attributes.content.keyConceptc && (
-                              <div className="inline-flex items-center px-2 py-1 bg-cyan-100 text-cyan-800 rounded-md text-xs">
+
+                            {/* Additional Materials - amber */}
+                            {classItem.attributes.content
+                              .additionalMaterials && (
+                              <div className="inline-flex items-center px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-xs">
                                 <DocumentTextIcon className="h-3 w-3 mr-1" />
-                                Key Concepts
+                                Additional Materials
                               </div>
                             )}
                           </div>
@@ -782,6 +816,8 @@ const CourseDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* No custom styles needed - using Tailwind's built-in classes */}
     </div>
   );
 };

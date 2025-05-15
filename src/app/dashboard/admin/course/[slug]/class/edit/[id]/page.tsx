@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import EditClassForm from "@/components/dashboard/course/EditClassForm";
+import EditClassForm from "@/components/dashboard/course/admin/EditClassForm";
 
 export default function Page() {
   const params = useParams();

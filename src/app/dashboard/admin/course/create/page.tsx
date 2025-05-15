@@ -1,4 +1,4 @@
-import CourseForm from "@/components/dashboard/course/CourseForm";
+import CourseForm from "@/components/dashboard/course/admin/CourseForm";
 
 export const metadata = {
   title: "Create New Course - Admin Dashboard",

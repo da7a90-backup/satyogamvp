@@ -59,8 +59,8 @@ const AdminSidebar = () => {
       icon: BookOpenIcon,
       subItems: [
         { name: "All Courses", href: "/dashboard/admin/course" },
-        { name: "Categories", href: "/dashboard/admin/course/categories" },
-        { name: "Lessons", href: "/dashboard/admin/course/lessons" },
+        { name: "Instructors", href: "/dashboard/admin/course/instructors" },
+        { name: "Reviews", href: "/dashboard/admin/course/reviews" },
       ],
     },
     {

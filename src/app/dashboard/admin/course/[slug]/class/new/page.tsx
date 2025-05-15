@@ -1,6 +1,6 @@
 "use client";
 
-import NewClassForm from "@/components/dashboard/course/NewClassForm";
+import NewClassForm from "@/components/dashboard/course/admin/NewClassForm";
 import { useParams } from "next/navigation";
 
 export default function NewClassPage() {
