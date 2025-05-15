@@ -335,8 +335,10 @@ export const courseApi = {
 
       // Add filter to exclude enrolled courses if the user has any
       if (enrolledCourseIds.length > 0) {
-        const idsParam = enrolledCourseIds.join(",");
-        url += `&filters[id][$notIn]=${idsParam}`;
+        // Use individual filters for each ID instead of a comma-separated list
+        enrolledCourseIds.forEach((id) => {
+          url += `&filters[id][$ne]=${id}`;
+        });
       }
 
       const response = await fetch(url, {

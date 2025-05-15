@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowLeftIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDownIcon,
   PlayIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import Link from "next/link";
 import { courseApi } from "@/lib/courseApi";
 import ReactMarkdown from "react-markdown";
 import SuccessNotification from "@/components/dashboard/course/user/SuccessNotificationPage";
@@ -78,7 +79,7 @@ interface CourseClass {
     title: string;
     orderIndex: number;
     description?: string;
-    duration?: string; // Added duration field based on the logs
+    duration?: string;
     content?: ClassContent;
   };
 }
@@ -118,7 +119,6 @@ interface Course {
     whatYouWillLearn?: any[];
     courseFeatures?: CourseFeatures;
     featuredQuote?: FeaturedQuote;
-    // New field for introVideo component
     introVideo?: {
       title?: string;
       video?: {
@@ -145,9 +145,19 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   // Refs for media slider
   const sliderRef = useRef<HTMLDivElement>(null);
+  const sectionsRef = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Register section refs for scrolling
+  const registerSectionRef = (id: string, ref: HTMLDivElement | null) => {
+    if (ref && !sectionsRef.current[id]) {
+      sectionsRef.current[id] = ref;
+    }
+  };
 
   // Helper function to get image URL with proper base
   const getImageUrl = (url?: string) => {
@@ -202,59 +212,8 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
     const fetchClasses = async (courseId: string) => {
       try {
         const response = await courseApi.getClasses(courseId);
-        // console.log("Classes data:", response);
 
         if (response.data && response.data.length > 0) {
-          // // Debug: Log the structure of the first class to understand its structure
-          // console.log(
-          //   "First class structure:",
-          //   JSON.stringify(response.data[0], null, 2)
-          // );
-          // console.log(
-          //   "First class content:",
-          //   response.data[0].attributes.content
-          // );
-
-          // // Explicitly log what fields we're counting
-          // const firstClass = response.data[0];
-          // if (firstClass.attributes.content) {
-          //   console.log("Content fields found in first class:");
-          //   console.log("- video:", !!firstClass.attributes.content.video);
-          //   console.log("- essay:", !!firstClass.attributes.content.essay);
-          //   console.log(
-          //     "- guidedMeditation:",
-          //     !!firstClass.attributes.content.guidedMeditation
-          //   );
-          //   console.log(
-          //     "- keyConcepts:",
-          //     !!firstClass.attributes.content.keyConcepts
-          //   );
-          //   console.log(
-          //     "- writingPrompts:",
-          //     !!firstClass.attributes.content.writingPrompts
-          //   );
-          //   console.log(
-          //     "- videoDescription:",
-          //     !!firstClass.attributes.content.videoDescription
-          //   );
-          //   console.log(
-          //     "- videoTranscript:",
-          //     !!firstClass.attributes.content.videoTranscript
-          //   );
-
-          //   // For content.video, which might be complex or nested
-          //   console.log(
-          //     "Video content type:",
-          //     typeof firstClass.attributes.content.video
-          //   );
-          //   if (firstClass.attributes.content.video) {
-          //     console.log(
-          //       "Video content structure:",
-          //       JSON.stringify(firstClass.attributes.content.video, null, 2)
-          //     );
-          //   }
-          // }
-
           setClasses(response.data);
           // Expand the first class by default
           setExpandedClassIds([response.data[0].id]);
@@ -264,7 +223,6 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
         }
       } catch (err) {
         console.error("Error fetching classes:", err);
-        // We'll just show the course without the classes if there's an error
       }
     };
 
@@ -294,6 +252,30 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
     checkEnrollmentSuccess();
   }, []);
 
+  // Function to handle search highlighting and scrolling
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    // Simple search implementation - could be enhanced with a proper search library
+    const searchText = searchQuery.toLowerCase();
+
+    // Find the first section containing the search text
+    for (const [id, sectionRef] of Object.entries(sectionsRef.current)) {
+      if (sectionRef) {
+        const sectionText = sectionRef.innerText.toLowerCase();
+        if (sectionText.includes(searchText)) {
+          sectionRef.scrollIntoView({ behavior: "smooth", block: "center" });
+          setActiveSection(id);
+
+          // Highlight could be implemented with CSS classes or with a more sophisticated approach
+          // For now we'll just focus on finding the section
+          break;
+        }
+      }
+    }
+  };
+
   // Updated handlePurchase function with redirection
   const handlePurchase = async () => {
     if (!course) return;
@@ -314,10 +296,9 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           // Redirect after a short delay
           setTimeout(() => {
             // Redirect to the courses page with the "my-courses" tab active
-            // We can use local storage to set the active tab before redirecting
             localStorage.setItem("coursesActiveTab", "my-courses");
             router.push("/dashboard/user/courses");
-          }, 3000); // 3 second delay to allow user to see the notification
+          }, 3000);
         } catch (enrollError: any) {
           console.error("Error enrolling in course:", enrollError);
           setErrorMessage(
@@ -371,6 +352,11 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
     );
   };
 
+  // // Navigate testimonial carousel
+  // const handleTestimonialNavigation = (index: number) => {
+  //   setCurrentTestimonialPage(index);
+  // };
+
   // Calculate duration for each class using the duration field from class attributes
   const calculateDuration = (courseClass: CourseClass): string => {
     // Use the duration field directly if available
@@ -401,6 +387,8 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
   const countLectures = (courseClass: CourseClass): string => {
     let count = 0;
     const content = courseClass.attributes.content;
+
+    if (!content) return "0 lectures";
 
     // Check if video field exists in content
     if (content.video) {
@@ -449,50 +437,64 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
   }
 
   return (
-    <div className="bg-white">
+    <div>
       {/* Back button */}
       <div className="container mx-auto px-4 py-4">
-        <Link
-          href="/dashboard/user/courses"
-          className="text-gray-600 hover:text-gray-900 flex items-center"
-        >
-          <ArrowLeftIcon className="h-4 w-4 mr-1" />
-          Back
-        </Link>
+        <div className="flex justify-between items-center">
+          <Link
+            href="/dashboard/user/courses"
+            className="text-gray-600 hover:text-gray-900 flex items-center"
+          >
+            <ArrowLeftIcon className="h-4 w-4 mr-1" />
+            Back
+          </Link>
+          {/* Search Bar */}
+          <form
+            onSubmit={handleSearch}
+            className="relative hidden md:flex items-center max-w-xs"
+          >
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 pr-10"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 text-gray-400 hover:text-gray-600"
+            >
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </button>
+          </form>
+        </div>
       </div>
-      {/* Course header with featured image, title and enrollment details */}
-      <div className="bg-gray-100">
-        <div className="container mx-auto px-4 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left: Featured Image with gallery */}
-            <div className="rounded-lg overflow-hidden bg-gray-100">
-              {course.attributes.featuredImage?.data?.attributes?.url ? (
-                <img
-                  src={getImageUrl(
-                    course.attributes.featuredImage.data.attributes.url
-                  )}
-                  alt={course.attributes.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-64 flex items-center justify-center bg-gray-200">
-                  <span className="text-gray-400">No image available</span>
-                </div>
-              )}
 
-              {/* Image thumbnails below main image */}
-              <div className="grid grid-cols-3 gap-2 mt-2">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-200 h-16 rounded-md"
-                  ></div>
-                ))}
+      {/* Course header - grey background */}
+      <div className="bg-gray-50 py-6">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Left: Featured Image (more compact and square) */}
+            <div className="md:col-span-1">
+              <div className="overflow-hidden bg-gray-100 aspect-square md:max-w-xs mx-auto">
+                {course.attributes.featuredImage?.data?.attributes?.url ? (
+                  <img
+                    src={getImageUrl(
+                      course.attributes.featuredImage.data.attributes.url
+                    )}
+                    alt={course.attributes.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <span className="text-gray-400">No image available</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Right: Course Information */}
-            <div>
+            <div className="md:col-span-2">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 {course.attributes.title}
               </h1>
@@ -502,7 +504,7 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
                 <span className="text-xl font-semibold text-black bg-transparent border-2 border-black rounded-full px-4 py-1">
                   {course.attributes.isFree || course.attributes.price === 0
                     ? "Free"
-                    : `$${course.attributes.price}`}
+                    : `${course.attributes.price}`}
                 </span>
                 <span className="ml-2 text-sm text-gray-500">
                   One time payment
@@ -522,19 +524,35 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
                 <p>{course.attributes.description}</p>
               </div>
 
-              {/* Membership Section */}
+              {/* Membership Section with improved layout */}
               <div className="mb-6">
-                <p className="text-sm text-gray-600 mb-2">Are you a member?</p>
-                <div className="relative inline-block w-full mb-4">
-                  <select className="block appearance-none w-full bg-white border border-gray-300 px-4 py-2 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500">
-                    <option>No</option>
-                    <option>Yes - Prajnani</option>
-                    <option>Yes - Satyagrahi</option>
-                    <option>Yes - Brahmachari</option>
-                    <option>Yes - Sannyasi</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <ChevronDownIcon className="h-4 w-4" />
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div className="mb-4 md:mb-0">
+                    <p className="text-sm text-gray-600 mb-2">
+                      Are you a member?
+                    </p>
+                    <div className="relative inline-block w-full md:w-auto">
+                      <select className="block appearance-none w-full md:w-48 bg-white border border-gray-300 px-4 py-2 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500">
+                        <option>No</option>
+                        <option>Yes - Prajnani</option>
+                        <option>Yes - Satyagrahi</option>
+                        <option>Yes - Brahmachari</option>
+                        <option>Yes - Sannyasi</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <ChevronDownIcon className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Membership link placement moved to the right */}
+                  <div className="text-right">
+                    <a
+                      href="#"
+                      className="text-xs underline text-gray-600 hover:text-gray-800"
+                    >
+                      Discover our memberships to receive discounts
+                    </a>
                   </div>
                 </div>
               </div>
@@ -554,293 +572,334 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
                   course.attributes.price === 0 ? (
                   "Enroll now (Free)"
                 ) : (
-                  `Purchase ($${course.attributes.price})`
+                  `Purchase (${course.attributes.price})`
                 )}
               </button>
+
               {errorMessage && (
                 <div className="mt-2 text-sm text-red-600">
                   <p>{errorMessage}</p>
                 </div>
               )}
-
-              {/* Membership discovery link */}
-              <p className="text-xs text-center mt-2">
-                Discover our <span className="underline">memberships</span> to
-                receive discounts
-              </p>
             </div>
           </div>
         </div>
       </div>
-      {/* Main course content */}
-      <div className="container mx-auto px-4 py-8">
-        {/* Featured video section */}
-        {course.attributes.introVideo?.video?.data ? (
-          <div className="mb-16 bg-gray-700 rounded-lg overflow-hidden">
-            <div className="aspect-video relative">
-              {course.attributes.introVideo.video.data.attributes.mime.startsWith(
-                "video/"
-              ) ? (
-                <video
-                  className="w-full h-full object-cover"
-                  controls
-                  poster="/video-placeholder.jpg"
-                >
-                  <source
-                    src={getImageUrl(
-                      course.attributes.introVideo.video.data.attributes.url
+
+      {/* Featured video section - white background */}
+      <div className="bg-white py-8">
+        <div className="container mx-auto px-4">
+          <div
+            className="mb-8"
+            ref={(el) => registerSectionRef("intro-video", el)}
+          >
+            {course.attributes.introVideo?.video?.data ? (
+              <>
+                <div className="bg-gray-700 rounded-lg overflow-hidden">
+                  <div className="aspect-video relative">
+                    {course.attributes.introVideo.video.data.attributes.mime.startsWith(
+                      "video/"
+                    ) ? (
+                      <video
+                        className="w-full h-full object-cover"
+                        controls
+                        poster="/video-placeholder.jpg"
+                      >
+                        <source
+                          src={getImageUrl(
+                            course.attributes.introVideo.video.data.attributes
+                              .url
+                          )}
+                          type={
+                            course.attributes.introVideo.video.data.attributes
+                              .mime
+                          }
+                        />
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                        <div className="flex flex-col items-center">
+                          <PlayIcon className="h-16 w-16 text-white opacity-50 mb-4" />
+                          <p className="text-white text-center">
+                            Video format not supported
+                          </p>
+                        </div>
+                      </div>
                     )}
-                    type={
-                      course.attributes.introVideo.video.data.attributes.mime
-                    }
-                  />
-                  Your browser does not support the video tag.
-                </video>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                  <div className="flex flex-col items-center">
-                    <PlayIcon className="h-16 w-16 text-white opacity-50 mb-4" />
-                    <p className="text-white text-center">
-                      Video format not supported
-                    </p>
+                  </div>
+
+                  {/* Video title and instructor badges */}
+                  <div className="bg-gray-800 p-4">
+                    {course.attributes.introVideo.title && (
+                      <h3 className="text-white text-lg font-medium mb-4">
+                        {course.attributes.introVideo.title}
+                      </h3>
+                    )}
+
+                    {/* Instructor badges */}
+                    <div className="flex flex-wrap gap-4">
+                      {course.attributes.instructors?.data &&
+                        course.attributes.instructors.data.map((instructor) => (
+                          <div
+                            key={instructor.id}
+                            className="flex items-center gap-2"
+                          >
+                            {instructor.attributes.picture?.data?.attributes
+                              ?.url ? (
+                              <img
+                                src={getImageUrl(
+                                  instructor.attributes.picture.data.attributes
+                                    .url
+                                )}
+                                alt={instructor.attributes.name}
+                                className="h-8 w-8 object-cover rounded-full"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs">
+                                  {instructor.attributes.name.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                            <span className="text-white text-sm">
+                              {instructor.attributes.name} · Instructor
+                            </span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      </div>
 
-            {/* Video title and instructor badges */}
-            <div className="bg-gray-800 p-4">
-              {course.attributes.introVideo.title && (
-                <h3 className="text-white text-lg font-medium mb-4">
-                  {course.attributes.introVideo.title}
-                </h3>
-              )}
+      {/* What you will learn - gray background */}
+      {course.attributes.whatYouWillLearn &&
+        course.attributes.whatYouWillLearn.length > 0 && (
+          <div className="bg-gray-50 py-8">
+            <div className="container mx-auto px-4">
+              <div
+                className="mb-8"
+                ref={(el) => registerSectionRef("what-you-learn", el)}
+              >
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">
+                  What you will learn
+                </h2>
 
-              {/* Instructor badges */}
-              <div className="flex flex-wrap gap-4">
-                {course.attributes.instructors?.data &&
-                  course.attributes.instructors.data.map((instructor) => (
-                    <div
-                      key={instructor.id}
-                      className="flex items-center gap-2"
-                    >
-                      {instructor.attributes.picture?.data?.attributes?.url ? (
-                        <img
-                          src={getImageUrl(
-                            instructor.attributes.picture.data.attributes.url
-                          )}
-                          alt={instructor.attributes.name}
-                          className="h-8 w-8 object-cover rounded-full"
-                        />
-                      ) : (
-                        <div className="h-8 w-8 bg-gray-400 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs">
-                            {instructor.attributes.name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                      <span className="text-white text-sm">
-                        {instructor.attributes.name} · Instructor
-                      </span>
+                <div className="space-y-6">
+                  {course.attributes.whatYouWillLearn.map((point, index) => (
+                    <div key={index} className="flex">
+                      <div className="flex-shrink-0 mr-4">
+                        <ChevronRightIcon className="h-5 w-5 text-purple-700" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 mb-1">
+                          {point.title}
+                        </h3>
+                        <p className="text-gray-600">{point.description}</p>
+                      </div>
                     </div>
                   ))}
+                </div>
               </div>
             </div>
           </div>
-        ) : // Skip the video section completely if no introVideo exists
-        null}
+        )}
 
-        {/* What you will learn */}
-        {course.attributes.whatYouWillLearn &&
-          course.attributes.whatYouWillLearn.length > 0 && (
-            <div className="mb-16">
+      {/* This course includes - white background */}
+      {course.attributes.courseFeatures && (
+        <div className="bg-white py-8">
+          <div className="container mx-auto px-4">
+            <div
+              className="mb-8"
+              ref={(el) => registerSectionRef("course-features", el)}
+            >
               <h2 className="text-3xl font-bold text-gray-900 mb-8">
-                What you will learn
+                This course includes:
               </h2>
 
               <div className="space-y-6">
-                {course.attributes.whatYouWillLearn.map((point, index) => (
-                  <div key={index} className="flex">
+                {course.attributes.courseFeatures.videoClasses && (
+                  <div className="flex">
                     <div className="flex-shrink-0 mr-4">
                       <ChevronRightIcon className="h-5 w-5 text-purple-700" />
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900 mb-1">
-                        {point.title}
+                        7 video classes
                       </h3>
-                      <p className="text-gray-600">{point.description}</p>
+                      <p className="text-gray-600">
+                        {course.attributes.courseFeatures.videoClasses}
+                      </p>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {course.attributes.courseFeatures.guidedMeditations && (
+                  <div className="flex">
+                    <div className="flex-shrink-0 mr-4">
+                      <ChevronRightIcon className="h-5 w-5 text-purple-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">
+                        7 Guided meditations
+                      </h3>
+                      <p className="text-gray-600">
+                        {course.attributes.courseFeatures.guidedMeditations}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {course.attributes.courseFeatures.studyMaterials && (
+                  <div className="flex">
+                    <div className="flex-shrink-0 mr-4">
+                      <ChevronRightIcon className="h-5 w-5 text-purple-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">
+                        Additional study materials
+                      </h3>
+                      <p className="text-gray-600">
+                        {course.attributes.courseFeatures.studyMaterials}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {course.attributes.courseFeatures.supportInfo && (
+                  <div className="flex">
+                    <div className="flex-shrink-0 mr-4">
+                      <ChevronRightIcon className="h-5 w-5 text-purple-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">
+                        Comments and questions
+                      </h3>
+                      <p className="text-gray-600">
+                        {course.attributes.courseFeatures.supportInfo}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {course.attributes.courseFeatures.curriculumAids && (
+                  <div className="flex">
+                    <div className="flex-shrink-0 mr-4">
+                      <ChevronRightIcon className="h-5 w-5 text-purple-700" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">
+                        Curriculum study aids
+                      </h3>
+                      <p className="text-gray-600">
+                        {course.attributes.courseFeatures.curriculumAids}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
+        </div>
+      )}
 
-        {/* This course includes */}
-        {course.attributes.courseFeatures && (
-          <div className="mb-16 bg-gray-50 p-8 rounded-lg">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">
-              This course includes:
-            </h2>
+      {/* Preview Media Slider - gray background */}
+      {course.attributes.previewMedia?.data &&
+        course.attributes.previewMedia.data.length > 0 && (
+          <div className="bg-gray-50 py-8">
+            <div className="container mx-auto px-4">
+              <div
+                className="mb-8"
+                ref={(el) => registerSectionRef("preview-media", el)}
+              >
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Preview Media
+                </h2>
+                <div className="relative">
+                  <div
+                    ref={sliderRef}
+                    className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar"
+                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                  >
+                    {course.attributes.previewMedia.data.map((media) => (
+                      <div
+                        key={media.id}
+                        className="flex-shrink-0 w-72 h-48 bg-gray-100 rounded-lg overflow-hidden"
+                      >
+                        {media.attributes.mime.startsWith("image/") ? (
+                          <img
+                            src={getImageUrl(media.attributes.url)}
+                            alt={media.attributes.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : media.attributes.mime.startsWith("video/") ? (
+                          <div className="relative w-full h-full bg-black flex items-center justify-center">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-16 h-16 bg-white bg-opacity-75 rounded-full flex items-center justify-center">
+                                <PlayIcon className="h-8 w-8 text-purple-600" />
+                              </div>
+                            </div>
+                            <span className="text-white text-sm">
+                              Video Preview
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-gray-500">Media Preview</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
 
-            <div className="space-y-6">
-              {course.attributes.courseFeatures.videoClasses && (
-                <div className="flex">
-                  <div className="flex-shrink-0 mr-4">
-                    <ChevronRightIcon className="h-5 w-5 text-purple-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">
-                      7 video classes
-                    </h3>
-                    <p className="text-gray-600">
-                      {course.attributes.courseFeatures.videoClasses}
-                    </p>
-                  </div>
+                  {/* Navigation arrows */}
+                  <button
+                    onClick={scrollLeft}
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-white rounded-full shadow-md flex items-center justify-center z-10"
+                  >
+                    <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+                  </button>
+                  <button
+                    onClick={scrollRight}
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-white rounded-full shadow-md flex items-center justify-center z-10"
+                  >
+                    <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+                  </button>
                 </div>
-              )}
 
-              {course.attributes.courseFeatures.guidedMeditations && (
-                <div className="flex">
-                  <div className="flex-shrink-0 mr-4">
-                    <ChevronRightIcon className="h-5 w-5 text-purple-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">
-                      7 Guided meditations
-                    </h3>
-                    <p className="text-gray-600">
-                      {course.attributes.courseFeatures.guidedMeditations}
-                    </p>
-                  </div>
+                {/* Pagination dots */}
+                <div className="flex justify-center mt-4 space-x-2">
+                  {Array.from({
+                    length: Math.min(
+                      6,
+                      course.attributes.previewMedia.data.length
+                    ),
+                  }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-2 w-2 rounded-full ${
+                        index === 0 ? "bg-black" : "bg-gray-300"
+                      }`}
+                    ></div>
+                  ))}
                 </div>
-              )}
-
-              {course.attributes.courseFeatures.studyMaterials && (
-                <div className="flex">
-                  <div className="flex-shrink-0 mr-4">
-                    <ChevronRightIcon className="h-5 w-5 text-purple-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">
-                      Additional study materials
-                    </h3>
-                    <p className="text-gray-600">
-                      {course.attributes.courseFeatures.studyMaterials}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {course.attributes.courseFeatures.supportInfo && (
-                <div className="flex">
-                  <div className="flex-shrink-0 mr-4">
-                    <ChevronRightIcon className="h-5 w-5 text-purple-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">
-                      Comments and questions
-                    </h3>
-                    <p className="text-gray-600">
-                      {course.attributes.courseFeatures.supportInfo}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {course.attributes.courseFeatures.curriculumAids && (
-                <div className="flex">
-                  <div className="flex-shrink-0 mr-4">
-                    <ChevronRightIcon className="h-5 w-5 text-purple-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">
-                      Curriculum study aids
-                    </h3>
-                    <p className="text-gray-600">
-                      {course.attributes.courseFeatures.curriculumAids}
-                    </p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Preview Media Slider */}
-        {course.attributes.previewMedia?.data &&
-          course.attributes.previewMedia.data.length > 0 && (
-            <div className="mb-16">
-              <div className="relative">
-                <div
-                  ref={sliderRef}
-                  className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar"
-                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                >
-                  {course.attributes.previewMedia.data.map((media) => (
-                    <div
-                      key={media.id}
-                      className="flex-shrink-0 w-72 h-48 bg-gray-100 rounded-lg overflow-hidden"
-                    >
-                      {media.attributes.mime.startsWith("image/") ? (
-                        <img
-                          src={getImageUrl(media.attributes.url)}
-                          alt={media.attributes.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : media.attributes.mime.startsWith("video/") ? (
-                        <div className="relative w-full h-full bg-black flex items-center justify-center">
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-16 h-16 bg-white bg-opacity-75 rounded-full flex items-center justify-center">
-                              <PlayIcon className="h-8 w-8 text-purple-600" />
-                            </div>
-                          </div>
-                          <span className="text-white text-sm">
-                            Video Preview
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-gray-500">Media Preview</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Navigation arrows */}
-                <button
-                  onClick={scrollLeft}
-                  className="absolute left-0 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-white rounded-full shadow-md flex items-center justify-center z-10"
-                >
-                  <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
-                </button>
-                <button
-                  onClick={scrollRight}
-                  className="absolute right-0 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-white rounded-full shadow-md flex items-center justify-center z-10"
-                >
-                  <ChevronRightIcon className="h-4 w-4 text-gray-600" />
-                </button>
-              </div>
-
-              {/* Pagination dots */}
-              <div className="flex justify-center mt-4 space-x-2">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className={`h-2 w-2 rounded-full ${
-                      index === 0 ? "bg-black" : "bg-gray-300"
-                    }`}
-                  ></div>
-                ))}
-              </div>
-            </div>
-          )}
-
-        {/* Featured Quote */}
-        {course.attributes.featuredQuote?.quoteText && (
-          <div className="mb-16">
-            <div className="p-8 mb-16 text-center">
+      {/* Featured Quote - white background */}
+      {course.attributes.featuredQuote?.quoteText && (
+        <div className="bg-white py-8">
+          <div className="container mx-auto px-4">
+            <div
+              className="mb-8 text-center"
+              ref={(el) => registerSectionRef("featured-quote", el)}
+            >
               <blockquote className="text-xl italic font-medium text-gray-900 mb-6">
                 "{course.attributes.featuredQuote.quoteText}"
               </blockquote>
@@ -869,72 +928,145 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* The Instructors - gray background */}
+      {course.attributes.instructors?.data &&
+        course.attributes.instructors.data.length > 0 && (
+          <div className="bg-gray-50 py-8">
+            <div className="container mx-auto px-4">
+              <div
+                className="mb-8"
+                ref={(el) => registerSectionRef("instructors", el)}
+              >
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">
+                  The instructors
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {course.attributes.instructors.data.map((instructor) => {
+                    // Check if picture field exists and has data
+                    const hasPicture =
+                      instructor.attributes.picture &&
+                      instructor.attributes.picture.data &&
+                      instructor.attributes.picture.data.attributes &&
+                      instructor.attributes.picture.data.attributes.url;
+
+                    const imageUrl = hasPicture
+                      ? getImageUrl(
+                          instructor.attributes.picture.data.attributes.url
+                        )
+                      : null;
+
+                    return (
+                      <div key={instructor.id} className="flex">
+                        <div className="flex-shrink-0 mr-4">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={instructor.attributes.name}
+                              className="h-32 w-32 object-cover rounded-sm"
+                            />
+                          ) : (
+                            <div className="h-32 w-32 bg-gray-100 flex items-center justify-center rounded-sm">
+                              <span className="text-gray-500 text-6xl font-medium">
+                                {instructor.attributes.name.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            {instructor.attributes.name}
+                          </h3>
+                          {instructor.attributes.title && (
+                            <p className="text-gray-500 text-sm mb-2">
+                              {instructor.attributes.title}
+                            </p>
+                          )}
+                          {instructor.attributes.bio && (
+                            <p className="text-gray-600 text-sm">
+                              {instructor.attributes.bio}
+                            </p>
+                          )}
+                          {instructor.attributes.website && (
+                            <a
+                              href={instructor.attributes.website}
+                              className="text-purple-600 hover:underline text-sm mt-2 inline-block"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Visit website
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* The Instructors */}
-        {course.attributes.instructors?.data &&
-          course.attributes.instructors.data.length > 0 && (
-            <div className="mb-16">
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">
-                The instructors
+      {/* Remaining sections (Syllabus, Testimonials, CTA) - white background */}
+      <div className="bg-white py-8">
+        <div className="container mx-auto px-4">
+          {/* Syllabus Section */}
+          {classes.length > 0 && (
+            <div
+              className="mb-16"
+              ref={(el) => registerSectionRef("syllabus", el)}
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Syllabus
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {course.attributes.instructors.data.map((instructor) => {
-                  // Check if picture field exists and has data
-                  const hasPicture =
-                    instructor.attributes.picture &&
-                    instructor.attributes.picture.data &&
-                    instructor.attributes.picture.data.attributes &&
-                    instructor.attributes.picture.data.attributes.url;
+              <p className="text-gray-600 mb-8">
+                {classes.length} class course curriculum
+              </p>
 
-                  const imageUrl = hasPicture
-                    ? getImageUrl(
-                        instructor.attributes.picture.data.attributes.url
-                      )
-                    : null;
+              <div className="space-y-4">
+                {classes.map((courseClass) => {
+                  const isExpanded = expandedClassIds.includes(courseClass.id);
 
                   return (
-                    <div key={instructor.id} className="flex">
-                      <div className="flex-shrink-0 mr-4">
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt={instructor.attributes.name}
-                            className="h-32 w-32 object-cover rounded-sm"
+                    <div
+                      key={courseClass.id}
+                      className="border-t border-gray-200"
+                    >
+                      <button
+                        onClick={() => toggleClass(courseClass.id)}
+                        className="flex justify-between items-center w-full py-4 text-left"
+                      >
+                        <div className="flex items-center">
+                          <ChevronRightIcon
+                            className={`h-5 w-5 text-purple-700 mr-2 transition-transform ${
+                              isExpanded ? "transform rotate-90" : ""
+                            }`}
                           />
-                        ) : (
-                          <div className="h-32 w-32 bg-gray-100 flex items-center justify-center rounded-sm">
-                            <span className="text-gray-500 text-6xl font-medium">
-                              {instructor.attributes.name.charAt(0)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          {instructor.attributes.name}
-                        </h3>
-                        {instructor.attributes.title && (
-                          <p className="text-gray-500 text-sm mb-2">
-                            {instructor.attributes.title}
-                          </p>
-                        )}
-                        {instructor.attributes.bio && (
-                          <p className="text-gray-600 text-sm">
-                            {instructor.attributes.bio}
-                          </p>
-                        )}
-                        {instructor.attributes.website && (
-                          <a
-                            href={instructor.attributes.website}
-                            className="text-purple-600 hover:underline text-sm mt-2 inline-block"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Visit website
-                          </a>
-                        )}
-                      </div>
+                          <span className="text-purple-700 font-medium">
+                            {courseClass.attributes.title}
+                          </span>
+                        </div>
+                        <div className="text-gray-500 text-sm">
+                          {calculateDuration(courseClass)} ·{" "}
+                          {countLectures(courseClass)}
+                        </div>
+                      </button>
+
+                      {/* Expanded content */}
+                      {isExpanded && (
+                        <div className="pl-8 pb-4 pr-4">
+                          {/* Class description - rendered as markdown */}
+                          {courseClass.attributes.description && (
+                            <div className="mb-4 prose max-w-none">
+                              <ReactMarkdown>
+                                {courseClass.attributes.description}
+                              </ReactMarkdown>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -942,101 +1074,20 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
             </div>
           )}
 
-        {/* Syllabus Section - now using real data */}
-        {classes.length > 0 && (
+          {/* Testimonials */}
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Syllabus</h2>
-            <p className="text-gray-600 mb-8">
-              {classes.length} class course curriculum
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Testimonials
+            </h2>
+            <p className="text-gray-600 mb-8">What students say about us</p>
 
-            <div className="space-y-4">
-              {classes.map((courseClass) => {
-                const isExpanded = expandedClassIds.includes(courseClass.id);
-
-                return (
-                  <div
-                    key={courseClass.id}
-                    className="border-t border-gray-200"
-                  >
-                    <button
-                      onClick={() => toggleClass(courseClass.id)}
-                      className="flex justify-between items-center w-full py-4 text-left"
-                    >
-                      <div className="flex items-center">
-                        <ChevronRightIcon
-                          className={`h-5 w-5 text-purple-700 mr-2 transition-transform ${
-                            isExpanded ? "transform rotate-90" : ""
-                          }`}
-                        />
-                        <span className="text-purple-700 font-medium">
-                          {courseClass.attributes.title}
-                        </span>
-                      </div>
-                      <div className="text-gray-500 text-sm">
-                        {calculateDuration(courseClass)} ·{" "}
-                        {countLectures(courseClass)}
-                      </div>
-                    </button>
-
-                    {/* Expanded content */}
-                    {isExpanded && (
-                      <div className="pl-8 pb-4 pr-4">
-                        {/* Class description - rendered as markdown */}
-                        {courseClass.attributes.description && (
-                          <div className="mb-4 prose max-w-none">
-                            <ReactMarkdown>
-                              {courseClass.attributes.description}
-                            </ReactMarkdown>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Testimonials */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Testimonials
-          </h2>
-          <p className="text-gray-600 mb-8">What students say about us</p>
-
-          {course && (
-            <CourseTestimonialsComponent
-              courseId={course.id.toString()}
-              maxDisplay={3}
-            />
-          )}
-        </div>
-
-        {/* Final CTA */}
-        <div className="text-center mb-16">
-          <button
-            onClick={handlePurchase}
-            className="w-full py-3 px-6 rounded-md bg-black text-white font-medium hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            disabled={isEnrolling}
-          >
-            {isEnrolling ? (
-              <span className="flex items-center justify-center">
-                <span className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></span>
-                Enrolling...
-              </span>
-            ) : course.attributes.isFree || course.attributes.price === 0 ? (
-              "Enroll now (Free)"
-            ) : (
-              `Purchase ($${course.attributes.price})`
+            {course && (
+              <CourseTestimonialsComponent
+                courseId={course.id.toString()}
+                maxDisplay={3}
+              />
             )}
-          </button>
-          {errorMessage && (
-            <div className="mt-2 text-sm text-red-600">
-              <p>{errorMessage}</p>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -1046,6 +1097,7 @@ const CourseDetailPage = ({ slug }: CourseDetailPageProps) => {
           display: none;
         }
       `}</style>
+
       {/* Success notification */}
       {showSuccessNotification && (
         <div className="fixed bottom-4 right-4 bg-green-50 border border-green-200 rounded-md shadow-md max-w-md z-50">

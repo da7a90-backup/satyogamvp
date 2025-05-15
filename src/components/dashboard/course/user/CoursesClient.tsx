@@ -1,10 +1,19 @@
+// Updated CoursesClient.tsx with modified price filters
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { courseApi } from "@/lib/courseApi";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowPathIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  XMarkIcon,
+  CalendarIcon,
+  UserGroupIcon,
+  CurrencyDollarIcon,
+} from "@heroicons/react/24/outline";
 
 // Define types for our component props
 interface CoursesClientProps {
@@ -28,6 +37,8 @@ interface Course {
     description: string;
     price: number;
     isFree: boolean;
+    startDate?: string;
+    endDate?: string;
     featuredImage?: {
       data?: {
         attributes: {
@@ -46,15 +57,42 @@ interface Course {
   };
 }
 
+// Updated Filter options interface with maxPrice instead of priceFilter
+interface FilterOptions {
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  instructors: number[];
+  isFreeOnly: boolean;
+  maxPrice: number | null;
+}
+
 const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
   const [activeTab, setActiveTab] = useState<"my-courses" | "available">(
     "my-courses"
   );
   const [myCourses, setMyCourses] = useState<Course[]>([]);
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [instructorsList, setInstructorsList] = useState<Instructor[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Modified filter states with isFreeOnly and maxPrice
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    dateRange: {
+      start: "",
+      end: "",
+    },
+    instructors: [],
+    isFreeOnly: false,
+    maxPrice: null,
+  });
 
   // After component mounts, check localStorage
   useEffect(() => {
@@ -68,9 +106,28 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     }
   }, []);
 
+  // Set up keyboard shortcut for search (Cmd+K or Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   // Create a function to handle tab changes
   const handleTabChange = (tab: "my-courses" | "available") => {
     setActiveTab(tab);
+    setSearchQuery(""); // Reset search when changing tabs
+    resetFilters(); // Reset filters when changing tabs
     // Save to localStorage
     localStorage.setItem("coursesActiveTab", tab);
   };
@@ -83,6 +140,18 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
       localStorage.removeItem("jwt");
     }
   }, [userJwt]);
+
+  // Fetch all instructors for filter dropdown
+  const fetchInstructors = async () => {
+    try {
+      const response = await courseApi.getInstructors();
+      if (response && response.data) {
+        setInstructorsList(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching instructors:", err);
+    }
+  };
 
   // Fetch user's courses
   const fetchUserCourses = async () => {
@@ -100,13 +169,18 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
 
       // Use the updated getUserCourses function from courseApi
       const response = await courseApi.getUserCourses();
-      // console.log("User courses response:", response);
 
       if (response && response.data) {
         setMyCourses(response.data);
+        if (activeTab === "my-courses") {
+          setFilteredCourses(response.data);
+        }
       } else {
         console.log("No courses found or invalid response format");
         setMyCourses([]);
+        if (activeTab === "my-courses") {
+          setFilteredCourses([]);
+        }
       }
     } catch (err) {
       console.error("Error fetching user courses:", err);
@@ -122,17 +196,20 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     setError(null);
 
     try {
-      // console.log("Fetching available courses via courseApi...");
-
       // Use the updated getAvailableCourses function from courseApi
       const response = await courseApi.getAvailableCourses();
-      // console.log("Available courses response:", response);
 
       if (response && response.data) {
         setAvailableCourses(response.data);
+        if (activeTab === "available") {
+          setFilteredCourses(response.data);
+        }
       } else {
         console.log("No available courses found or invalid response format");
         setAvailableCourses([]);
+        if (activeTab === "available") {
+          setFilteredCourses([]);
+        }
       }
     } catch (err) {
       console.error("Error fetching available courses:", err);
@@ -144,12 +221,155 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
 
   // Fetch data based on active tab and authentication state
   useEffect(() => {
+    fetchInstructors(); // Always fetch instructors for filter options
+
     if (activeTab === "my-courses") {
       fetchUserCourses();
     } else {
       fetchAvailableCourses();
     }
   }, [activeTab, isAuthenticated, userJwt]);
+
+  // Apply filters when they change
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [searchQuery, filterOptions, myCourses, availableCourses, activeTab]);
+
+  // Apply filters and search with updated price filtering logic
+  const applyFiltersAndSearch = () => {
+    // Select the appropriate course list based on active tab
+    const courses = activeTab === "my-courses" ? myCourses : availableCourses;
+
+    // First apply search if there is any
+    let results = courses;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      results = results.filter(
+        (course) =>
+          course.attributes.title.toLowerCase().includes(query) ||
+          course.attributes.description.toLowerCase().includes(query)
+      );
+    }
+
+    // Then apply filters
+    // 1. Date filter
+    if (filterOptions.dateRange.start || filterOptions.dateRange.end) {
+      results = results.filter((course) => {
+        const startDateMatch =
+          !filterOptions.dateRange.start ||
+          !course.attributes.startDate ||
+          new Date(course.attributes.startDate) >=
+            new Date(filterOptions.dateRange.start);
+
+        const endDateMatch =
+          !filterOptions.dateRange.end ||
+          !course.attributes.endDate ||
+          new Date(course.attributes.endDate) <=
+            new Date(filterOptions.dateRange.end);
+
+        return startDateMatch && endDateMatch;
+      });
+    }
+
+    // 2. Instructor filter
+    if (filterOptions.instructors.length > 0) {
+      results = results.filter((course) => {
+        if (
+          !course.attributes.instructors ||
+          !course.attributes.instructors.data
+        ) {
+          return false;
+        }
+
+        // Check if any of the selected instructors are in this course
+        return course.attributes.instructors.data.some((instructor) =>
+          filterOptions.instructors.includes(instructor.id)
+        );
+      });
+    }
+
+    // 3. Updated Price filters for "Available" tab
+    if (activeTab === "available") {
+      // Apply free only filter if selected
+      if (filterOptions.isFreeOnly) {
+        results = results.filter(
+          (course) => course.attributes.isFree || course.attributes.price === 0
+        );
+      }
+      // Apply maxPrice filter if set and not using free only
+      else if (filterOptions.maxPrice !== null) {
+        results = results.filter(
+          (course) => course.attributes.price <= filterOptions.maxPrice!
+        );
+      }
+    }
+
+    setFilteredCourses(results);
+  };
+
+  // Reset all filters
+  const resetFilters = () => {
+    setFilterOptions({
+      dateRange: {
+        start: "",
+        end: "",
+      },
+      instructors: [],
+      isFreeOnly: false,
+      maxPrice: null,
+    });
+    setSearchQuery("");
+  };
+
+  // Handle instructor selection
+  const handleInstructorToggle = (instructorId: number) => {
+    setFilterOptions((prev) => {
+      const updatedInstructors = prev.instructors.includes(instructorId)
+        ? prev.instructors.filter((id) => id !== instructorId) // Remove if already selected
+        : [...prev.instructors, instructorId]; // Add if not selected
+
+      return {
+        ...prev,
+        instructors: updatedInstructors,
+      };
+    });
+  };
+
+  // Handle price input change
+  const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // If value is empty, set maxPrice to null
+    if (!value) {
+      setFilterOptions((prev) => ({
+        ...prev,
+        maxPrice: null,
+      }));
+      return;
+    }
+
+    // Otherwise, parse as number
+    const price = parseFloat(value);
+    if (!isNaN(price) && price >= 0) {
+      setFilterOptions((prev) => ({
+        ...prev,
+        maxPrice: price,
+        // Turn off freeOnly when setting a specific price
+        isFreeOnly: false,
+      }));
+    }
+  };
+
+  // Handle free only toggle
+  const handleFreeOnlyToggle = (checked: boolean) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      isFreeOnly: checked,
+      // Reset maxPrice when toggling freeOnly on
+      maxPrice: checked ? null : prev.maxPrice,
+    }));
+  };
 
   // Format instructor names for display
   const formatInstructors = (course: Course) => {
@@ -216,36 +436,272 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
     router.push(`/dashboard/user/courses/${slug}/overview`);
   };
 
+  // Format date for display
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  // Count active filters
+  const countActiveFilters = () => {
+    let count = 0;
+
+    // Count date filters
+    if (filterOptions.dateRange.start) count++;
+    if (filterOptions.dateRange.end) count++;
+
+    // Count instructor filters
+    count += filterOptions.instructors.length;
+
+    // Count price filters
+    if (filterOptions.isFreeOnly) count++;
+    if (filterOptions.maxPrice !== null) count++;
+
+    return count;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Courses</h1>
+      {/* Header row with title and search/filter */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4 md:mb-0">
+          Courses
+        </h1>
 
-      {/* Tab navigation */}
-      <div className="mb-8 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => handleTabChange("my-courses")}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "my-courses"
-                ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            My Courses
-          </button>
-
-          <button
-            onClick={() => handleTabChange("available")}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "available"
-                ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            Available to Purchase
-          </button>
-        </nav>
+        {/* Search bar */}
+        <div className="relative w-full md:w-64">
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search (⌘K)"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Section with tabs and filter button */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        {/* Tab navigation - moved to left */}
+        <div className="mb-4 md:mb-0 border-b border-gray-200 w-full md:w-auto">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => handleTabChange("my-courses")}
+              className={`py-2 px-1 border-b-2 font-medium ${
+                activeTab === "my-courses"
+                  ? "border-purple-500 text-purple-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              My Courses
+            </button>
+
+            <button
+              onClick={() => handleTabChange("available")}
+              className={`py-2 px-1 border-b-2 font-medium ${
+                activeTab === "available"
+                  ? "border-purple-500 text-purple-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Available to Purchase
+            </button>
+          </nav>
+        </div>
+
+        {/* Filters button - moved to right */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`flex items-center px-4 py-2 rounded-lg border ${
+            showFilters || countActiveFilters() > 0
+              ? "bg-purple-100 border-purple-300 text-purple-800"
+              : "border-gray-300 text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          <FunnelIcon className="h-5 w-5 mr-2" />
+          Filters
+          {countActiveFilters() > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium bg-purple-600 text-white rounded-full">
+              {countActiveFilters()}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Course count */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-gray-500">
+          {filteredCourses.length}{" "}
+          {filteredCourses.length === 1 ? "item" : "items"}
+        </div>
+      </div>
+
+      {/* Filters panel */}
+      {showFilters && (
+        <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-medium text-gray-700">Filter Courses</h3>
+            <button
+              onClick={resetFilters}
+              className="text-sm text-purple-600 hover:text-purple-800"
+            >
+              Reset all
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Date filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                <CalendarIcon className="h-4 w-4 mr-1" />
+                Date Range
+              </label>
+              <div className="flex space-x-2">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Start
+                  </label>
+                  <input
+                    type="date"
+                    value={filterOptions.dateRange.start}
+                    onChange={(e) =>
+                      setFilterOptions({
+                        ...filterOptions,
+                        dateRange: {
+                          ...filterOptions.dateRange,
+                          start: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    End
+                  </label>
+                  <input
+                    type="date"
+                    value={filterOptions.dateRange.end}
+                    onChange={(e) =>
+                      setFilterOptions({
+                        ...filterOptions,
+                        dateRange: {
+                          ...filterOptions.dateRange,
+                          end: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Instructors filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                <UserGroupIcon className="h-4 w-4 mr-1" />
+                Instructors
+              </label>
+              <div className="relative">
+                <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
+                  {instructorsList.length > 0 ? (
+                    instructorsList.map((instructor) => (
+                      <div
+                        key={instructor.id}
+                        className="flex items-center py-1"
+                      >
+                        <input
+                          type="checkbox"
+                          id={`instructor-${instructor.id}`}
+                          checked={filterOptions.instructors.includes(
+                            instructor.id
+                          )}
+                          onChange={() => handleInstructorToggle(instructor.id)}
+                          className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                        />
+                        <label
+                          htmlFor={`instructor-${instructor.id}`}
+                          className="ml-2 text-sm text-gray-700"
+                        >
+                          {instructor.attributes.name}
+                        </label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 py-1">
+                      Loading instructors...
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Updated Price filter - only show for Available tab */}
+            {activeTab === "available" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <CurrencyDollarIcon className="h-4 w-4 mr-1" />
+                  Price
+                </label>
+                <div className="space-y-3">
+                  {/* Free only checkbox */}
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filterOptions.isFreeOnly}
+                      onChange={(e) => handleFreeOnlyToggle(e.target.checked)}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">
+                      Free only
+                    </span>
+                  </label>
+
+                  {/* Price under input */}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">
+                      Price under
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Enter amount"
+                        value={
+                          filterOptions.maxPrice !== null
+                            ? filterOptions.maxPrice
+                            : ""
+                        }
+                        onChange={handleMaxPriceChange}
+                        disabled={filterOptions.isFreeOnly}
+                        className={`w-full pl-7 pr-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                          filterOptions.isFreeOnly ? "bg-gray-100" : "bg-white"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Authentication warning */}
       {!isAuthenticated && activeTab === "my-courses" && (
@@ -279,18 +735,11 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
         </div>
       ) : (
         <>
-          {/* Course count - only show for authenticated users in My Courses tab */}
-          {activeTab === "my-courses" && isAuthenticated && (
-            <div className="mb-4 text-sm text-gray-500">
-              {myCourses.length} {myCourses.length === 1 ? "item" : "items"}
-            </div>
-          )}
-
           {/* My Courses tab content */}
           {activeTab === "my-courses" && (
             <>
               {/* Empty state for authenticated users with no courses */}
-              {isAuthenticated && myCourses.length === 0 ? (
+              {isAuthenticated && filteredCourses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="mb-4">
                     <svg
@@ -309,30 +758,32 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                     </svg>
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No courses yet
+                    {searchQuery || countActiveFilters() > 0
+                      ? "No courses match your search or filters"
+                      : "No courses yet"}
                   </h3>
                   <p className="text-gray-500 mb-4 text-center">
-                    You haven't enrolled in any courses yet.
-                    <br />
-                    Explore our available courses to start your learning
-                    journey.
+                    {searchQuery || countActiveFilters() > 0
+                      ? "Try adjusting your search terms or filters"
+                      : "You haven't enrolled in any courses yet.\nExplore our available courses to start your learning journey."}
                   </p>
-                  <button
-                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-                    onClick={() => handleTabChange("available")}
-                  >
-                    Browse courses
-                  </button>
+                  {!(searchQuery || countActiveFilters() > 0) && (
+                    <button
+                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                      onClick={() => handleTabChange("available")}
+                    >
+                      Browse courses
+                    </button>
+                  )}
                 </div>
               ) : (
                 // Only show course grid for authenticated users with courses
-                isAuthenticated &&
-                myCourses.length > 0 && (
+                isAuthenticated && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {myCourses.map((course) => (
+                    {filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className="bg-white rounded-lg overflow-hidden shadow"
+                        className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow"
                       >
                         <div className="relative aspect-video bg-gray-200">
                           <img
@@ -340,7 +791,7 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                             alt={course.attributes.title}
                             className="w-full h-full object-cover"
                           />
-                          <button className="absolute top-3 right-3 bg-white p-2 rounded-md shadow-md">
+                          <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               className="h-5 w-5 text-gray-600"
@@ -370,6 +821,24 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                             {course.attributes.description}
                           </p>
 
+                          {/* Date badges */}
+                          {(course.attributes.startDate ||
+                            course.attributes.endDate) && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {course.attributes.startDate && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  Start:{" "}
+                                  {formatDate(course.attributes.startDate)}
+                                </span>
+                              )}
+                              {course.attributes.endDate && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                  End: {formatDate(course.attributes.endDate)}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
                           <button
                             onClick={() =>
                               handleOpenCourse(course.attributes.slug)
@@ -390,7 +859,7 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
           {/* Available Courses tab content */}
           {activeTab === "available" && (
             <>
-              {availableCourses.length === 0 ? (
+              {filteredCourses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="mb-4">
                     <svg
@@ -409,24 +878,27 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                     </svg>
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No courses available
+                    {searchQuery || countActiveFilters() > 0
+                      ? "No courses match your search or filters"
+                      : "No courses available"}
                   </h3>
                   <p className="text-gray-500 mb-4 text-center">
-                    There are no courses available for purchase at the moment.
-                    <br />
-                    Check back later or activate alerts to be notified when new
-                    courses arrive.
+                    {searchQuery || countActiveFilters() > 0
+                      ? "Try adjusting your search terms or filters"
+                      : "There are no courses available for purchase at the moment.\nCheck back later or activate alerts to be notified when new courses arrive."}
                   </p>
-                  <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                    Notify me
-                  </button>
+                  {!(searchQuery || countActiveFilters() > 0) && (
+                    <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                      Notify me
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {availableCourses.map((course) => (
+                  {filteredCourses.map((course) => (
                     <div
                       key={course.id}
-                      className="bg-white rounded-lg overflow-hidden shadow"
+                      className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow"
                     >
                       <div className="relative aspect-video bg-gray-200">
                         <img
@@ -435,7 +907,7 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                           className="w-full h-full object-cover"
                         />
                         {/* Bookmark button */}
-                        <button className="absolute top-3 right-3 bg-white p-2 rounded-md shadow-md">
+                        <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-5 w-5 text-gray-600"
@@ -480,6 +952,23 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                           {course.attributes.description}
                         </p>
 
+                        {/* Date badges */}
+                        {(course.attributes.startDate ||
+                          course.attributes.endDate) && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {course.attributes.startDate && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Start: {formatDate(course.attributes.startDate)}
+                              </span>
+                            )}
+                            {course.attributes.endDate && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                End: {formatDate(course.attributes.endDate)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         <button
                           onClick={() => handleEnroll(course)}
                           className={`block w-full text-center px-4 py-2 rounded-md ${
@@ -497,28 +986,6 @@ const CoursesClient = ({ isAuthenticated, userJwt }: CoursesClientProps) => {
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* Filter button (we'll keep this simple for now) */}
-              {availableCourses.length > 0 && (
-                <div className="fixed bottom-6 right-6">
-                  <button className="p-3 bg-white rounded-full shadow-lg">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-gray-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                      />
-                    </svg>
-                  </button>
                 </div>
               )}
             </>
