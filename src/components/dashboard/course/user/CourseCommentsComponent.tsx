@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { courseCommentApi } from "@/lib/courseCommentApi";
 import {
@@ -8,6 +8,9 @@ import {
   TrashIcon,
   XMarkIcon,
   CheckIcon,
+  PaperClipIcon,
+  FaceSmileIcon,
+  EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
 interface CourseCommentsProps {
@@ -29,6 +32,13 @@ interface Comment {
           email?: string;
           firstName?: string;
           lastName?: string;
+          picture?: {
+            data?: {
+              attributes: {
+                url: string;
+              };
+            };
+          };
         };
       };
     };
@@ -50,6 +60,9 @@ const CourseCommentsComponent = ({
   const [editCommentText, setEditCommentText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
+
+  // Reference for the textarea for focusing
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Fetch comments when component mounts
   useEffect(() => {
@@ -129,6 +142,13 @@ const CourseCommentsComponent = ({
   const startEditComment = (comment: Comment) => {
     setEditingCommentId(comment.id);
     setEditCommentText(comment.attributes.comment);
+
+    // Focus the editing textarea after state update
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 0);
   };
 
   // Cancel editing a comment
@@ -245,7 +265,22 @@ const CourseCommentsComponent = ({
     return "User";
   };
 
-  // Get the initial for the user avatar
+  // Get user profile picture URL
+  const getUserPictureUrl = (user: any): string | null => {
+    if (user?.attributes?.picture?.data?.attributes?.url) {
+      const url = user.attributes.picture.data.attributes.url;
+      // Check if it's an absolute URL
+      if (url.startsWith("http://") || url.startsWith("https://")) {
+        return url;
+      }
+      // Otherwise, it's a relative URL, so prepend the base URL
+      const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "";
+      return `${baseUrl}${url}`;
+    }
+    return null;
+  };
+
+  // Get the initial for the user avatar when no picture is available
   const getUserInitial = (user: any): string => {
     if (user?.attributes) {
       if (user.attributes.firstName) {
@@ -261,8 +296,26 @@ const CourseCommentsComponent = ({
     return "U";
   };
 
+  // Handle attachments
+  const handleAttachment = () => {
+    // This would open a file picker in a real implementation
+    alert("Attachment functionality would go here");
+  };
+
+  // Handle emoji picker
+  const handleEmojiPicker = () => {
+    // This would open an emoji picker in a real implementation
+    alert("Emoji picker would go here");
+  };
+
+  // Handle more options
+  const handleMoreOptions = () => {
+    // This would show additional options in a real implementation
+    alert("Additional options would go here");
+  };
+
   return (
-    <div>
+    <div className="bg-gray-50">
       {/* Loading state */}
       {isLoading && comments.length === 0 ? (
         <div className="flex justify-center items-center py-8">
@@ -273,20 +326,33 @@ const CourseCommentsComponent = ({
           {/* Comments list */}
           <div className="space-y-4 mb-6">
             {comments.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
+              <div className="text-center text-gray-500 py-4 bg-white rounded-lg">
                 No comments yet. Be the first to comment!
               </div>
             ) : (
               comments.map((comment) => (
-                <div key={comment.id} className="border-t border-gray-100 pt-4">
+                <div
+                  key={comment.id}
+                  className="bg-white rounded-lg p-4 shadow-sm"
+                >
                   <div className="flex items-start">
-                    <div className="h-8 w-8 bg-gray-200 rounded-full mr-3 flex-shrink-0 flex items-center justify-center text-gray-500">
-                      {comment.attributes.user && comment.attributes.user.data
-                        ? getUserInitial(comment.attributes.user.data)
-                        : "U"}
+                    {/* User avatar - either picture or initial */}
+                    <div className="flex-shrink-0 mr-3">
+                      {getUserPictureUrl(comment.attributes.user.data) ? (
+                        <img
+                          src={getUserPictureUrl(comment.attributes.user.data)!}
+                          alt={getUserDisplayName(comment.attributes.user.data)}
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-medium">
+                          {getUserInitial(comment.attributes.user.data)}
+                        </div>
+                      )}
                     </div>
+
                     <div className="flex-grow">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="font-medium">
                           {comment.attributes.user &&
                           comment.attributes.user.data
@@ -327,8 +393,9 @@ const CourseCommentsComponent = ({
 
                       {/* Edit mode or display mode based on state */}
                       {editingCommentId === comment.id ? (
-                        <div className="mt-1">
+                        <div className="mt-2">
                           <textarea
+                            ref={textareaRef}
                             value={editCommentText}
                             onChange={(e) => setEditCommentText(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -364,31 +431,59 @@ const CourseCommentsComponent = ({
             )}
           </div>
 
-          {/* Comment input form */}
-          <form onSubmit={submitComment} className="border rounded-md p-3">
-            <textarea
-              placeholder={currentUser ? "Write a post" : "Login to comment"}
-              className="w-full border-none resize-none focus:outline-none text-sm"
-              rows={3}
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              disabled={!currentUser || isSubmitting}
-            ></textarea>
+          {/* Comment input form - updated to match Figma design */}
+          <div className="bg-white rounded-lg shadow-sm">
+            <form onSubmit={submitComment} className="p-4">
+              <textarea
+                placeholder={currentUser ? "Write a post" : "Login to comment"}
+                className="w-full border-none resize-none focus:outline-none text-sm"
+                rows={3}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                disabled={!currentUser || isSubmitting}
+              />
 
-            <div className="flex justify-end items-center mt-2 pt-2 border-t">
-              <button
-                type="submit"
-                className={`bg-purple-600 text-white px-4 py-1 rounded-md text-sm ${
-                  !currentUser || isSubmitting || !newComment.trim()
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-purple-700"
-                }`}
-                disabled={!currentUser || isSubmitting || !newComment.trim()}
-              >
-                {isSubmitting ? "Sending..." : "Send"}
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={handleAttachment}
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100"
+                    title="Add attachment"
+                  >
+                    <PaperClipIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEmojiPicker}
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100"
+                    title="Add emoji"
+                  >
+                    <FaceSmileIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleMoreOptions}
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100"
+                    title="More options"
+                  >
+                    <EllipsisHorizontalIcon className="h-5 w-5" />
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  className={`px-4 py-2 rounded-md text-sm font-medium ${
+                    !currentUser || isSubmitting || !newComment.trim()
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-purple-600 text-white hover:bg-purple-700"
+                  }`}
+                  disabled={!currentUser || isSubmitting || !newComment.trim()}
+                >
+                  {isSubmitting ? "Sending..." : "Send"}
+                </button>
+              </div>
+            </form>
+          </div>
 
           {/* Error message */}
           {error && (

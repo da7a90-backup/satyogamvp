@@ -6,7 +6,6 @@ import courseProgressApi from "@/lib/courseProgressApi";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 interface ClassKeyConceptsComponentProps {
   slug: string;
@@ -22,9 +21,6 @@ const ClassKeyConceptsComponent = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [progressMarked, setProgressMarked] = useState(false);
-  const [readingStartTime, setReadingStartTime] = useState<number | null>(null);
-  const [timeSpent, setTimeSpent] = useState(0);
   const [keyConceptsContent, setKeyConceptsContent] = useState<string>("");
 
   // Prevent infinite re-renders by using refs
@@ -124,8 +120,12 @@ These seven realms form the foundation of the wisdom school tradition.`;
           }
         }
 
-        // Set the reading start time
-        setReadingStartTime(Date.now());
+        // Auto-mark as complete after a delay (this will run silently in the background)
+        setTimeout(() => {
+          if (!isCompleted && course && courseClass) {
+            handleMarkComplete();
+          }
+        }, 180000); // 3 minutes = 180,000 ms
       } catch (err) {
         console.error("Error fetching key concepts data:", err);
         setError("Failed to load key concepts data");
@@ -144,41 +144,12 @@ These seven realms form the foundation of the wisdom school tradition.`;
     };
   }, [slug, classIndex]); // Minimal dependency array to prevent loops
 
-  // Separate effect for time tracking to avoid coupling with data fetching
-  useEffect(() => {
-    if (!readingStartTime || isCompleted || !courseClass) return;
-
-    // Start tracking time spent on the page
-    timerRef.current = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - readingStartTime) / 1000);
-      setTimeSpent(elapsed);
-
-      // Auto-mark as complete after 3 minutes (180 seconds) of reading
-      if (
-        elapsed >= 180 &&
-        !isCompleted &&
-        !progressMarked &&
-        course &&
-        courseClass
-      ) {
-        handleMarkComplete();
-      }
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [readingStartTime, isCompleted, progressMarked, course, courseClass]);
-
-  // Handle manual completion
+  // Handle completion
   const handleMarkComplete = async () => {
     if (isCompleted || !course || !courseClass) return;
 
     try {
       setIsCompleted(true);
-      setProgressMarked(true);
 
       await courseProgressApi.markComponentComplete(
         course.id.toString(),
@@ -188,15 +159,7 @@ These seven realms form the foundation of the wisdom school tradition.`;
     } catch (err) {
       console.error("Error marking key concepts as completed:", err);
       setIsCompleted(false);
-      setProgressMarked(false);
     }
-  };
-
-  // Format time spent for display
-  const formatTimeSpent = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
 
   if (isLoading) {
@@ -217,14 +180,6 @@ These seven realms form the foundation of the wisdom school tradition.`;
 
   return (
     <div>
-      {/* Reading time tracker */}
-      <div className="text-sm text-gray-500 mb-4 flex justify-between items-center">
-        <span>Time spent reading: {formatTimeSpent(timeSpent)}</span>
-        {!isCompleted && timeSpent < 180 && (
-          <span>Auto-completes in {formatTimeSpent(180 - timeSpent)}</span>
-        )}
-      </div>
-
       {/* Key concepts content */}
       <div className="prose prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-xl prose-h2:text-lg prose-p:text-gray-700 prose-li:my-0 prose-ol:list-decimal prose-ul:list-disc max-w-none">
         {keyConceptsContent ? (
@@ -253,7 +208,7 @@ These seven realms form the foundation of the wisdom school tradition.`;
               ),
               blockquote: ({ node, ...props }) => (
                 <blockquote
-                  className="pl-4 italic border-l-4 border-gray-300 my-3"
+                  className="p-6 my-6 bg-gray-50 rounded-xl border border-gray-100"
                   {...props}
                 />
               ),
@@ -267,36 +222,6 @@ These seven realms form the foundation of the wisdom school tradition.`;
           </p>
         )}
       </div>
-
-      {/* Study tip */}
-      <div className="mt-8 p-4 bg-purple-50 border-l-4 border-purple-600 rounded-md">
-        <h3 className="font-medium text-purple-800 mb-2">Study Tip</h3>
-        <p className="text-purple-700">
-          Consider taking notes on these key concepts. Research has shown that
-          writing ideas in your own words significantly improves retention and
-          understanding.
-        </p>
-      </div>
-
-      {/* Completion message */}
-      {isCompleted && (
-        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0 mr-4">
-              <CheckCircleIcon className="h-8 w-8 text-green-500" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 mb-2">
-                Key concepts completed!
-              </h3>
-              <p className="text-green-700">
-                You've completed this section. Continue to the writing prompts
-                to deepen your understanding.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

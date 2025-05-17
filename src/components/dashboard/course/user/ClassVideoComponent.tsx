@@ -427,52 +427,6 @@ const ClassVideoComponent = ({
 
   return (
     <div>
-      {/* Debug toggle */}
-      <div className="text-right mb-2">
-        <button
-          onClick={() => setDebug(!debug)}
-          className="text-xs text-gray-500 hover:text-gray-700 underline"
-        >
-          {debug ? "Hide Debug Info" : "Show Debug Info"}
-        </button>
-      </div>
-
-      {/* Debug Information */}
-      {debug && (
-        <div className="mb-4 p-4 bg-gray-100 rounded-md text-xs overflow-x-auto">
-          <h3 className="font-bold mb-2">Debug Information</h3>
-          <div className="mb-2">
-            <strong>Video URL:</strong> {videoUrl || "None"}
-          </div>
-          <div className="mb-2">
-            <strong>Audio URL:</strong> {audioUrl || "None"}
-          </div>
-          <div className="mb-2">
-            <strong>Has Description:</strong> {videoDescription ? "Yes" : "No"}
-          </div>
-          <div className="mb-2">
-            <strong>Has Transcript:</strong> {videoTranscript ? "Yes" : "No"}
-          </div>
-          <div className="mb-2">
-            <strong>Video Progress:</strong> {(videoProgress * 100).toFixed(0)}%
-          </div>
-          <div className="mb-2">
-            <strong>Current Time:</strong> {formatTime(currentTime)} /{" "}
-            {formatTime(videoDuration)}
-          </div>
-          <div className="mb-2">
-            <strong>Playback %:</strong>{" "}
-            {videoDuration
-              ? ((currentTime / videoDuration) * 100).toFixed(1)
-              : 0}
-            %
-          </div>
-          <div className="mb-2">
-            <strong>Is Completed:</strong> {isCompleted ? "Yes" : "No"}
-          </div>
-        </div>
-      )}
-
       {/* Video Player */}
       <div className="mb-8 bg-black rounded-lg overflow-hidden">
         <div className="aspect-video relative">
