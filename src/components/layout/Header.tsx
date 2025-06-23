@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import UserNavigation from './UserNavigation';
@@ -82,25 +83,25 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       ],
     },
     {
-      label: 'Study online',
-      url: '/study-online',
+      label: 'Learn Online',
+      url: '/learn-online',
       children: [
         {
           title: 'Teachings (SatYoga Tube)',
           description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/study-online/teachings',
+          url: '/teachings',
           icon: 'CubeIcon',
         },
         {
           title: 'Courses',
           description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/study-online/courses',
+          url: '/learn-online/courses',
           icon: 'CubeIcon',
         },
         {
           title: 'More',
           description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/study-online/more',
+          url: '/learn-online/more',
           icon: 'CubeIcon',
         },
       ],
@@ -196,13 +197,13 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
     <header className="relative z-30">
       {/* Promotional Banner */}
       {showBanner && (
-        <div className="relative bg-white text-center py-3 px-4 border-b">
-          <p className="text-sm font-medium">
-            Discove our Free courses <Link href="/courses" className="font-bold underline ml-1">available now</Link>
+        <div className="relative bg-[#300001] text-center py-3 px-4 border-b border-[#4a0002]">
+          <p className="text-sm font-medium text-[#FAF8F1]" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+            Free Meditation Course <Link href="/courses" className="font-bold underline ml-1 text-[#FAF8F1]">Enroll Now</Link>
           </p>
           <button
             type="button"
-            className="absolute right-4 top-1/2 -translate-y-1/2"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#FAF8F1] hover:text-white"
             onClick={() => setShowBanner(false)}
           >
             <XMarkIcon className="h-5 w-5" aria-hidden="true" />
@@ -211,11 +212,17 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       )}
 
       {/* Main Navigation */}
-      <div className="bg-white border-b py-4">
+      <div className="bg-[#FAF8F1] border-b border-gray-200 py-4">
         <div className="container mx-auto px-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <span className="text-2xl font-serif italic">Logo</span>
+            <Image
+              src="/logo.png"
+              alt="SAT YOGA"
+              width={120}
+              height={40}
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -226,11 +233,12 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                   // Item with dropdown
                   <button
                     onClick={() => handleDropdownToggle(item.label)}
-                    className={`flex items-center py-2 ${
+                    className={`flex items-center py-2 text-sm font-medium transition-colors ${
                       activeDropdown === item.label || pathname.startsWith(item.url)
-                        ? 'text-purple-700'
-                        : 'text-gray-700 hover:text-purple-700'
+                        ? 'text-[#300001]'
+                        : 'text-[#300001] hover:text-[#4a0002]'
                     }`}
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
                     aria-expanded={activeDropdown === item.label}
                   >
                     {item.label}
@@ -240,11 +248,12 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                   // Regular link
                   <Link
                     href={item.url}
-                    className={`py-2 ${
+                    className={`py-2 text-sm font-medium transition-colors ${
                       pathname === item.url
-                        ? 'text-purple-700'
-                        : 'text-gray-700 hover:text-purple-700'
+                        ? 'text-[#300001]'
+                        : 'text-[#300001] hover:text-[#4a0002]'
                     }`}
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
                   >
                     {item.label}
                   </Link>
@@ -257,7 +266,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           <div className="flex items-center space-x-4">
             {/* Search Button */}
             <button 
-              className="p-2 text-gray-500 hover:text-purple-700" 
+              className="p-2 text-[#300001] hover:text-[#4a0002] transition-colors" 
               aria-label="Search"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -270,7 +279,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
             
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden p-2 text-gray-500 hover:text-purple-700" 
+              className="md:hidden p-2 text-[#300001] hover:text-[#4a0002] transition-colors" 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Menu"
               aria-expanded={isMenuOpen}
@@ -285,7 +294,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
 
       {/* Dropdown Menus - Full Width */}
       {activeDropdown && (
-        <div className="absolute left-0 right-0 bg-white border-b shadow-sm">
+        <div className="absolute left-0 right-0 bg-[#FAF8F1] border-b border-gray-200 shadow-sm z-40">
           <div className="container mx-auto px-4 py-8">
             <div className="grid grid-cols-3 gap-12">
               {navItems.find(item => item.label === activeDropdown)?.children?.map((child, index) => (
@@ -293,16 +302,17 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                   key={index} 
                   href={child.url}
                   className="flex items-start gap-4 group"
+                  onClick={() => setActiveDropdown(null)}
                 >
                   <div className="flex-shrink-0 mt-1">
                     {renderIcon(child.icon)}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 group-hover:text-purple-700">
+                    <p className="font-medium text-[#300001] group-hover:text-[#4a0002] transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
                       {child.title}
                     </p>
                     {child.description && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 mt-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
                         {child.description}
                       </p>
                     )}
@@ -313,8 +323,8 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
             
             {/* Sign Up Banner inside dropdown */}
             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <p className="text-sm">
-                Ready to get started? <Link href="/signup" className="font-medium text-purple-700 hover:text-purple-800">Sign up for free</Link>
+              <p className="text-sm" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                Ready to get started? <Link href="/signup" className="font-medium text-[#300001] hover:text-[#4a0002] transition-colors">Sign up for free</Link>
               </p>
             </div>
           </div>
@@ -323,7 +333,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-[#FAF8F1] border-t border-gray-200 z-30">
           <nav className="flex flex-col px-4 py-3 space-y-3">
             {navItems.map((item) => (
               <div key={item.label}>
@@ -331,21 +341,24 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                   <>
                     <button
                       onClick={() => handleDropdownToggle(item.label)}
-                      className="flex items-center justify-between w-full py-2 text-left"
+                      className="flex items-center justify-between w-full py-2 text-left text-[#300001]"
+                      style={{ fontFamily: 'Avenir Next, sans-serif' }}
                       aria-expanded={activeDropdown === item.label}
                     >
-                      <span className={activeDropdown === item.label ? 'text-purple-700' : 'text-gray-700'}>
+                      <span className={activeDropdown === item.label ? 'text-[#4a0002]' : 'text-[#300001]'}>
                         {item.label}
                       </span>
                       {renderDropdownIcon(item.label)}
                     </button>
                     {activeDropdown === item.label && (
-                      <div className="pl-4 mt-2 mb-2 space-y-3 border-l border-gray-200">
+                      <div className="pl-4 mt-2 mb-2 space-y-3 border-l border-gray-300">
                         {item.children.map((child, index) => (
                           <Link
                             key={index}
                             href={child.url}
-                            className="flex py-2 text-gray-600 hover:text-purple-700"
+                            className="flex py-2 text-gray-600 hover:text-[#300001] transition-colors"
+                            style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                            onClick={() => setIsMenuOpen(false)}
                           >
                             <div>
                               <p className="font-medium">{child.title}</p>
@@ -363,9 +376,11 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                 ) : (
                   <Link
                     href={item.url}
-                    className={`block py-2 ${
-                      pathname === item.url ? 'text-purple-700' : 'text-gray-700'
+                    className={`block py-2 transition-colors ${
+                      pathname === item.url ? 'text-[#300001]' : 'text-[#300001] hover:text-[#4a0002]'
                     }`}
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
                   </Link>
@@ -373,16 +388,18 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
               </div>
             ))}
             
-            <div className="flex space-x-2 pt-3 border-t">
+            <div className="flex space-x-2 pt-3 border-t border-gray-300">
               <Link 
                 href="/donate" 
-                className="bg-white text-gray-700 border border-gray-300 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50 flex-1 text-center"
+                className="bg-white text-[#300001] border border-[#300001] rounded-md px-4 py-2 text-sm font-medium hover:bg-[#300001] hover:text-white transition-colors flex-1 text-center"
+                style={{ fontFamily: 'Avenir Next, sans-serif' }}
               >
                 Donate
               </Link>
               <Link 
                 href="/login" 
-                className="bg-gray-900 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-800 flex-1 text-center"
+                className="bg-[#300001] text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-[#4a0002] transition-colors flex-1 text-center"
+                style={{ fontFamily: 'Avenir Next, sans-serif' }}
               >
                 Login
               </Link>
@@ -390,28 +407,6 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           </nav>
         </div>
       )}
-
-      {/* Search Bar - Only shown when needed */}
-      {!activeDropdown && (pathname === '/courses' || pathname === '/search') && (
-        <div className="border-b py-4">
-          <div className="container mx-auto px-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search courses"
-                className="pl-10 py-2 w-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 focus:border-purple-500 border-0"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Sign Up Banner has been moved inside the dropdown panel */}
     </header>
   );
 };

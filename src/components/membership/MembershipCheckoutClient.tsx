@@ -1,464 +1,401 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { useSession, signIn } from 'next-auth/react';
+import { formatTilopayData, processPayment, processRecurrentPayment } from '@/lib/services/tilopay';
 
-// Types
-interface FormData {
+// Import components
+import AccountSection from './checkout/AccountSection';
+import PlanSelectionSection from './checkout/PlanSelectionSection';
+import PaymentInfoSection from './checkout/PaymentInfoSection';
+import InvoiceInfoSection from './checkout/InvoiceInfoSection';
+import DonationSection from './checkout/DonationSection';
+import OrderSummary from './checkout/OrderSummary';
+import SuccessModal from './checkout/SuccessModal';
+
+// Types for checkout form data
+interface CheckoutFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  cardNumber: string;
+  expiryDate: string;
+  cvv: string;
   firstName: string;
   lastName: string;
-  email: string;
   country: string;
   address: string;
   city: string;
   state: string;
   postalCode: string;
-  cardNumber: string;
-  expiryDate: string;
-  cvv: string;
+  donationAmount: string;
+  acceptTerms: boolean;
+  acceptNewsletter: boolean;
+  [key: string]: string | boolean; // Add this index signature
 }
 
-interface FormErrors {
-  firstName?: string;
-  lastName?: string;
+interface CheckoutErrors {
   email?: string;
+  password?: string;
+  confirmPassword?: string;
   cardNumber?: string;
   expiryDate?: string;
   cvv?: string;
+  firstName?: string;
+  lastName?: string;
+  acceptTerms?: string;
+  [key: string]: string | undefined; // Add this index signature
 }
 
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-}
-
-interface OrderSummary {
-  plan: string;
-  subtotal: number;
-  discount: number;
-  total: number;
-  discountCode: string;
-}
-
-// Order Summary Component
-const OrderSummary: React.FC<{
-  plan: string;
-  subtotal: number;
-  discount: number;
-  total: number;
-  discountCode: string;
-  onRemoveDiscount: () => void;
-}> = ({ plan, subtotal, discount, total, discountCode, onRemoveDiscount }) => {
-  return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200">
-      <h2 className="text-xl font-bold mb-4">Level 1: {plan}</h2>
-      
-      <div className="mb-6">
-        <div className="text-3xl font-bold">${total}<span className="text-lg font-normal text-gray-500">/mo</span></div>
-        <div className="text-sm text-gray-500 mt-1">10 days Gyani free trial</div>
-      </div>
-      
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Includes:</h3>
-        <ul className="space-y-2">
-          <li className="flex items-center">
-            <svg className="h-5 w-5 text-gray-900 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Featured Teaching</span>
-          </li>
-          <li className="flex items-center">
-            <svg className="h-5 w-5 text-gray-900 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Full-Length Teachings Library / Satsangs</span>
-          </li>
-        </ul>
-        <button className="text-purple-600 text-sm font-medium mt-3">View more</button>
-      </div>
-      
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Discount code</h3>
-        {discountCode ? (
-          <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
-            <span className="font-medium">"{discountCode}"</span>
-            <button onClick={onRemoveDiscount} className="text-purple-600 font-medium">Remove</button>
-          </div>
-        ) : (
-          <div className="relative">
-            <input 
-              type="text" 
-              className="w-full p-2 border border-gray-300 rounded"
-              placeholder="Enter discount code"
-            />
-            <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-              Apply
-            </button>
-          </div>
-        )}
-      </div>
-      
-      <div className="border-t border-gray-200 pt-4 mb-4">
-        <div className="flex justify-between mb-2">
-          <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
-        </div>
-        {discountCode && (
-          <div className="flex justify-between text-green-600 mb-2">
-            <span>Discount "{discountCode}"</span>
-            <span>-${discount.toFixed(2)}</span>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex justify-between font-bold text-lg">
-        <span>Total</span>
-        <span>${total.toFixed(2)}</span>
-      </div>
-    </div>
-  );
-};
-
-// Contact Information Form Component
-const ContactInformationForm: React.FC<{
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  errors: FormErrors;
-}> = ({ formData, setFormData, errors }) => {
-  return (
-    <div className="mb-8">
-      <h2 className="text-xl font-medium text-purple-600 mb-4">Contact information</h2>
-      
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium mb-1">
-            First name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="firstName"
-            type="text"
-            value={formData.firstName}
-            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-            className={`w-full p-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="First name"
-          />
-          {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
-        </div>
-        
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium mb-1">
-            Last name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="lastName"
-            type="text"
-            value={formData.lastName}
-            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-            className={`w-full p-2 border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="Last name"
-          />
-          {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
-        </div>
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="email" className="block text-sm font-medium mb-1">
-          Email <span className="text-red-500">*</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
-          className={`w-full p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded`}
-          placeholder="you@company.com"
-        />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="country" className="block text-sm font-medium mb-1">
-          Country
-        </label>
-        <select
-          id="country"
-          value={formData.country}
-          onChange={(e) => setFormData({...formData, country: e.target.value})}
-          className="w-full p-2 border border-gray-300 rounded appearance-none"
-        >
-          <option value="">Select one...</option>
-          <option value="US">United States</option>
-          <option value="CA">Canada</option>
-          <option value="CR">Costa Rica</option>
-          <option value="MX">Mexico</option>
-          <option value="UK">United Kingdom</option>
-        </select>
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="address" className="block text-sm font-medium mb-1">
-          Street adress
-        </label>
-        <input
-          id="address"
-          type="text"
-          value={formData.address}
-          onChange={(e) => setFormData({...formData, address: e.target.value})}
-          className="w-full p-2 border border-gray-300 rounded"
-          placeholder="Insert adress"
-        />
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="city" className="block text-sm font-medium mb-1">
-          City
-        </label>
-        <input
-          id="city"
-          type="text"
-          value={formData.city}
-          onChange={(e) => setFormData({...formData, city: e.target.value})}
-          className="w-full p-2 border border-gray-300 rounded"
-          placeholder="Insert city"
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium mb-1">
-            State / Province
-          </label>
-          <input
-            id="state"
-            type="text"
-            value={formData.state}
-            onChange={(e) => setFormData({...formData, state: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
-            placeholder="First name"
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="postalCode" className="block text-sm font-medium mb-1">
-            ZIP / Postal code
-          </label>
-          <input
-            id="postalCode"
-            type="text"
-            value={formData.postalCode}
-            onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
-            placeholder="Last name"
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Subscription Plan Component
-const SubscriptionPlanForm: React.FC<{
-  plans: SubscriptionPlan[];
-  selectedPlan: string;
-  setSelectedPlan: (id: string) => void;
-}> = ({ plans, selectedPlan, setSelectedPlan }) => {
-  return (
-    <div className="mb-8">
-      <h2 className="text-xl font-medium text-purple-600 mb-4">Choose your plan</h2>
-      <p className="text-gray-700 mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-      
-      <div className="space-y-4">
-        {plans.map((plan) => (
-          <div key={plan.id} className="border border-gray-200 rounded-lg p-4">
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="radio"
-                className="form-radio h-5 w-5 text-gray-900"
-                checked={selectedPlan === plan.id}
-                onChange={() => setSelectedPlan(plan.id)}
-              />
-              <div className="ml-3">
-                <div className="flex items-center">
-                  <span className="font-medium">{plan.name}</span>
-                  <span className="ml-2 text-gray-700">${plan.price}</span>
-                </div>
-                <p className="text-sm text-gray-500">{plan.description}</p>
-              </div>
-            </label>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Payment Information Form Component
-const PaymentInformationForm: React.FC<{
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  errors: FormErrors;
-  processing: boolean;
-}> = ({ formData, setFormData, errors, processing }) => {
-  return (
-    <div>
-      <h2 className="text-xl font-medium text-purple-600 mb-4">Payment information</h2>
-      
-      <div className="mb-4">
-        <label htmlFor="cardNumber" className="block text-sm font-medium mb-1">
-          Card number <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-          </div>
-          <input
-            id="cardNumber"
-            type="text"
-            value={formData.cardNumber}
-            onChange={(e) => setFormData({...formData, cardNumber: e.target.value})}
-            className={`w-full pl-10 pr-3 py-2 border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="0000 0000 0000 0000"
-          />
-        </div>
-        {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber}</p>}
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="expiryDate" className="block text-sm font-medium mb-1">
-            Expiry
-          </label>
-          <input
-            id="expiryDate"
-            type="text"
-            value={formData.expiryDate}
-            onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
-            className={`w-full p-2 border ${errors.expiryDate ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="MM/YY"
-          />
-          {errors.expiryDate && <p className="text-red-500 text-sm mt-1">{errors.expiryDate}</p>}
-        </div>
-        
-        <div>
-          <label htmlFor="cvv" className="block text-sm font-medium mb-1">
-            CVV
-          </label>
-          <input
-            id="cvv"
-            type="text"
-            value={formData.cvv}
-            onChange={(e) => setFormData({...formData, cvv: e.target.value})}
-            className={`w-full p-2 border ${errors.cvv ? 'border-red-500' : 'border-gray-300'} rounded`}
-            maxLength={4}
-          />
-          {errors.cvv && <p className="text-red-500 text-sm mt-1">{errors.cvv}</p>}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Main Checkout Client Component
+// Main checkout component
 export default function MembershipCheckoutClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === 'authenticated';
+
+  // Get plan and billing info from URL
   const planParam = searchParams.get('plan') || 'gyani';
+  const billingParam = searchParams.get('billing') || 'monthly';
+  const isMonthly = billingParam === 'monthly';
+
+  // State
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(planParam);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
+  const [accountCreated, setAccountCreated] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountApplied, setDiscountApplied] = useState(false);
   
-  // Form state
-  const [formData, setFormData] = useState<FormData>({
+  // Form data and validation
+  const [formData, setFormData] = useState<CheckoutFormData>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
     firstName: '',
     lastName: '',
-    email: '',
-    country: '',
+    country: 'CR',
     address: '',
     city: '',
     state: '',
     postalCode: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
+    donationAmount: '0',
+    acceptTerms: false,
+    acceptNewsletter: false
   });
   
-  // Validation errors
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<CheckoutErrors>({});
   
-  // Processing state
-  const [processing, setProcessing] = useState(false);
-  
-  // Subscription plans
-  const [subscriptionPlans] = useState<SubscriptionPlan[]>([
+  // Membership plans data
+  const membershipPlans = [
     {
-      id: 'gyani-monthly',
-      name: 'Gyani $20',
-      price: 20,
-      description: 'Monthly subscription'
+      id: 'gyani',
+      title: 'Gyani',
+      monthlyPrice: 20,
+      yearlyPrice: 15,
+      annualSavings: 60,
+      tagline: 'Key to the Treasure House: Deep Teachings, Meditations & Community Connection',
+      features: [
+        'Custom dashboard available on your phone, tablet and desktop',
+        'Exclusive Wisdom Library with 1,000+ publications',
+        'New Weekly Teachings'
+      ],
+      hasTrial: true,
+      trialDays: 10
     },
     {
-      id: 'gyani-yearly',
-      name: 'Gyani $200',
-      price: 200,
-      description: 'Yearly subscription'
+      id: 'pragyani',
+      title: 'Pragyani',
+      monthlyPrice: 100,
+      yearlyPrice: 83,
+      annualSavings: 200,
+      tagline: 'Virtual Ashram Experience: Exclusive Teachings, Livestream Gatherings & Community Support',
+      popular: true,
+      features: [
+        'Custom dashboard available on your phone, tablet and desktop',
+        'Exclusive Wisdom Library with 1,000+ publications',
+        'Your Questions Prioritized during ALL live events with Shunyamurti'
+      ]
+    },
+    {
+      id: 'pragyani-plus',
+      title: 'Pragyani+',
+      monthlyPrice: 142,
+      yearlyPrice: 142,
+      annualSavings: 1170,
+      tagline: 'Unlock the Ultimate Experience: Lifetime Retreats & Direct Access to Shunyamurti',
+      features: [
+        'Custom dashboard available on your phone, tablet and desktop',
+        'Exclusive Wisdom Library with 1,000+ publications',
+        'Lifetime Access to All Online Retreats (Valued at $1,970 per year)'
+      ]
     }
-  ]);
+  ];
   
-  // Selected plan
-  const [selectedPlan, setSelectedPlan] = useState<string>('gyani-monthly');
+  // Find the selected plan
+  const currentPlan = membershipPlans.find(plan => plan.id === selectedPlan) || membershipPlans[0];
   
-  // Order summary details
-  const [orderSummary, setOrderSummary] = useState<OrderSummary>({
-    plan: 'Gyani',
-    subtotal: 110.00,
-    discount: 10.00,
-    total: 100.00,
-    discountCode: 'WELCOME10'
-  });
-  
-  // Remove discount code
-  const handleRemoveDiscount = () => {
-    setOrderSummary({
-      ...orderSummary,
-      discountCode: '',
-      discount: 0,
-      total: orderSummary.subtotal
-    });
+  // Calculate order summary
+  const calculateOrderSummary = () => {
+    const planPrice = isMonthly ? currentPlan.monthlyPrice : currentPlan.yearlyPrice;
+    let discount = 0;
+    
+    // Apply discount if code is present and valid
+    if (discountApplied && discountCode === 'freetrial') {
+      discount = planPrice;
+    }
+    
+    const subtotal = planPrice;
+    const total = Math.max(0, subtotal - discount);
+    
+    return {
+      subtotal,
+      discount,
+      tax: 0,
+      total,
+      discountCode: discountApplied ? discountCode : undefined,
+      trial: currentPlan.hasTrial ? { days: currentPlan.trialDays || 10 } : undefined
+    };
   };
   
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle form field changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    
+    // Clear error when field is edited
+    if (errors[name as keyof CheckoutErrors]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name as keyof CheckoutErrors];
+        return newErrors;
+      });
+    }
+  };
+  
+  // Handle discount code application
+  const handleApplyDiscount = () => {
+    if (!discountCode) return;
+    
+    // In a real app, you would validate the code with an API call
+    // For now, just accept 'freetrial' as a valid code
+    if (discountCode.toLowerCase() === 'freetrial') {
+      setDiscountApplied(true);
+    } else {
+      setError('Invalid discount code');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+  
+  // Handle discount removal
+  const handleRemoveDiscount = () => {
+    setDiscountCode('');
+    setDiscountApplied(false);
+  };
+  
+  // Handle social login
+  const handleSocialLogin = (provider: string) => {
+    signIn(provider, { callbackUrl: window.location.href });
+  };
+  
+  // Handle login form submission
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Form validation
-    const newErrors: FormErrors = {};
-    if (!formData.firstName) newErrors.firstName = 'First name is required';
-    if (!formData.lastName) newErrors.lastName = 'Last name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    if (!formData.cardNumber) newErrors.cardNumber = 'Card number is required';
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!formData.email || !formData.password) {
+      setErrors({
+        ...errors,
+        email: !formData.email ? 'Email is required' : undefined,
+        password: !formData.password ? 'Password is required' : undefined
+      });
       return;
     }
     
-    // Clear errors and start processing
-    setErrors({});
-    setProcessing(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setProcessing(false);
-      // Redirect to thank you page
-      router.push('/membership/thank-you');
-    }, 2000);
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password
+      });
+      
+      if (result?.error) {
+        setError('Invalid login credentials');
+      }
+    } catch (err) {
+      setError('An error occurred during login');
+    }
   };
-
+  
+  // Handle account creation
+  const handleCreateAccount = async () => {
+    // Validate form fields for account creation
+    const newErrors: CheckoutErrors = {};
+    
+    if (!formData.email) newErrors.email = 'Email is required';
+    if (!formData.password) newErrors.password = 'Password is required';
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    if (formData.password && formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return false;
+    }
+    
+    try {
+      // Create user account in Strapi
+      const registerRes = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/auth/local/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          password: formData.password
+        })
+      });
+      
+      if (!registerRes.ok) {
+        const errorData = await registerRes.json();
+        setError(errorData.error?.message || 'Error creating account');
+        return false;
+      }
+      
+      const userData = await registerRes.json();
+      
+      // Sign in the user after account creation
+      await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password
+      });
+      
+      setAccountCreated(true);
+      return true;
+    } catch (err) {
+      console.error('Account creation error:', err);
+      setError('An error occurred while creating your account');
+      return false;
+    }
+  };
+  
+  // Handle payment submission
+const handlePaymentSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setProcessing(true);
+  setError('');
+  
+  try {
+    // If not logged in, create account first
+    if (!isLoggedIn) {
+      const accountSuccess = await handleCreateAccount();
+      if (!accountSuccess) {
+        setProcessing(false);
+        return;
+      }
+    }
+    
+    // Validate required fields
+    const newErrors: CheckoutErrors = {};
+    
+    if (!formData.firstName) newErrors.firstName = 'First name is required';
+    if (!formData.lastName) newErrors.lastName = 'Last name is required';
+    if (!formData.cardNumber) newErrors.cardNumber = 'Card number is required';
+    if (!formData.expiryDate) newErrors.expiryDate = 'Expiry date is required';
+    if (!formData.cvv) newErrors.cvv = 'CVV is required';
+    if (!formData.acceptTerms) newErrors.acceptTerms = 'You must accept the terms of service';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setProcessing(false);
+      return;
+    }
+    
+    // Format data for Tilopay
+    const orderSummary = calculateOrderSummary();
+    const subscriptionType = isMonthly ? 'monthly' : 'yearly';
+    
+    const membershipDetails = {
+      planId: currentPlan.id,
+      planName: currentPlan.title,
+      amount: orderSummary.total.toString(),
+      billingType: subscriptionType,
+      hasTrial: !!currentPlan.hasTrial,
+      trialDays: currentPlan.trialDays || 0
+    };
+    
+    // Format Tilopay data
+    const tilopayData = formatTilopayData(formData, membershipDetails);
+    
+    // Extract card data for direct API
+    const cardData = {
+      cardNumber: formData.cardNumber.replace(/\s+/g, ''),
+      expiryDate: formData.expiryDate,
+      cvv: formData.cvv
+    };
+    
+    // Process payment through Tilopay's direct API
+    const result = await processRecurrentPayment(tilopayData, cardData);
+    
+    if (result) {
+      // Handle successful payment
+      const transactionId = result.transactionId || 'unknown';
+      
+      // Update user membership status in our backend
+      await fetch('/api/membership/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          membershipPlan: membershipDetails.planName,
+          membershipType: membershipDetails.billingType,
+          amount: membershipDetails.amount,
+          hasTrial: membershipDetails.hasTrial,
+          trialDays: membershipDetails.trialDays,
+          memberEmail: formData.email || session?.user?.email,
+          orderNumber: tilopayData.orderNumber,
+          orderAuth: transactionId,
+          donationAmount: formData.donationAmount || '0'
+        }),
+      });
+      
+      // Redirect to success page
+      router.push(`/membership/success?code=1&description=Payment+Successful&auth=${transactionId}&order=${tilopayData.orderNumber}&returnData=${tilopayData.returnData}`);
+    } else {
+      throw new Error('Failed to process payment');
+    }
+    
+  } catch (err: any) {
+    console.error('Payment error:', err);
+    setError(err.message || 'There was an error processing your payment. Please try again.');
+    setProcessing(false);
+  }
+};
+  // Initialize form data with user info if logged in
+  useEffect(() => {
+    if (isLoggedIn && session?.user?.email) {
+      setFormData(prev => ({
+        ...prev,
+        email: session.user?.email || ''
+      }));
+    }
+  }, [isLoggedIn, session]);
+  
   return (
-    <>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header with back button */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <Link href="/membership" className="inline-flex items-center text-gray-500 hover:text-gray-800">
@@ -470,30 +407,73 @@ export default function MembershipCheckoutClient() {
         </div>
       </div>
       
+      {/* Main content */}
       <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="grid md:grid-cols-3 gap-8">
           {/* Left Column - Form */}
           <div className="md:col-span-2">
-            <form onSubmit={handleSubmit}>
-              <ContactInformationForm 
+            <form onSubmit={handlePaymentSubmit}>
+              {/* Account Section */}
+              <AccountSection 
+                isLoggedIn={isLoggedIn}
+                userEmail={session?.user?.email}
                 formData={formData}
-                setFormData={setFormData}
                 errors={errors}
+                onChange={handleChange}
+                onContinue={() => {}}
+                showLogin={showLogin}
+                setShowLogin={setShowLogin}
+                onSocialLogin={handleSocialLogin}
+                onLoginSubmit={handleLoginSubmit}
+                accountCreated={accountCreated}
               />
               
-              <SubscriptionPlanForm 
-                plans={subscriptionPlans}
+              {/* Plan Selection Section */}
+              <PlanSelectionSection
+                plans={membershipPlans}
                 selectedPlan={selectedPlan}
-                setSelectedPlan={setSelectedPlan}
+                isMonthly={isMonthly}
+                onSelectPlan={setSelectedPlan}
+                onToggleBilling={() => router.push(`/membership/checkout?plan=${selectedPlan}&billing=${isMonthly ? 'yearly' : 'monthly'}`)}
               />
               
-              <PaymentInformationForm 
+              {/* Payment Information Section */}
+              <PaymentInfoSection
                 formData={formData}
-                setFormData={setFormData}
                 errors={errors}
+                onChange={handleChange}
                 processing={processing}
               />
               
+              {/* Invoice Information Section */}
+              <InvoiceInfoSection
+                formData={formData}
+                errors={errors}
+                onChange={handleChange}
+              />
+              
+              {/* Donation Section */}
+              <DonationSection
+                donationAmount={formData.donationAmount}
+                onChange={(amount) => setFormData(prev => ({ ...prev, donationAmount: amount }))}
+              />
+              
+              {/* Submit buttons */}
               <div className="mt-8 flex justify-end space-x-4">
                 <button
                   type="button"
@@ -516,17 +496,27 @@ export default function MembershipCheckoutClient() {
           
           {/* Right Column - Order Summary */}
           <div>
-            <OrderSummary 
-              plan={orderSummary.plan}
-              subtotal={orderSummary.subtotal}
-              discount={orderSummary.discount}
-              total={orderSummary.total}
-              discountCode={orderSummary.discountCode}
+            <OrderSummary
+              plan={currentPlan}
+              isMonthly={isMonthly}
+              orderSummary={calculateOrderSummary()}
+              discountCode={discountCode}
+              onDiscountChange={setDiscountCode}
+              onApplyDiscount={handleApplyDiscount}
               onRemoveDiscount={handleRemoveDiscount}
+              formData={formData}
             />
           </div>
         </div>
       </div>
-    </>
+      
+      {/* Success Modal - only used when not redirecting to Tilopay */}
+      {showSuccessModal && (
+        <SuccessModal 
+          onClose={() => setShowSuccessModal(false)}
+          onSignUp={() => router.push('/dashboard')}
+        />
+      )}
+    </div>
   );
 }
