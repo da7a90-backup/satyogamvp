@@ -1,0 +1,209 @@
+.
+├── PROJECT_TREE.txt
+├── README.md
+├── components.json
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── placeholder.png
+│   ├── spiral.png
+│   ├── vercel.svg
+│   └── window.svg
+├── src
+│   ├── api
+│   │   └── course-progress
+│   │       └── services
+│   │           └── course-progress.js
+│   ├── app
+│   │   ├── about
+│   │   │   ├── satyoga
+│   │   │   │   └── page.tsx
+│   │   │   └── shunyamurti
+│   │   │       └── page.tsx
+│   │   ├── api
+│   │   │   ├── auth
+│   │   │   │   └── [...nextauth]
+│   │   │   ├── donation
+│   │   │   │   └── route.ts
+│   │   │   ├── membership
+│   │   │   │   └── update-status
+│   │   │   ├── submit-application
+│   │   │   │   └── route.ts
+│   │   │   ├── tilopay
+│   │   │   │   └── get-sdk-token
+│   │   │   └── user-courses
+│   │   │       └── route.ts
+│   │   ├── apply
+│   │   │   └── page.tsx
+│   │   ├── blog
+│   │   │   ├── [slug]
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   ├── calendar
+│   │   │   ├── [slug]
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   ├── contact
+│   │   │   └── page.tsx
+│   │   ├── dashboard
+│   │   │   ├── admin
+│   │   │   │   ├── blog
+│   │   │   │   ├── course
+│   │   │   │   ├── instructor
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── user
+│   │   │       ├── courses
+│   │   │       ├── layout.tsx
+│   │   │       └── page.tsx
+│   │   ├── donate
+│   │   │   ├── [category]
+│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── payment
+│   │   │   │   └── page.tsx
+│   │   │   └── success
+│   │   │       └── page.tsx
+│   │   ├── favicon.ico
+│   │   ├── fonts
+│   │   │   ├── GeistMonoVF.woff
+│   │   │   └── GeistVF.woff
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── login
+│   │   │   └── page.tsx
+│   │   ├── membership
+│   │   │   ├── checkout
+│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── register
+│   │   │   │   └── page.tsx
+│   │   │   └── success
+│   │   │       └── page.tsx
+│   │   ├── not-found
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   ├── reports
+│   │   │   └── page.tsx
+│   │   ├── retreats
+│   │   │   └── faq
+│   │   │       └── page.tsx
+│   │   ├── signup
+│   │   │   └── page.tsx
+│   │   ├── teachings
+│   │   │   ├── [id]
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   └── thank-you
+│   │       └── page.tsx
+│   ├── components
+│   │   ├── auth
+│   │   │   ├── AuthComponents.tsx
+│   │   │   └── AuthProvider.tsx
+│   │   ├── blog
+│   │   │   ├── Blog.tsx
+│   │   │   └── MarkdownRenderer.tsx
+│   │   ├── calendar
+│   │   │   └── Calendar.tsx
+│   │   ├── contact
+│   │   │   ├── ContactForm.tsx
+│   │   │   ├── ContactInfo.tsx
+│   │   │   └── ContactMap.tsx
+│   │   ├── dashboard
+│   │   │   ├── AdminDashboard.tsx
+│   │   │   ├── AdminSidebar.tsx
+│   │   │   ├── UserDashboard.tsx
+│   │   │   ├── UserSidebar.tsx
+│   │   │   ├── blog
+│   │   │   │   ├── BlogCategories.tsx
+│   │   │   │   ├── BlogIndex.tsx
+│   │   │   │   └── BlogPostForm.tsx
+│   │   │   └── course
+│   │   │       ├── admin
+│   │   │       └── user
+│   │   ├── donation
+│   │   │   ├── DonationComponents.tsx
+│   │   │   ├── DonationPaymentForm.tsx
+│   │   │   ├── DonationPaymentWrapper.tsx
+│   │   │   └── DonationSuccessPageComponent.tsx
+│   │   ├── faq
+│   │   │   └── FAQ.tsx
+│   │   ├── forms
+│   │   │   ├── application-form.tsx
+│   │   │   └── basic-info.tsx
+│   │   ├── homepage
+│   │   │   └── Homepage.tsx
+│   │   ├── layout
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Header.tsx
+│   │   │   ├── LayoutWrapper.tsx
+│   │   │   └── UserNavigation.tsx
+│   │   ├── membership
+│   │   │   ├── MembershipCheckoutClient.tsx
+│   │   │   ├── MembershipPageClient.tsx
+│   │   │   ├── MembershipRegisterComponent.tsx
+│   │   │   ├── SuccessPage.tsx
+│   │   │   └── checkout
+│   │   │       ├── AccountSection.tsx
+│   │   │       ├── DonationSection.tsx
+│   │   │       ├── InvoiceInfoSection.tsx
+│   │   │       ├── OrderSummary.tsx
+│   │   │       ├── PaymentInfoSection.tsx
+│   │   │       ├── PlanSelectionSection.tsx
+│   │   │       └── SuccessModal.tsx
+│   │   ├── reports
+│   │   │   └── pivot-table.tsx
+│   │   ├── sections
+│   │   │   ├── BlogSection.tsx
+│   │   │   ├── ContentSection.tsx
+│   │   │   ├── CtaSection.tsx
+│   │   │   ├── Hero.tsx
+│   │   │   └── LearningTabs.tsx
+│   │   ├── teachings
+│   │   │   ├── TeachingDetail.tsx
+│   │   │   └── Teachings.tsx
+│   │   ├── ui
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── progress.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── toast.tsx
+│   │   │   └── toaster.tsx
+│   │   └── videoPlayer
+│   │       └── VideoPlayer.tsx
+│   ├── hooks
+│   │   ├── use-auth.ts
+│   │   └── use-toast.ts
+│   ├── lib
+│   │   ├── api.ts
+│   │   ├── auth.ts
+│   │   ├── courseApi.ts
+│   │   ├── courseCommentApi.ts
+│   │   ├── courseProgressApi.ts
+│   │   ├── json_dump.ts
+│   │   ├── mock-data.ts
+│   │   ├── services
+│   │   │   ├── cloudflareStreamService.ts
+│   │   │   └── tilopay.ts
+│   │   ├── strapi.ts
+│   │   ├── strapiDebug.ts
+│   │   ├── types.ts
+│   │   └── utils.ts
+│   ├── middleware.ts
+│   └── types
+│       └── next-auth.d.ts
+├── tailwind.config.ts
+└── tsconfig.json
+
+77 directories, 130 files

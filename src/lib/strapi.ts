@@ -301,218 +301,89 @@ export const blogApi = {
   },
 };
 
+
 /**
- * Homepage and general API methods
+ * Homepage and general API methods (Updated)
  */
 export const homeApi = {
   /**
-   * Get homepage data with all sections
+   * Get homepage data with all sections and toggle states
    */
   getHomePageData: async () => {
     try {
-      // Try three different approaches to populate data and use the first one that works
+      // Try multiple approaches to get the data with proper population
+      const populateString = [
+        'hero.backgroundImage',
+        'hero.backgroundVideo',
+        'aboutSection.mainImage',
+        'aboutSection.galleryImages',
+        'shunyamurtiSection.authorImage',
+        'learningOptions.tabs',
+        'ashramSection.mainImage',
+        'ashramSection.galleryImages',
+        'platformSection.mainImage',
+        'platformSection.galleryImages',
+        'membershipCta.backgroundImage',
+        'membershipCta.backgroundVideo',
+        'seo.metaImage'
+      ].join(',');
 
-      // Approach 1: Simple populate parameter string
-      const url1 =
-        "/api/home-page?populate=hero,aboutSection,shunyamurtiSection,learningOptions.tabs,membershipCta,seo";
-      console.log("Trying URL approach 1:", url1);
+      const url = `/api/home-page?populate=${populateString}`;
+      console.log("Fetching homepage data from:", url);
 
-      try {
-        const result1: any = await fetchAPI(url1);
-        console.log(
-          "Approach 1 succeeded! Response structure:",
-          Object.keys(result1)
-        );
+      const result: any = await fetchAPI(url);
+      console.log("Homepage API response structure:", Object.keys(result));
 
-        // Check if we have the expected data structure
-        if (result1.data && result1.data.attributes) {
-          console.log(
-            "Data attributes available:",
-            Object.keys(result1.data.attributes)
-          );
-          return result1.data.attributes;
-        } else {
-          console.log(
-            "Expected data structure not found in approach 1 response"
-          );
-          // Continue to next approach if we don't have the expected structure
-        }
-      } catch (error1) {
-        console.log(
-          "Approach 1 failed:",
-          error1 instanceof Error ? error1.message : String(error1)
-        );
-        // Continue to next approach if this one fails
+      if (result.data && result.data.attributes) {
+        console.log("Homepage attributes available:", Object.keys(result.data.attributes));
+        return result.data.attributes;
+      } else {
+        console.log("Unexpected homepage data structure, returning empty object");
+        return {};
       }
-
-      // Approach 2: Expanded populate syntax
-      const url2 =
-        "/api/home-page?populate[hero][populate]=*&populate[aboutSection][populate]=*&populate[shunyamurtiSection][populate]=*&populate[learningOptions][populate][tabs][populate]=*&populate[membershipCta][populate]=*&populate[seo][populate]=*";
-      console.log("Trying URL approach 2:", url2);
-
-      try {
-        const result2: any = await fetchAPI(url2);
-        console.log(
-          "Approach 2 succeeded! Response structure:",
-          Object.keys(result2)
-        );
-
-        if (result2.data && result2.data.attributes) {
-          console.log(
-            "Data attributes available:",
-            Object.keys(result2.data.attributes)
-          );
-          return result2.data.attributes;
-        } else {
-          console.log(
-            "Expected data structure not found in approach 2 response"
-          );
-        }
-      } catch (error2) {
-        console.log(
-          "Approach 2 failed:",
-          error2 instanceof Error ? error2.message : String(error2)
-        );
-      }
-
-      // Approach 3: Deep populate with nested objects
-      const populateObj = {
-        populate: {
-          hero: { populate: "*" },
-          aboutSection: { populate: "*" },
-          shunyamurtiSection: { populate: "*" },
-          learningOptions: {
-            populate: {
-              tabs: { populate: "*" },
-            },
-          },
-          membershipCta: { populate: "*" },
-          seo: { populate: "*" },
-        },
-      };
-
-      // Convert to query string manually
-      const url3 = `/api/home-page?${new URLSearchParams({
-        populate: JSON.stringify(populateObj.populate),
-      }).toString()}`;
-      console.log("Trying URL approach 3:", url3);
-
-      try {
-        const result3: any = await fetchAPI(url3);
-        console.log(
-          "Approach 3 succeeded! Response structure:",
-          Object.keys(result3)
-        );
-
-        if (result3.data && result3.data.attributes) {
-          console.log(
-            "Data attributes available:",
-            Object.keys(result3.data.attributes)
-          );
-          return result3.data.attributes;
-        } else {
-          console.log(
-            "Expected data structure not found in approach 3 response"
-          );
-        }
-      } catch (error3) {
-        console.log(
-          "Approach 3 failed:",
-          error3 instanceof Error ? error3.message : String(error3)
-        );
-      }
-
-      // If we get here, all approaches failed but didn't throw
-      // Return a minimal structure to prevent errors
-      console.log(
-        "All approaches completed but didn't return valid data structure. Returning minimal structure."
-      );
-      return {};
     } catch (error) {
       console.error("Error fetching homepage data:", error);
       throw error;
     }
   },
+
   /**
-   * Get featured blog posts for homepage
+   * Get featured blog posts for homepage (Updated)
    */
   getFeaturedBlogPosts: async (limit = 5) => {
     try {
-      // First, try a straightforward approach with populate
-      const url = `/api/blog-posts?sort=publishedAt:desc&pagination[pageSize]=${limit}&populate=featuredImage,author,category`;
+      const url = buildStrapiUrl(
+        "/api/blog-posts",
+        { publishedAt: { $notNull: true } }, // Only published posts
+        { pageSize: limit },
+        ["publishedAt:desc"],
+        ["featuredImage", "author.avatar", "category"]
+      );
+      
       console.log("Fetching blog posts from:", url);
-
-      // Request with detailed logging
-      try {
-        const response: any = await fetchAPI(url);
-
-        // Log information about the response structure
-        console.log(
-          "Blog API response structure:",
-          Object.keys(response).join(", "),
-          response.data
-            ? `Data array length: ${response.data.length}`
-            : "No data array"
-        );
-
-        // Log sample of first post if available
-        if (response.data && response.data.length > 0) {
-          const firstPost = response.data[0];
-          console.log("First post ID:", firstPost.id);
-          console.log(
-            "First post attributes keys:",
-            Object.keys(firstPost.attributes || {}).join(", ")
-          );
-
-          // Check for image data
-          if (firstPost.attributes?.featuredImage) {
-            console.log(
-              "Image data structure:",
-              JSON.stringify(
-                firstPost.attributes.featuredImage,
-                null,
-                2
-              ).substring(0, 200) + "..."
-            );
-          }
-        }
-
-        return response;
-      } catch (error) {
-        console.error("First blog fetch approach failed:", error);
-
-        // Try an alternative approach with deep populate
-        const url2 = `/api/blog-posts?sort=publishedAt:desc&pagination[pageSize]=${limit}&populate[featuredImage][populate]=*&populate[author][populate]=*&populate[category][populate]=*`;
-        console.log("Trying alternative blog fetch approach:", url2);
-
-        const response2 = await fetchAPI(url2);
-        return response2;
-      }
+      const response: any = await fetchAPI(url);
+      
+      console.log(`Blog API returned ${response.data?.length || 0} posts`);
+      return response;
     } catch (error) {
       console.error("Error fetching featured blog posts:", error);
-      // Return an empty result instead of throwing
       return { data: [] };
     }
   },
+
   /**
-   * Get upcoming events
+   * Get upcoming events (Updated)
    */
   getUpcomingEvents: async (type = "all", limit = 10) => {
     try {
       const now = new Date().toISOString();
-
-      // Build filters
       let filters: any = {
-        startDate: {
-          $gt: now,
-        },
+        startDate: { $gt: now },
+        publishedAt: { $notNull: true }
       };
 
-      // Add location type filter if provided
       if (type === "onsite" || type === "online") {
-        filters.location = {
-          $eq: type.charAt(0).toUpperCase() + type.slice(1),
-        };
+        filters.locationType = { $eq: type };
       }
 
       const url = buildStrapiUrl(
@@ -520,7 +391,7 @@ export const homeApi = {
         filters,
         { pageSize: limit },
         "startDate:asc",
-        "*"
+        ["featuredImage", "location"]
       );
 
       return fetchAPI(url);
@@ -531,6 +402,23 @@ export const homeApi = {
   },
 };
 
+// Add this helper function to handle media URLs
+export const getStrapiMediaUrl = (media: any): string => {
+  if (!media) return '';
+  
+  // Handle both single media and media arrays
+  const mediaItem = Array.isArray(media) ? media[0] : media;
+  
+  if (mediaItem?.data?.attributes?.url) {
+    const url = mediaItem.data.attributes.url;
+    // If URL is relative, prepend the Strapi base URL
+    return url.startsWith('http') ? url : `${API_URL}${url}`;
+  }
+  
+  return '';
+};
+
+// Update the existing default export
 export default {
   fetchAPI,
   blogApi,
@@ -538,4 +426,5 @@ export default {
   getToken,
   getHeaders,
   buildStrapiUrl,
+  getStrapiMediaUrl,
 };

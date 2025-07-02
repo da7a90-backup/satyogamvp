@@ -26,6 +26,7 @@
     "lucide-react": "^0.464.0",
     "next": "15.0.3",
     "next-auth": "^4.24.11",
+    "node-html-parser": "^7.0.1",
     "plotly.js": "^2.35.2",
     "plyr": "^3.7.8",
     "react": "19.0.0-rc-66855b96-20241106",

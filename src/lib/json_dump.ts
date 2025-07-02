@@ -1,4 +1,4 @@
-const seed: any[] = [
+export const seed: any[] = [
   {
     "title": "Ecstasy and  the Eschaton",
     "date": "2024-11-18T01:59:53",

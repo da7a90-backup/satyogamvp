@@ -26,33 +26,33 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   const [showBanner, setShowBanner] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+
+  // Check if we're on the homepage
+  const isHomepage = pathname === '/';
 
   // Default navigation if none provided
   const defaultNavigation: MenuItem[] = [
-    {
-      label: 'Home',
-      url: '/',
-    },
     {
       label: 'About',
       url: '/about',
       children: [
         {
           title: 'Shunyamurti',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          description: 'Meet our spiritual teacher and founder',
           url: '/about/shunyamurti',
           icon: 'CubeIcon',
         },
         {
-          title: 'The Asharam',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/about/asharam',
+          title: 'The Ashram',
+          description: 'Discover our spiritual community in Costa Rica',
+          url: '/about/ashram',
           icon: 'CubeIcon',
         },
         {
-          title: 'The community',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          title: 'The Community',
+          description: 'Join our global sangha of seekers',
           url: '/about/community',
           icon: 'CubeIcon',
         },
@@ -63,20 +63,20 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       url: '/retreats',
       children: [
         {
-          title: 'Online retreats',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          title: 'Online Retreats',
+          description: 'Transform from the comfort of your home',
           url: '/retreats/online',
           icon: 'CubeIcon',
         },
         {
-          title: 'Onsite retreats',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/retreats/onsite',
+          title: 'Ashram Retreats',
+          description: 'Immersive experiences in Costa Rica',
+          url: '/retreats/ashram',
           icon: 'CubeIcon',
         },
         {
           title: 'FAQs',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          description: 'Common questions about our retreats',
           url: '/retreats/faqs',
           icon: 'CubeIcon',
         },
@@ -84,24 +84,24 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
     },
     {
       label: 'Learn Online',
-      url: '/learn-online',
+      url: '/online',
       children: [
         {
-          title: 'Teachings (SatYoga Tube)',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          title: 'Free Teachings',
+          description: 'Start your journey with free wisdom',
           url: '/teachings',
           icon: 'CubeIcon',
         },
         {
           title: 'Courses',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/learn-online/courses',
+          description: 'Structured learning paths',
+          url: '/courses',
           icon: 'CubeIcon',
         },
         {
-          title: 'More',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/learn-online/more',
+          title: 'Membership',
+          description: 'Access premium content and community',
+          url: '/membership',
           icon: 'CubeIcon',
         },
       ],
@@ -126,6 +126,18 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
 
   const navItems = navigation || defaultNavigation;
 
+  // Handle scroll effect for homepage transparency
+  useEffect(() => {
+    if (!isHomepage) return;
+    
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isHomepage]);
+
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMenuOpen(false);
@@ -134,7 +146,6 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Only close if clicking outside the navigation area
       if (!event.target || !(event.target as Element).closest('nav')) {
         setActiveDropdown(null);
       }
@@ -150,6 +161,15 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   const handleDropdownToggle = (label: string) => {
     setActiveDropdown(prevState => (prevState === label ? null : label));
   };
+
+  // Determine header styles based on homepage state
+  const isTransparent = isHomepage && !isScrolled;
+  const headerBg = isTransparent ? 'bg-transparent' : 'bg-[#FAF8F1]';
+  const headerPosition = isHomepage ? 'fixed' : 'relative';
+  const headerBorder = isTransparent ? '' : 'border-b border-gray-200';
+  const textColor = isTransparent ? 'text-white' : 'text-[#300001]';
+  const textColorHover = isTransparent ? 'hover:text-gray-200' : 'hover:text-[#4a0002]';
+  const logoFilter = isTransparent ? 'brightness-0 invert' : '';
 
   // Function to render the dropdown chevron
   const renderDropdownIcon = (label: string) => {
@@ -194,9 +214,9 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   };
 
   return (
-    <header className="relative z-30">
-      {/* Promotional Banner */}
-      {showBanner && (
+    <header className={`${headerPosition} top-0 left-0 right-0 z-50 transition-all duration-300`}>
+      {/* Promotional Banner - Only show if not transparent */}
+      {showBanner && !isTransparent && (
         <div className="relative bg-[#300001] text-center py-3 px-4 border-b border-[#4a0002]">
           <p className="text-sm font-medium text-[#FAF8F1]" style={{ fontFamily: 'Montserrat, sans-serif' }}>
             Free Meditation Course <Link href="/courses" className="font-bold underline ml-1 text-[#FAF8F1]">Enroll Now</Link>
@@ -212,7 +232,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       )}
 
       {/* Main Navigation */}
-      <div className="bg-[#FAF8F1] border-b border-gray-200 py-4">
+      <div className={`${headerBg} ${headerBorder} py-4 ${isTransparent ? 'shadow-none' : 'shadow-sm'}`}>
         <div className="container mx-auto px-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
@@ -221,7 +241,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
               alt="SAT YOGA"
               width={120}
               height={40}
-              className="h-8 w-auto"
+              className={`h-8 w-auto transition-all duration-300 ${logoFilter}`}
             />
           </Link>
 
@@ -235,8 +255,8 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                     onClick={() => handleDropdownToggle(item.label)}
                     className={`flex items-center py-2 text-sm font-medium transition-colors ${
                       activeDropdown === item.label || pathname.startsWith(item.url)
-                        ? 'text-[#300001]'
-                        : 'text-[#300001] hover:text-[#4a0002]'
+                        ? textColor
+                        : `${textColor} ${textColorHover}`
                     }`}
                     style={{ fontFamily: 'Avenir Next, sans-serif' }}
                     aria-expanded={activeDropdown === item.label}
@@ -250,8 +270,8 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                     href={item.url}
                     className={`py-2 text-sm font-medium transition-colors ${
                       pathname === item.url
-                        ? 'text-[#300001]'
-                        : 'text-[#300001] hover:text-[#4a0002]'
+                        ? textColor
+                        : `${textColor} ${textColorHover}`
                     }`}
                     style={{ fontFamily: 'Avenir Next, sans-serif' }}
                   >
@@ -266,7 +286,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           <div className="flex items-center space-x-4">
             {/* Search Button */}
             <button 
-              className="p-2 text-[#300001] hover:text-[#4a0002] transition-colors" 
+              className={`p-2 transition-colors ${textColor} ${textColorHover}`}
               aria-label="Search"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -274,12 +294,35 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
               </svg>
             </button>
             
-            {/* User Navigation (Login/Logout/Profile) */}
-            <UserNavigation />
+            {/* Donate Button */}
+            <Link 
+              href="/donate" 
+              className={`px-4 py-2 text-sm font-medium transition-colors border rounded-md ${
+                isTransparent 
+                  ? 'border-white text-white hover:bg-white hover:text-gray-900' 
+                  : 'border-[#300001] text-[#300001] hover:bg-[#300001] hover:text-white'
+              }`}
+              style={{ fontFamily: 'Avenir Next, sans-serif' }}
+            >
+              Donate
+            </Link>
+            
+            {/* Login Button */}
+            <Link 
+              href="/login" 
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                isTransparent 
+                  ? 'bg-white text-gray-900 hover:bg-gray-100' 
+                  : 'bg-[#300001] text-white hover:bg-[#4a0002]'
+              }`}
+              style={{ fontFamily: 'Avenir Next, sans-serif' }}
+            >
+              Login
+            </Link>
             
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden p-2 text-[#300001] hover:text-[#4a0002] transition-colors" 
+              className={`md:hidden p-2 transition-colors ${textColor} ${textColorHover}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Menu"
               aria-expanded={isMenuOpen}
@@ -292,9 +335,9 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         </div>
       </div>
 
-      {/* Dropdown Menus - Full Width */}
-      {activeDropdown && (
-        <div className="absolute left-0 right-0 bg-[#FAF8F1] border-b border-gray-200 shadow-sm z-40">
+      {/* Dropdown Menus - Only show if not on mobile and not transparent */}
+      {activeDropdown && !isTransparent && (
+        <div className="absolute left-0 right-0 bg-[#FAF8F1] border-b border-gray-200 shadow-lg z-40">
           <div className="container mx-auto px-4 py-8">
             <div className="grid grid-cols-3 gap-12">
               {navItems.find(item => item.label === activeDropdown)?.children?.map((child, index) => (
@@ -333,7 +376,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-[#FAF8F1] border-t border-gray-200 z-30">
+        <div className="md:hidden bg-[#FAF8F1] border-t border-gray-200 shadow-lg">
           <nav className="flex flex-col px-4 py-3 space-y-3">
             {navItems.map((item) => (
               <div key={item.label}>
