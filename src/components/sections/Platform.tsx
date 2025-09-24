@@ -94,7 +94,7 @@ const PlatformSection = () => {
           <div 
             className="absolute hidden lg:block"
             style={{
-              left: '60%',
+              left: '50%',
               top: '40%',
               transform: 'translate(-50%, -50%)',
               width: '100%',
@@ -111,12 +111,13 @@ const PlatformSection = () => {
           />
 
           {/* Platform Image */}
-          <div className="relative z-10 w-full h-full flex items-center justify-end lg:justify-center">
+          <div className="relative z-10 w-full h-full flex items-center justify-center">
             <img
               src="/platform.png"
               alt="Sat Yoga platform"
-              className="w-max h-auto object-contain max-w-[480px] lg:max-w-[680px]"
+              className="w-max h-auto object-contain max-w-[500px] lg:max-w-[680px]"
               style={{
+                paddingRight: '20%',
                 filter: 'drop-shadow(33px 73px 32px rgba(0, 0, 0, 0.01)) drop-shadow(19px 41px 27px rgba(0, 0, 0, 0.05)) drop-shadow(8px 18px 20px rgba(0, 0, 0, 0.09)) drop-shadow(2px 5px 11px rgba(0, 0, 0, 0.1))'
               }}
             />

@@ -5,12 +5,13 @@ import Link from 'next/link';
 const WhoWeAreSection = () => {
   return (
     <section 
-      className="relative w-full flex flex-col lg:flex-row items-start justify-between overflow-hidden"
+      className="relative w-full flex flex-col lg:flex-row items-center justify-between overflow-hidden"
       style={{
         backgroundColor: '#FAF8F1',
         minHeight: '816px',
         padding: '64px 16px',
-        gap: '32px'
+        gap: '32px',
+        zIndex: 10 // Added z-index to prevent overlap
       }}
     >
       {/* Background Decorative Element */}
@@ -47,10 +48,9 @@ const WhoWeAreSection = () => {
 
       {/* Content Container */}
       <div 
-        className="relative z-10 py-12 w-full lg:flex-1 lg:max-w-xl order-2 lg:order-2"
+        className="relative z-20 py-12 w-full lg:flex-1 lg:max-w-xl order-2 lg:order-2"
         style={{
           maxWidth: '616px',
-          height: '482px',
           margin: '0 auto',
           gap: '24px'
         }}
@@ -113,7 +113,7 @@ const WhoWeAreSection = () => {
         </div>
 
         {/* Action Button */}
-        <div className="text-center lg:text-left">
+        <div className="text-center lg:text-left relative z-30">
           <Link
             href="/about"
             className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
