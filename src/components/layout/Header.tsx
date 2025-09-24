@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import UserNavigation from './UserNavigation';
+import { ShoppingCart } from 'lucide-react';
 
 interface MenuItem {
   label: string;
@@ -13,7 +12,6 @@ interface MenuItem {
     title: string;
     description: string;
     url: string;
-    icon?: string;
   }[];
 }
 
@@ -25,35 +23,29 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   const [showBanner, setShowBanner] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
 
-  // Default navigation if none provided
+  // Default navigation
   const defaultNavigation: MenuItem[] = [
-    {
-      label: 'Home',
-      url: '/',
-    },
     {
       label: 'About',
       url: '/about',
       children: [
         {
+          title: 'Sat Yoga',
+          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          url: '/about/sat-yoga',
+        },
+        {
           title: 'Shunyamurti',
           description: 'Lorem ipsum dolor sit amet consectetur elit',
           url: '/about/shunyamurti',
-          icon: 'CubeIcon',
         },
         {
-          title: 'The Asharam',
+          title: 'Our Ashram',
           description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/about/asharam',
-          icon: 'CubeIcon',
-        },
-        {
-          title: 'The community',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/about/community',
-          icon: 'CubeIcon',
+          url: '/about/ashram',
         },
       ],
     },
@@ -62,46 +54,30 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       url: '/retreats',
       children: [
         {
+          title: 'Ashram Retreats',
+          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          url: '/retreats/ashram',
+        },
+        {
           title: 'Online retreats',
           description: 'Lorem ipsum dolor sit amet consectetur elit',
           url: '/retreats/online',
-          icon: 'CubeIcon',
-        },
-        {
-          title: 'Onsite retreats',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/retreats/onsite',
-          icon: 'CubeIcon',
-        },
-        {
-          title: 'FAQs',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/retreats/faqs',
-          icon: 'CubeIcon',
         },
       ],
     },
     {
-      label: 'Study online',
-      url: '/study-online',
+      label: 'Learn Online',
+      url: '/learn-online',
       children: [
         {
-          title: 'Teachings (SatYoga Tube)',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/study-online/teachings',
-          icon: 'CubeIcon',
+          title: 'Free Teachings Library',
+          description: 'Explore a curated library of foundational teachings.',
+          url: '/learn-online/teachings',
         },
         {
           title: 'Courses',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/study-online/courses',
-          icon: 'CubeIcon',
-        },
-        {
-          title: 'More',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/study-online/more',
-          icon: 'CubeIcon',
+          description: 'Dive deeper with structured learning opportunities.',
+          url: '/learn-online/courses',
         },
       ],
     },
@@ -128,12 +104,12 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMenuOpen(false);
+    setActiveDropdown(null);
   }, [pathname]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Only close if clicking outside the navigation area
       if (!event.target || !(event.target as Element).closest('nav')) {
         setActiveDropdown(null);
       }
@@ -145,216 +121,296 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
     };
   }, []);
 
-  // Toggle dropdown menu
   const handleDropdownToggle = (label: string) => {
     setActiveDropdown(prevState => (prevState === label ? null : label));
   };
 
-  // Function to render the dropdown chevron
-  const renderDropdownIcon = (label: string) => {
-    const isOpen = activeDropdown === label;
-    return (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className={`h-4 w-4 ml-1 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-        viewBox="0 0 20 20" 
-        fill="currentColor"
-      >
-        <path 
-          fillRule="evenodd" 
-          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-          clipRule="evenodd" 
-        />
-      </svg>
-    );
-  };
+  const ChevronDownIcon = ({ isOpen }: { isOpen: boolean }) => (
+    <svg 
+      width="20" 
+      height="20" 
+      viewBox="0 0 20 20" 
+      fill="none" 
+      className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+    >
+      <path 
+        d="M5 7.5L10 12.5L15 7.5" 
+        stroke="currentColor" 
+        strokeWidth="1.67" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 
-  // Function to render the cube icon
-  const renderIcon = (iconName?: string) => {
-    if (iconName === 'CubeIcon') {
-      return (
-        <svg
-          className="w-6 h-6 text-gray-800"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-          />
-        </svg>
-      );
-    }
-    return null;
-  };
+  const SearchIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+      <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
+    </svg>
+  );
+
+
+  const HamburgerIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M3 6H21M3 12H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+
+  const CloseIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
 
   return (
-    <header className="relative z-30">
+    <header className="relative z-30 font-sans">
       {/* Promotional Banner */}
       {showBanner && (
-        <div className="relative bg-white text-center py-3 px-4 border-b">
-          <p className="text-sm font-medium">
-            Discove our Free courses <Link href="/courses" className="font-bold underline ml-1">available now</Link>
-          </p>
-          <button
-            type="button"
-            className="absolute right-4 top-1/2 -translate-y-1/2"
-            onClick={() => setShowBanner(false)}
-          >
-            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-          </button>
+        <div 
+          className="px-4 md:px-16 h-12 flex items-center justify-center relative text-white"
+          style={{ backgroundColor: '#7D1A13' }}
+        >
+          <div className="flex items-center gap-4 w-full max-w-screen-xl justify-center">
+            <p className="text-white text-base font-normal leading-6 m-0 text-center">
+              Free Meditation Course{' '}
+              <Link 
+                href="/enroll" 
+                className="text-white underline font-semibold hover:no-underline"
+              >
+                Enroll Now
+              </Link>
+            </p>
+            <button
+              onClick={() => setShowBanner(false)}
+              className="absolute right-4 bg-transparent border-none text-white cursor-pointer p-1 hover:opacity-80"
+            >
+              <CloseIcon />
+            </button>
+          </div>
         </div>
       )}
 
       {/* Main Navigation */}
-      <div className="bg-white border-b py-4">
-        <div className="container mx-auto px-4 flex items-center justify-between">
+      <nav className="border-b border-black" style={{ backgroundColor: '#FAF8F1' }}>
+        <div className="px-4 md:px-16 h-16 flex items-center justify-between max-w-screen-2xl mx-auto py-8">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
-            <span className="text-2xl font-serif italic">Logo</span>
+          <Link 
+            href="/" 
+            className="flex items-center no-underline"
+          >
+            <img width={186} height={43} src='/logo_black.svg'/>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <div key={item.label} className="relative">
-                {item.children ? (
-                  // Item with dropdown
-                  <button
-                    onClick={() => handleDropdownToggle(item.label)}
-                    className={`flex items-center py-2 ${
-                      activeDropdown === item.label || pathname.startsWith(item.url)
-                        ? 'text-purple-700'
-                        : 'text-gray-700 hover:text-purple-700'
-                    }`}
-                    aria-expanded={activeDropdown === item.label}
-                  >
-                    {item.label}
-                    {renderDropdownIcon(item.label)}
-                  </button>
-                ) : (
-                  // Regular link
-                  <Link
-                    href={item.url}
-                    className={`py-2 ${
-                      pathname === item.url
-                        ? 'text-purple-700'
-                        : 'text-gray-700 hover:text-purple-700'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </nav>
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map((item) => {
+              const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
+              return (
+                <div key={item.label} className="relative">
+                  {item.children ? (
+                    <button
+                      onClick={() => handleDropdownToggle(item.label)}
+                      className={`flex items-center gap-1 bg-transparent border-none cursor-pointer text-base py-1 leading-6 transition-colors ${
+                        isActive || activeDropdown === item.label 
+                          ? 'font-bold' 
+                          : 'font-normal'
+                      }`}
+                      style={{ 
+                        color: isActive || activeDropdown === item.label ? '#7D1A13' : '#000000',
+                        fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+                      }}
+                    >
+                      {item.label}
+                      <ChevronDownIcon isOpen={activeDropdown === item.label} />
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.url}
+                      className={`text-base no-underline py-1 leading-6 transition-colors hover:opacity-80 ${
+                        isActive ? 'font-bold' : 'font-normal'
+                      }`}
+                      style={{ 
+                        color: isActive ? '#7D1A13' : '#000000',
+                        fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+                      }}
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             {/* Search Button */}
             <button 
-              className="p-2 text-gray-500 hover:text-purple-700" 
+              onClick={() => setShowSearch(!showSearch)}
+              className="bg-transparent border-none cursor-pointer px-3 py-2 flex items-center text-black hover:opacity-70 transition-opacity"
               aria-label="Search"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <SearchIcon />
             </button>
             
-            {/* User Navigation (Login/Logout/Profile) */}
-            <UserNavigation />
+            {/* Cart Button */}
+            <button 
+              className="bg-transparent border-none cursor-pointer px-3 py-2 flex items-center text-black hover:opacity-70 transition-opacity"
+              aria-label="Cart"
+            >
+              <ShoppingCart />
+            </button>
+
+            {/* Donate Button */}
+            <Link 
+              href="/donate"
+              className="hidden md:block border-none outline-none bg-transparent text-black rounded-lg px-4 py-2.5 text-base font-semibold no-underline hover:opacity-90 transition-opacity"
+              style={{
+                fontFamily: 'Montserrat, sans-serif',
+              }}
+            >
+              Donate
+            </Link>
+
+            {/* Login Button */}
+            <Link 
+              href="/login"
+              className="hidden md:block bg-white text-black border-none rounded-lg px-4 py-2.5 text-base font-semibold no-underline hover:opacity-90 transition-opacity"
+              style={{
+                boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                fontFamily: 'Montserrat, sans-serif',
+              }}
+            >
+              Login
+            </Link>
             
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden p-2 text-gray-500 hover:text-purple-700" 
+              className="md:hidden bg-white border-none rounded-lg cursor-pointer p-2 flex items-center justify-center hover:opacity-80 transition-opacity"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              style={{ color: '#414651' }}
               aria-label="Menu"
-              aria-expanded={isMenuOpen}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              <HamburgerIcon />
             </button>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Dropdown Menus - Full Width */}
+      {/* Search Bar */}
+      {showSearch && (
+        <div className="absolute left-0 right-0 bg-white border-b border-black px-3 py-6 z-10" style={{ top: '100%' }}>
+          <div className="max-w-screen-2xl mx-auto relative">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <SearchIcon />
+            </div>
+            <input
+              type="text"
+              placeholder="Search courses"
+              className="w-full pl-12 pr-3 py-3 text-base border-none outline-none bg-transparent text-black focus:ring-0"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Dropdown Menu */}
       {activeDropdown && (
-        <div className="absolute left-0 right-0 bg-white border-b shadow-sm">
-          <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-3 gap-12">
+        <div className="absolute left-0 right-0 bg-white z-10" style={{ top: '100%' }}>
+          <div className="pt-8 px-4 md:px-16 max-w-screen-2xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 mb-8">
               {navItems.find(item => item.label === activeDropdown)?.children?.map((child, index) => (
                 <Link 
                   key={index} 
                   href={child.url}
-                  className="flex items-start gap-4 group"
+                  className="no-underline block hover:opacity-80 transition-opacity"
+                  onClick={() => setActiveDropdown(null)}
                 >
-                  <div className="flex-shrink-0 mt-1">
-                    {renderIcon(child.icon)}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 group-hover:text-purple-700">
+                  <div className="py-2">
+                    <h3 
+                      className="text-base font-semibold text-black m-0 mb-1 leading-6"
+                      style={{ fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif' }}
+                    >
                       {child.title}
+                    </h3>
+                    <p 
+                      className="text-sm font-normal text-black m-0 leading-5"
+                      style={{ fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif' }}
+                    >
+                      {child.description}
                     </p>
-                    {child.description && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {child.description}
-                      </p>
-                    )}
                   </div>
                 </Link>
               ))}
             </div>
-            
-            {/* Sign Up Banner inside dropdown */}
-            <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <p className="text-sm">
-                Ready to get started? <Link href="/signup" className="font-medium text-purple-700 hover:text-purple-800">Sign up for free</Link>
-              </p>
-            </div>
+          </div>
+          
+          {/* Newsletter Banner in Dropdown */}
+          <div 
+            className="border-b border-black py-4 text-center w-full"
+            style={{ backgroundColor: '#323030' }}
+          >
+            <p className="text-white m-0 text-base leading-6">
+              Receive Our Newsletter{' '}
+              <Link 
+                href="/subscribe" 
+                className="text-white underline font-semibold hover:no-underline"
+              >
+                Subscribe
+              </Link>
+            </p>
           </div>
         </div>
       )}
         
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
-          <nav className="flex flex-col px-4 py-3 space-y-3">
+        <div 
+          className="md:hidden absolute left-0 right-0 bg-white z-20 max-h-screen overflow-y-auto"
+          style={{ 
+            top: '100%',
+            boxShadow: '0px 12px 16px -4px rgba(10, 13, 18, 0.08), 0px 4px 6px -2px rgba(10, 13, 18, 0.03), 0px 2px 2px -1px rgba(10, 13, 18, 0.04)'
+          }}
+        >
+          <div 
+            className="py-5 border-b" 
+            style={{ 
+              backgroundColor: '#FAF8F1', 
+              borderColor: '#E9EAEB' 
+            }}
+          >
             {navItems.map((item) => (
               <div key={item.label}>
                 {item.children ? (
                   <>
                     <button
                       onClick={() => handleDropdownToggle(item.label)}
-                      className="flex items-center justify-between w-full py-2 text-left"
-                      aria-expanded={activeDropdown === item.label}
+                      className="flex items-center justify-between w-full px-4 py-3 bg-transparent border-none text-base font-semibold text-left cursor-pointer hover:opacity-80 transition-opacity"
+                      style={{ 
+                        color: '#181D27',
+                        fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+                      }}
                     >
-                      <span className={activeDropdown === item.label ? 'text-purple-700' : 'text-gray-700'}>
-                        {item.label}
-                      </span>
-                      {renderDropdownIcon(item.label)}
+                      {item.label}
+                      <ChevronDownIcon isOpen={activeDropdown === item.label} />
                     </button>
                     {activeDropdown === item.label && (
-                      <div className="pl-4 mt-2 mb-2 space-y-3 border-l border-gray-200">
-                        {item.children.map((child, index) => (
+                      <div className="pb-5">
+                        {item.children.map((child, childIndex) => (
                           <Link
-                            key={index}
+                            key={childIndex}
                             href={child.url}
-                            className="flex py-2 text-gray-600 hover:text-purple-700"
+                            className="block px-4 py-3 text-base font-medium no-underline hover:opacity-80 transition-opacity"
+                            style={{ 
+                              color: '#404040',
+                              fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+                            }}
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              setActiveDropdown(null);
+                            }}
                           >
-                            <div>
-                              <p className="font-medium">{child.title}</p>
-                              {child.description && (
-                                <p className="text-sm text-gray-500 mt-1">
-                                  {child.description}
-                                </p>
-                              )}
-                            </div>
+                            {child.title}
                           </Link>
                         ))}
                       </div>
@@ -363,55 +419,55 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                 ) : (
                   <Link
                     href={item.url}
-                    className={`block py-2 ${
-                      pathname === item.url ? 'text-purple-700' : 'text-gray-700'
+                    className={`block px-4 py-3 text-base no-underline hover:opacity-80 transition-opacity ${
+                      pathname === item.url ? 'font-semibold' : 'font-medium'
                     }`}
+                    style={{ 
+                      color: pathname === item.url ? '#7D1A13' : '#404040',
+                      fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+                    }}
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
                   </Link>
                 )}
               </div>
             ))}
-            
-            <div className="flex space-x-2 pt-3 border-t">
+          </div>
+          
+          {/* Mobile Footer Actions */}
+          <div 
+            className="px-4 py-6" 
+            style={{ backgroundColor: '#FAF8F1' }}
+          >
+            <div className="flex flex-col gap-3">
               <Link 
-                href="/donate" 
-                className="bg-white text-gray-700 border border-gray-300 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50 flex-1 text-center"
+                href="/donate"
+                className="bg-white text-black border-none rounded-lg px-4 py-2.5 text-base font-semibold no-underline text-center hover:opacity-90 transition-opacity"
+                style={{
+                  boxShadow: 'inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                  filter: 'drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.05))',
+                  fontFamily: 'Montserrat, sans-serif'
+                }}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Donate
               </Link>
               <Link 
-                href="/login" 
-                className="bg-gray-900 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-800 flex-1 text-center"
+                href="/login"
+                className="bg-white text-black border-none rounded-lg px-4 py-2.5 text-base font-semibold no-underline text-center hover:opacity-90 transition-opacity"
+                style={{
+                  boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                  fontFamily: 'Montserrat, sans-serif'
+                }}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Login
               </Link>
             </div>
-          </nav>
-        </div>
-      )}
-
-      {/* Search Bar - Only shown when needed */}
-      {!activeDropdown && (pathname === '/courses' || pathname === '/search') && (
-        <div className="border-b py-4">
-          <div className="container mx-auto px-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search courses"
-                className="pl-10 py-2 w-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 focus:border-purple-500 border-0"
-              />
-            </div>
           </div>
         </div>
       )}
-
-      {/* Sign Up Banner has been moved inside the dropdown panel */}
     </header>
   );
 };

@@ -1,174 +1,478 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-interface TabContent {
-  id: string;
-  label: string;
-  title: string;
-  description: string;
-  buttonText: string;
-  buttonLink: string;
-  imageUrl?: string;
-}
+const LearnOnlineSection = () => {
+  const [activeTab, setActiveTab] = useState(0);
 
-interface TabContentProps {
-  content: TabContent;
-  isActive: boolean;
-}
+  // Auto-slide functionality for mobile carousel
+  useEffect(() => {
+    const isMobile = window.innerWidth < 1024;
+    if (!isMobile) return;
 
-const TabContent: React.FC<TabContentProps> = ({ content, isActive }) => {
-  if (!isActive) return null;
-  
-  return (
-    <div className="p-6 bg-white rounded-b-lg border-t border-gray-100">
-      <div className="grid md:grid-cols-2 gap-8 items-start">
-        <div>
-          <p className="text-purple-600 font-medium mb-3">{content.label}</p>
-          <h3 className="text-3xl font-bold mb-4">{content.title}</h3>
-          <p className="text-gray-700 mb-6">{content.description}</p>
-          
-          <Link 
-            href={content.buttonLink} 
-            className="inline-block bg-gray-900 text-white rounded-md px-6 py-3 font-medium hover:bg-gray-800"
-          >
-            {content.buttonText}
-          </Link>
-        </div>
-        
-        <div className="bg-gray-200 rounded-lg aspect-w-4 aspect-h-3">
-          {content.imageUrl ? (
-            <Image 
-              src={content.imageUrl} 
-              alt={content.title} 
-              fill
-              className="object-cover rounded-lg"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <svg 
-                className="h-16 w-16 text-gray-400" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={1} 
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
-                />
-              </svg>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+    const interval = setInterval(() => {
+      setActiveTab((current) => (current + 1) % tabs.length);
+    }, 4000); // Change slide every 4 seconds
 
-interface LearningTabsProps {
-  title?: string;
-  description?: string;
-  tabs?: TabContent[];
-}
+    return () => clearInterval(interval);
+  }, []);
 
-const LearningTabs: React.FC<LearningTabsProps> = ({
-  title = "How to learn online with Sat Yoga?",
-  description = "Sat Yoga offers a range of online learning options to support your growth, including immersive retreats, a personalized membership with tailored content, and resources available in our store. Learn at your own pace, wherever you are.",
-  tabs = [
+  const tabs = [
     {
       id: 'free-teachings',
       label: 'Free teachings',
+      tagline: 'FREE TEACHINGS',
       title: 'Start Your Journey with Free Wisdom',
-      description: 'Explore our selection of free teachings and get a taste of the transformative content offered at Sat Yoga. These accessible resources are designed to introduce you to key principles of healing, mindfulness, and personal growth, helping you begin or deepen your journey.',
+      description: 'Our specially curated collection of free teachings, guided meditations, questions and answers with Shunyamurti, and essays offers an introduction and glimpse into the healing and transformative wisdom of meditation and Self-inquiry.',
       buttonText: 'Browse teachings',
-      buttonLink: '/learn/free-teachings',
-      imageUrl: '',
+      buttonLink: '/teachings/free',
+      image: '/tabimage.png'
     },
     {
       id: 'membership',
       label: 'Membership Section',
-      title: 'Personalized Content for Your Path',
-      description: 'Subscribe to our membership and gain access to exclusive content tailored to your unique journey. Enjoy custom lessons, guided practices, and resources that evolve with your needs, all in a supportive community environment.',
-      buttonText: 'View memberships',
+      tagline: 'MEMBERSHIP',
+      title: 'Access Our Complete Library',
+      description: 'Join our membership to access a vast library of teachings, new content published weekly, live satsangs, classes, and meditations. Transform your spiritual practice with unlimited access to Shunyamurti\'s wisdom.',
+      buttonText: 'Explore membership',
       buttonLink: '/membership',
-      imageUrl: '',
+      image: '/tabimage2.png'
     },
     {
       id: 'retreats',
       label: 'Online Retreats',
-      title: 'Transformative Learning from Home',
-      description: 'Join our immersive online retreats and experience the wisdom of Sat Yoga\'s teachings. These retreats provide a deep, healing journey, accessible from anywhere, designed to support your personal growth and spiritual awakening.',
-      buttonText: 'Browse Retreats',
+      tagline: 'ONLINE RETREATS',
+      title: 'Transform Through Intensive Practice',
+      description: 'Experience the power of deep spiritual immersion from anywhere in the world. Our online retreats offer structured programs, live interactions, and transformative practices guided by Shunyamurti.',
+      buttonText: 'View retreats',
       buttonLink: '/retreats/online',
-      imageUrl: '',
+      image: '/tabimage3.png'
     },
     {
       id: 'courses',
       label: 'Courses',
-      title: 'Structured Guidance for Deeper Understanding',
-      description: 'Our courses offer comprehensive exploration of specific spiritual topics and practices. Each course includes video teachings, guided meditations, and practical exercises to integrate the wisdom into your daily life.',
-      buttonText: 'Explore courses',
-      buttonLink: '/learn/courses',
-      imageUrl: '',
+      tagline: 'COURSES',
+      title: 'Structured Learning Paths',
+      description: 'Dive deep into specific aspects of spiritual development through our comprehensive courses. Each course is designed to build understanding and practice systematically.',
+      buttonText: 'Browse courses',
+      buttonLink: '/courses',
+      image: '/tabimage4.png'
     },
     {
       id: 'store',
       label: 'Store',
-      title: 'Tools to Enhance Your Practice',
-      description: 'Browse our curated collection of items in the Sat Yoga store, including books, meditation tools, and healing resources. Each item is carefully selected to support your ongoing learning and spiritual development.',
-      buttonText: 'Go to store',
+      tagline: 'STORE',
+      title: 'Sacred Resources & Materials',
+      description: 'Discover books, audio recordings, meditation tools, and other sacred resources to support your spiritual journey and deepen your practice.',
+      buttonText: 'Shop now',
       buttonLink: '/store',
-      imageUrl: '',
-    },
-  ],
-}) => {
-  const [activeTab, setActiveTab] = useState(tabs[0]?.id || '');
-  
-  const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId);
-  };
-  
-  const activeContent = tabs.find(tab => tab.id === activeTab);
-  
+      image: '/tabimage5.png'
+    }
+  ];
+
+  const currentTab = tabs[activeTab];
+
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <p className="text-purple-600 font-medium mb-3">More Online Learning Options</p>
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">{title}</h2>
-          <p className="text-gray-700">{description}</p>
+    <section 
+      className="relative w-full flex flex-col items-center overflow-hidden"
+      style={{
+        backgroundColor: '#FAF8F1',
+        minHeight: '1362px',
+        padding: '64px 16px'
+      }}
+    >
+      {/* Background Decorative Elements */}
+      {/* Desktop: Inner Lab Image */}
+      <div 
+        className="absolute hidden lg:block"
+        style={{
+          left: '671px',
+          top: '-10px',
+          width: '97px',
+          height: '97px',
+          backgroundImage: 'url(/innerlab.png)',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          zIndex: 2
+        }}
+      />
+      
+      {/* Mobile: Half Flower Image */}
+      <div 
+        className="absolute lg:hidden"
+        style={{
+          left: '50%',
+          top: '20px',
+          transform: 'translateX(-50%)',
+          width: '149.95px',
+          height: '72.83px',
+          backgroundImage: 'url(/halfflower.png)',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          zIndex: 2,
+          opacity: 0.16
+        }}
+      />
+
+      {/* Header Content */}
+      <div 
+        className="relative z-10 flex flex-col items-center mb-16"
+        style={{
+          maxWidth: '648px',
+          gap: '16px'
+        }}
+      >
+        {/* Tagline */}
+        <div className="py-6 px-6 mb-6">
+          <span 
+            className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif',
+              color: '#B8860B'
+            }}
+          >
+            LEARN ONLINE
+          </span>
         </div>
-        
-        {/* Tabs Navigation */}
-        <div className="rounded-lg overflow-hidden mb-8 border border-gray-200">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`py-4 px-4 text-center font-medium transition ${
-                  activeTab === tab.id
-                    ? 'text-gray-900 border-b-2 border-purple-600 bg-white'
-                    : 'text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
-                }`}
-                onClick={() => handleTabClick(tab.id)}
-                type="button"
+
+        {/* Main Heading */}
+        <h2 
+          className="text-black text-center mb-6"
+          style={{
+            fontFamily: 'Optima, Georgia, serif',
+            fontSize: '48px',
+            fontWeight: 550,
+            lineHeight: '60px',
+            letterSpacing: '-0.02em',
+            maxWidth: '648px'
+          }}
+        >
+          Begin on Your Journey with Sat Yoga Online
+        </h2>
+
+        {/* Description */}
+        <div className="text-center space-y-6">
+          <p 
+            className="text-gray-700"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif',
+              fontSize: '18px',
+              fontWeight: 500,
+              lineHeight: '28px',
+              color: '#384250',
+              maxWidth: '648px'
+            }}
+          >
+            We offer a variety of options online to support your spiritual growth and transformation. Wherever you are you can learn at your own pace.
+          </p>
+          
+          <p 
+            className="text-gray-700"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif',
+              fontSize: '18px',
+              fontWeight: 500,
+              lineHeight: '28px',
+              color: '#384250',
+              maxWidth: '648px'
+            }}
+          >
+            Join livestreamed retreats; membership with access to a vast library of teachings and new content published weekly; live satsangs, classes, and meditations; and a rich collection of resources in the store.
+          </p>
+        </div>
+      </div>
+
+      {/* Tab Container - Desktop */}
+      <div 
+        className="hidden lg:flex relative z-10 flex-col justify-center items-center"
+        style={{
+          width: '1312px',
+          maxWidth: '100%',
+          filter: 'drop-shadow(-74px 119px 56px rgba(125, 67, 13, 0.01)) drop-shadow(-42px 67px 47px rgba(125, 67, 13, 0.05)) drop-shadow(-18px 30px 35px rgba(125, 67, 13, 0.09)) drop-shadow(-5px 7px 19px rgba(125, 67, 13, 0.1))'
+        }}
+      >
+        {/* Tab Navigation */}
+        <div className="flex w-full">
+          {tabs.map((tab, index) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(index)}
+              className={`flex-1 flex flex-col justify-center items-center px-8 py-6 transition-all duration-300 ${
+                activeTab === index
+                  ? 'bg-white text-gray-900 z-10'
+                  : 'bg-[#FAF8F1] text-gray-700 hover:bg-white/50'
+              }`}
+              style={{
+                height: '76px',
+                borderRight: index < tabs.length - 1 ? '1px solid #D2D6DB' : 'none',
+                borderRadius: index === 0 ? '8px 0px 0px 0px' : index === tabs.length - 1 ? '0px 8px 0px 0px' : '0px',
+                borderBottom: activeTab !== index ? '1px solid #D2D6DB' : 'none'
+              }}
+            >
+              <span 
+                className={`text-center ${activeTab === index ? 'font-semibold' : 'font-normal'}`}
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '18px',
+                  lineHeight: '28px'
+                }}
               >
                 {tab.label}
-              </button>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div 
+          className="w-full bg-white flex items-center px-12 py-12"
+          style={{
+            height: '640px',
+            border: '1px solid #D2D6DB',
+            borderTop: 'none',
+            borderRadius: '0px 0px 8px 8px',
+            gap: '80px'
+          }}
+        >
+          {/* Content Area */}
+          <div 
+            className="flex flex-col justify-center items-start flex-1"
+            style={{
+              maxWidth: '568px',
+              gap: '32px'
+            }}
+          >
+            {/* Tagline */}
+            <div>
+              <span 
+                className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  color: '#B8860B'
+                }}
+              >
+                {currentTab.tagline}
+              </span>
+            </div>
+
+            {/* Title and Description */}
+            <div className="space-y-6">
+              <h3 
+                className="text-black"
+                style={{
+                  fontFamily: 'Optima, Georgia, serif',
+                  fontSize: '36px',
+                  fontWeight: 550,
+                  lineHeight: '44px',
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                {currentTab.title}
+              </h3>
+              
+              <p 
+                className="text-gray-700"
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '16px',
+                  lineHeight: '24px',
+                  color: '#4A5568'
+                }}
+              >
+                {currentTab.description}
+              </p>
+            </div>
+
+            {/* Action Button */}
+            <div>
+              <Link
+                href={currentTab.buttonLink}
+                className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
+                style={{
+                  backgroundColor: '#7D1A13',
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 600
+                }}
+              >
+                {currentTab.buttonText}
+              </Link>
+            </div>
+          </div>
+
+          {/* Image Area */}
+          <div 
+            className="relative flex-1 flex items-center justify-center"
+            style={{
+              maxWidth: '568px',
+              height: '544px'
+            }}
+          >
+            {/* Traced Background Image */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                backgroundImage: 'url(/imagetraced.png)',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                zIndex: 0
+              }}
+            />
+            
+            {/* Tab Content Image */}
+            <div 
+              className="relative z-10 w-full h-full flex items-center justify-center"
+              style={{
+                filter: 'drop-shadow(-42.237px 120.5px 50.9329px rgba(0, 0, 0, 0.01)) drop-shadow(-23.603px 67.7035px 43.4793px rgba(0, 0, 0, 0.05)) drop-shadow(-10.5593px 30.4355px 31.6778px rgba(0, 0, 0, 0.09)) drop-shadow(-2.48453px 7.45359px 17.3917px rgba(0, 0, 0, 0.1))'
+              }}
+            >
+              {currentTab.image ? (
+                <img
+                  src={currentTab.image}
+                  alt={currentTab.title}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <img
+                  src="/tabimage.png"
+                  alt={currentTab.title}
+                  className="w-full h-full object-contain"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Carousel */}
+ {/* Mobile Carousel */}
+ <div className="lg:hidden w-full max-w-sm mx-auto">
+        <div className="overflow-hidden rounded-xl">
+          <div 
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{
+              transform: `translateX(-${activeTab * 100}%)`
+            }}
+          >
+            {tabs.map((tab, index) => (
+              <div 
+                key={tab.id}
+                className="w-full flex-shrink-0 bg-white p-8 border border-gray-200"
+                style={{ minWidth: '100%' }}
+              >
+                {/* Mobile Image Area - First */}
+                <div 
+                  className="relative mb-6 flex items-center justify-center"
+                  style={{
+                    height: '280px'
+                  }}
+                >
+                  {/* Traced Background Image */}
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: 'url(/imagetraced.png)',
+                      backgroundSize: 'contain',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'center',
+                      zIndex: 0
+                    }}
+                  />
+                  
+                  {/* Tab Content Image */}
+                  <div 
+                    className="relative z-10 w-full h-full flex items-center justify-center"
+                    style={{
+                      filter: 'drop-shadow(-42.237px 120.5px 50.9329px rgba(0, 0, 0, 0.01)) drop-shadow(-23.603px 67.7035px 43.4793px rgba(0, 0, 0, 0.05)) drop-shadow(-10.5593px 30.4355px 31.6778px rgba(0, 0, 0, 0.09)) drop-shadow(-2.48453px 7.45359px 17.3917px rgba(0, 0, 0, 0.1))'
+                    }}
+                  >
+                    {tab.image ? (
+                      <img
+                        src={tab.image}
+                        alt={tab.title}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <img
+                        src="/tab1image.png"
+                        alt={tab.title}
+                        className="w-full h-full object-contain"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Tagline */}
+                <div className="mb-4">
+                  <span 
+                    className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
+                    style={{
+                      fontFamily: 'Avenir Next, sans-serif',
+                      color: '#B8860B'
+                    }}
+                  >
+                    {tab.tagline}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h3 
+                  className="text-black mb-4"
+                  style={{
+                    fontFamily: 'Optima, Georgia, serif',
+                    fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+                    fontWeight: 550,
+                    lineHeight: '120%',
+                    letterSpacing: '-1%'
+                  }}
+                >
+                  {tab.title}
+                </h3>
+
+                {/* Description */}
+                <p 
+                  className="text-gray-700 mb-6"
+                  style={{
+                    fontFamily: 'Avenir Next, sans-serif',
+                    fontSize: '16px',
+                    lineHeight: '150%',
+                    color: '#4A5568'
+                  }}
+                >
+                  {tab.description}
+                </p>
+
+                {/* Action Button */}
+                <div className="text-center">
+                  <Link
+                    href={tab.buttonLink}
+                    className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
+                    style={{
+                      backgroundColor: '#7D1A13',
+                      fontFamily: 'Avenir Next, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 600
+                    }}
+                  >
+                    {tab.buttonText}
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
-          
-          {/* Tab Content */}
-          {tabs.map((tab) => (
-            <TabContent
-              key={tab.id}
-              content={tab}
-              isActive={activeTab === tab.id}
+        </div>
+        {/* Mobile Navigation Dots */}
+        <div className="flex justify-center mt-6 space-x-2">
+          {tabs.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveTab(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                activeTab === index ? 'bg-[#7D1A13]' : 'bg-gray-300'
+              }`}
+              aria-label={`Go to tab ${index + 1}`}
             />
           ))}
         </div>
@@ -177,4 +481,4 @@ const LearningTabs: React.FC<LearningTabsProps> = ({
   );
 };
 
-export default LearningTabs;
+export default LearnOnlineSection;

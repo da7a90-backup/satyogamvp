@@ -1,87 +1,88 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
-
-interface HeroProps {
-  heading: string;
-  content: string;
-  buttonText: string;
-  buttonLink: string;
-  darkMode?: boolean;
-  backgroundImage?: string;
-  alignContent?: 'center' | 'left' | 'right';
-  size?: 'small' | 'medium' | 'large';
-}
-
-const Hero: React.FC<HeroProps> = ({ 
-  heading = "Medium length hero heading goes here",
-  content = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat.",
-  buttonText = "Button",
-  buttonLink = "#",
-  darkMode = true,
-  backgroundImage,
-  alignContent = 'center',
-  size = 'medium'
-}) => {
-  // Determine padding based on size
-  const paddingClasses = {
-    small: 'py-12',
-    medium: 'py-20',
-    large: 'py-32'
+const HeroSection = () => {
+  const scrollToNext = () => {
+    window.scrollTo({
+      top: window.innerHeight + 120 + 700,
+      behavior: 'smooth'
+    });
   };
-  
-  // Determine text alignment
-  const alignmentClasses = {
-    center: 'text-center mx-auto',
-    left: 'text-left mr-auto',
-    right: 'text-right ml-auto'
-  };
-  
+
+  const ChevronDown = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+
   return (
-    <section className={`relative ${paddingClasses[size]} ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-      {/* Background color or image */}
-      {backgroundImage ? (
-        <div className="absolute inset-0 z-0">
-          <Image 
-            src={backgroundImage}
-            alt="Hero background"
-            fill
-            priority
-            className="object-cover"
-            sizes="100vw"
-          />
-          <div className={`absolute inset-0 bg-black ${darkMode ? 'opacity-60' : 'opacity-30'}`}></div>
-        </div>
-      ) : (
-        <div className={`absolute inset-0 z-0 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}></div>
-      )}
-      
-      {/* Content */}
-      <div className="container relative z-10 mx-auto px-4">
-        <div className={`max-w-3xl ${alignmentClasses[alignContent]}`}>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            {heading}
-          </h1>
-          
-          <p className="text-lg md:text-xl mb-8 opacity-90">
-            {content}
-          </p>
-          
-          <Link 
-            href={buttonLink}
-            className={`inline-block rounded-md px-6 py-3 font-medium transition-colors ${
-              darkMode 
-                ? 'bg-white text-gray-900 hover:bg-gray-100' 
-                : 'bg-gray-900 text-white hover:bg-gray-800'
-            }`}
-          >
-            {buttonText}
-          </Link>
-        </div>
+    <section 
+      className="relative w-full h-screen flex items-center justify-center overflow-hidden"
+      style={{ margin: 0, padding: 0 }}
+    >
+      {/* Background Video */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src="/HOMEPAGELOOP.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      {/* Gradient Overlay */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(182.15deg, rgba(50, 26, 26, 0) 10.8%, rgba(50, 26, 26, 0.595379) 50.06%, rgba(50, 26, 26, 0.1) 74.35%, #321A1A 96.31%)'
+        }}
+      />
+
+      {/* Content Container */}
+      <div 
+        className="relative z-10 flex flex-col items-center text-center px-4"
+        style={{
+          filter: 'drop-shadow(0px 4px 40.5px rgba(0, 0, 0, 0.74))'
+        }}
+      >
+        {/* Main Title Image */}
+        <img
+          src="/satyogastylized.png"
+          alt="Sat Yoga"
+          className="mb-4 w-full h-auto"
+          style={{
+            maxWidth: '547px',
+            height: 'auto'
+          }}
+        />
+        
+        {/* Subtitle */}
+        <p 
+          className="text-white text-center"
+          style={{
+            fontFamily: 'Optima, Georgia, serif',
+            fontWeight: 400,
+            fontSize: 'clamp(17px, 4vw, 33px)',
+            lineHeight: '120%',
+            letterSpacing: '0%',
+            maxWidth: '640px'
+          }}
+        >
+          The Summit of Self-Realization
+        </p>
       </div>
+
+      {/* Scroll Down Button */}
+      <button
+        onClick={scrollToNext}
+        className="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 transition-all duration-300 rounded-full p-4 backdrop-blur-sm z-10"
+        aria-label="Scroll down"
+      >
+        <ChevronDown />
+      </button>
     </section>
   );
 };
 
-export default Hero;
+export default HeroSection;
