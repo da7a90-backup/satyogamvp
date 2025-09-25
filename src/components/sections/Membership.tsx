@@ -5,7 +5,7 @@ import Link from 'next/link';
 const MembershipSection = () => {
   return (
     <section 
-      className="relative w-full flex flex-col items-center overflow-hidden p-8 lg:p-16"
+      className="relative w-full flex flex-col items-center overflow-hidden py-20 px-4 lg:py-28 lg:px-16"
       style={{
         backgroundColor: '#FAF8F1'
       }}

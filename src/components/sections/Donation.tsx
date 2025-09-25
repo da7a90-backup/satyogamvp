@@ -5,14 +5,14 @@ import Link from 'next/link';
 const DonationSection = () => {
   return (
     <section 
-      className="relative w-full flex flex-col items-center overflow-hidden py-16 px-4 lg:py-28 lg:px-16"
+      className="relative w-full flex flex-col items-center overflow-hidden py-8 px-4 -mt-20 lg:-mt-28 lg:py-24 lg:px-16"
       style={{
         backgroundColor: '#FAF8F1'
       }}
     >
       {/* Donation Card */}
       <div 
-        className="relative w-full max-w-7xl bg-white border border-gray-300 rounded-2xl overflow-hidden p-8 lg:p-28 min-h-[600px] lg:min-h-[400px]"
+        className="relative w-full max-w-7xl bg-white border border-gray-300 rounded-2xl overflow-hidden p-8 lg:p-28 min-h-[280px] lg:min-h-[400px]"
         style={{
           boxShadow: '0px 94px 38px rgba(111, 62, 21, 0.01), 0px 53px 32px rgba(111, 62, 21, 0.05), 0px 24px 24px rgba(111, 62, 21, 0.09), 0px 6px 13px rgba(111, 62, 21, 0.1)',
           borderRadius: '16px'
@@ -22,15 +22,15 @@ const DonationSection = () => {
         <div 
           className="absolute lg:hidden"
           style={{
-            left: '-400px',
-            top: '-400px',
-            width: '500px',
-            height: '500px',
+            left: '-300px',
+            top: '-280px',
+            width: '611px',
+            height: '611px',
             backgroundImage: 'url(/innerlab.png)',
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            opacity: 0.03,
+            opacity: 0.1,
             zIndex: 1
           }}
         />

@@ -2,170 +2,372 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
-interface FooterProps {
-  // Any props you might want to pass to the footer
-  newsletterEnabled?: boolean;
-}
-
-const Footer: React.FC<FooterProps> = ({ newsletterEnabled = true }) => {
+const Footer = () => {
   const [email, setEmail] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = (e: any) => {
     e.preventDefault();
-    // Handle the newsletter subscription logic here
-    console.log('Subscribing email:', email);
-    // TODO: Connect to your API or email service
+    // Handle newsletter signup
+    console.log('Newsletter signup:', email);
     setEmail('');
   };
 
-  const currentYear = new Date().getFullYear();
-
   return (
-    <footer className="bg-gray-800 text-white pt-12 pb-6">
-      <div className="container mx-auto px-4">
-        {/* Newsletter Section */}
-        {newsletterEnabled && (
-          <>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-8">
-              <div className="max-w-md">
-                <h2 className="text-xl font-bold mb-2">Be a part of our community</h2>
-                <p className="text-gray-300">We'll send you a nice letter once per week. No spam.</p>
-              </div>
-              
-              <form onSubmit={handleSubmit} className="w-full md:w-auto flex flex-col md:flex-row gap-3">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="px-4 py-3 bg-transparent border border-gray-600 rounded-md text-white w-full md:w-auto min-w-[320px] focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <button
-                  type="submit"
-                  className="px-5 py-3 bg-white text-gray-800 rounded-md font-medium hover:bg-gray-100"
-                >
-                  Subscribe
-                </button>
-              </form>
-            </div>
-            
-            <hr className="border-gray-700 mb-12" />
-          </>
-        )}
-        
-        {/* Footer Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
-          {/* About */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">About</h3>
-            <ul className="space-y-2">
-              <li><Link href="/about/shunyamurti" className="text-gray-300 hover:text-white">Shunyamurti</Link></li>
-              <li><Link href="/about/asharam" className="text-gray-300 hover:text-white">The Asharam</Link></li>
-              <li><Link href="/about/community" className="text-gray-300 hover:text-white">The community</Link></li>
-            </ul>
+    <footer 
+      className="relative w-full flex flex-col items-center"
+      style={{
+        background: 'linear-gradient(180deg, #7D1A13 0%, #4E2223 100%)',
+        padding: '64px 0px 48px',
+        gap: '64px'
+      }}
+    >
+      {/* Newsletter Signup Section */}
+      <div 
+        className="w-full flex flex-col items-start px-8"
+        style={{
+          maxWidth: '1280px',
+          gap: '16px'
+        }}
+      >
+        <div className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          {/* Newsletter Content */}
+          <div className="flex flex-col gap-2">
+            <h2 
+              className="text-white text-xl lg:text-2xl font-medium"
+              style={{
+                fontFamily: 'Avenir Next, sans-serif'
+              }}
+            >
+              Be a part of our community
+            </h2>
+            <p 
+              className="text-white/80 text-base"
+              style={{
+                fontFamily: 'Avenir Next, sans-serif'
+              }}
+            >
+              Sign Up for our Newsletter
+            </p>
           </div>
-          
-          {/* Retreats */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">Retreats</h3>
-            <ul className="space-y-2">
-              <li><Link href="/retreats/onsite" className="text-gray-300 hover:text-white">Onsite Ashram Retreats</Link></li>
-              <li><Link href="/retreats/online" className="text-gray-300 hover:text-white">Online retreats</Link></li>
-              <li><Link href="/retreats/faq" className="text-gray-300 hover:text-white">FAQs</Link></li>
-            </ul>
-          </div>
-          
-          {/* Learn Online */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">Learn Online</h3>
-            <ul className="space-y-2">
-              <li><Link href="/learn/introductory" className="text-gray-300 hover:text-white">Introductory Teachings</Link></li>
-              <li><Link href="/learn/courses" className="text-gray-300 hover:text-white">Courses</Link></li>
-              <li><Link href="/learn/more" className="text-gray-300 hover:text-white">More Online Learning Options</Link></li>
-            </ul>
-          </div>
-          
-          {/* Additional Links */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">Membership</h3>
-            <ul className="space-y-2">
-              <li><Link href="/calendar" className="text-gray-300 hover:text-white">Calendar</Link></li>
-              <li><Link href="/store" className="text-gray-300 hover:text-white">Store</Link></li>
-              <li><Link href="/blog" className="text-gray-300 hover:text-white">Blog</Link></li>
-              <li><Link href="/donate" className="text-gray-300 hover:text-white">Donate</Link></li>
-              <li><Link href="/contact" className="text-gray-300 hover:text-white">Contact us</Link></li>
-            </ul>
-          </div>
-          
-          {/* Social Media */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">Follow Us</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="https://facebook.com" className="text-gray-300 hover:text-white flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
-                  </svg>
-                  Facebook
-                </Link>
-              </li>
-              <li>
-                <Link href="https://instagram.com" className="text-gray-300 hover:text-white flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" />
-                  </svg>
-                  Instagram
-                </Link>
-              </li>
-              <li>
-                <Link href="https://twitter.com" className="text-gray-300 hover:text-white flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                  </svg>
-                  X
-                </Link>
-              </li>
-              <li>
-                <Link href="https://linkedin.com" className="text-gray-300 hover:text-white flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                  </svg>
-                  LinkedIn
-                </Link>
-              </li>
-              <li>
-                <Link href="https://youtube.com" className="text-gray-300 hover:text-white flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                  </svg>
-                  YouTube
-                </Link>
-              </li>
-            </ul>
+
+          {/* Newsletter Form */}
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="px-4 py-3 bg-transparent border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:border-white/60 transition-colors"
+              style={{
+                fontFamily: 'Avenir Next, sans-serif',
+                fontSize: '16px',
+                minWidth: '280px'
+              }}
+            />
+            <button
+              type="submit"
+              className="px-6 py-3 bg-transparent border border-white/30 rounded-lg text-white hover:bg-white/10 transition-colors font-medium"
+              style={{
+                fontFamily: 'Avenir Next, sans-serif',
+                fontSize: '16px',
+                minWidth: '120px'
+              }}
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Border Separator */}
+      <div 
+        className="w-full h-px"
+        style={{
+          background: 'rgba(233, 234, 235, 0.2)',
+          maxWidth: '1280px',
+          margin: '0 32px'
+        }}
+      />
+
+      {/* Desktop Links Section */}
+      <div 
+        className="hidden lg:flex w-full flex-row items-start px-8"
+        style={{
+          maxWidth: '1280px',
+          gap: '40px',
+          paddingBottom: '30px'
+        }}
+      >
+        {/* About Column */}
+        <div className="flex flex-col gap-4 flex-1">
+          <h3 
+            className="text-white text-lg font-medium mb-2"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            About
+          </h3>
+          <div className="flex flex-col gap-3">
+            <Link href="/about/shunyamurti" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Shunyamurti
+            </Link>
+            <Link href="/about" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Sat Yoga
+            </Link>
+            <Link href="/about/ashram" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Our Ashram
+            </Link>
           </div>
         </div>
-        
-        {/* Footer Bottom */}
-        <div className="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center mb-4 md:mb-0">
-            <span className="text-2xl font-serif italic mr-3">Logo</span>
-            <span className="text-gray-400">© {currentYear} Satyoga. All rights reserved.</span>
+
+        {/* Retreats Column */}
+        <div className="flex flex-col gap-4 flex-1">
+          <h3 
+            className="text-white text-lg font-medium mb-2"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Retreats
+          </h3>
+          <div className="flex flex-col gap-3">
+            <Link href="/retreats/ashram" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Ashram Retreats
+            </Link>
+            <Link href="/retreats/online" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Online retreats
+            </Link>
+            <Link href="/faq" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              FAQs
+            </Link>
           </div>
-          
-          <div className="flex space-x-6">
-            <Link href="/privacy" className="text-gray-400 hover:text-white">
-              Privacy Policy
+        </div>
+
+        {/* Learn Online Column */}
+        <div className="flex flex-col gap-4 flex-1">
+          <h3 
+            className="text-white text-lg font-medium mb-2"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Learn Online
+          </h3>
+          <div className="flex flex-col gap-3">
+            <Link href="/teachings/free" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Free Teachings Library
             </Link>
-            <Link href="/booking" className="text-gray-400 hover:text-white">
-              Booking Policy
+            <Link href="/courses" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Courses
             </Link>
-            <Link href="/guidelines" className="text-gray-400 hover:text-white">
-              Guidelines
+            <Link href="/learn" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              More Online Learning Options
             </Link>
           </div>
+        </div>
+
+        {/* Membership Column */}
+        <div className="flex flex-col gap-4 flex-1">
+          <h3 
+            className="text-white text-lg font-medium mb-2"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Membership
+          </h3>
+          <div className="flex flex-col gap-3">
+            <Link href="/calendar" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Calendar
+            </Link>
+            <Link href="/store" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Store
+            </Link>
+            <Link href="/blog" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Blog
+            </Link>
+            <Link href="/donate" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Donate
+            </Link>
+            <Link href="/contact" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              Contact us
+            </Link>
+          </div>
+        </div>
+
+        {/* Follow Us Column */}
+        <div className="flex flex-col gap-4 flex-1">
+          <h3 
+            className="text-white text-lg font-medium mb-2"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Follow Us
+          </h3>
+          <div className="flex flex-col gap-3">
+            <Link href="https://youtube.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              <span className="text-lg">📺</span>
+              Youtube
+            </Link>
+            <Link href="https://instagram.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              <span className="text-lg">📷</span>
+              Instagram
+            </Link>
+            <Link href="https://facebook.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              <span className="text-lg">👥</span>
+              Facebook
+            </Link>
+            <Link href="https://spotify.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+              <span className="text-lg">🎵</span>
+              Spotify
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Two-Pane Layout */}
+      <div 
+        className="lg:hidden w-full flex flex-row px-8 gap-8"
+        style={{
+          maxWidth: '430px'
+        }}
+      >
+        {/* Left Pane - Social Links */}
+        <div className="flex-1 flex flex-col gap-4">
+          <h3 
+            className="text-white text-lg font-medium mb-2"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Follow Us
+          </h3>
+          <div className="flex flex-col gap-3">
+            <Link href="https://youtube.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              <span className="text-base">📺</span>
+              Youtube
+            </Link>
+            <Link href="https://instagram.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              <span className="text-base">📷</span>
+              Instagram
+            </Link>
+            <Link href="https://facebook.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              <span className="text-base">👥</span>
+              Facebook
+            </Link>
+            <Link href="https://spotify.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              <span className="text-base">🎵</span>
+              Spotify
+            </Link>
+          </div>
+        </div>
+
+        {/* Right Pane - Essential Links */}
+        <div className="flex-1 flex flex-col gap-4">
+          <h3 
+            className="text-white text-lg font-medium mb-2"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Quick Links
+          </h3>
+          <div className="flex flex-col gap-2">
+            <Link href="/about" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              About
+            </Link>
+            <Link href="/retreats" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              Retreats
+            </Link>
+            <Link href="/teachings/free" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              Free Teachings
+            </Link>
+            <Link href="/membership" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              Membership
+            </Link>
+            <Link href="/courses" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              Courses
+            </Link>
+            <Link href="/donate" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              Donate
+            </Link>
+            <Link href="/contact" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+              Contact
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Divider */}
+      <div 
+        className="w-full h-px"
+        style={{
+          background: 'rgba(255, 255, 255, 0.85)',
+          maxWidth: '1280px',
+          margin: '0 32px'
+        }}
+      />
+
+      {/* Bottom Section */}
+      <div 
+        className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between px-8 gap-6 -mt-12"
+        style={{
+          maxWidth: '1280px'
+        }}
+      >
+        {/* Logo and Copyright */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo_white.svg"
+              alt="Sat Yoga Logo"
+              className="w-76 h-28 object-contain"
+            />
+         
+          </div>
+          <p 
+            className="text-white text-sm"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            © 2024 Satyoga. All rights reserved.
+          </p>
+        </div>
+
+        {/* Footer Links */}
+        <div className="flex flex-row items-center gap-6">
+          <Link 
+            href="/privacy" 
+            className="text-white hover:text-white/80 transition-colors text-sm"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Privacy Policy
+          </Link>
+          <Link 
+            href="/booking-policy" 
+            className="text-white hover:text-white/80 transition-colors text-sm"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Booking Policy
+          </Link>
+          <Link 
+            href="/guidelines" 
+            className="text-white hover:text-white/80 transition-colors text-sm"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif'
+            }}
+          >
+            Guidelines
+          </Link>
         </div>
       </div>
     </footer>
