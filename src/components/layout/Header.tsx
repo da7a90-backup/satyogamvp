@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         {
           title: 'Sat Yoga',
           description: 'Lorem ipsum dolor sit amet consectetur elit',
-          url: '/about/sat-yoga',
+          url: '/about/satyoga',
         },
         {
           title: 'Shunyamurti',

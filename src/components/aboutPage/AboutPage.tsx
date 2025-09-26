@@ -7,6 +7,7 @@ import MethodologySection from "../about/aboutSatyoga/Methodology";
 import AtmanologySection from "../about/aboutSatyoga/Atmanology";
 import ContactUsSection from "../about/aboutSatyoga/ContactUsSection";
 import BlogSection from "../about/aboutSatyoga/Blog";
+import FreeTeachingsSection from "../about/aboutSatyoga/Teachings";
 
 export default function AboutPage({ data }: any) {
 
@@ -20,6 +21,7 @@ return (
     <AtmanologySection/>
     <ContactUsSection/>
     <BlogSection/>
+    <FreeTeachingsSection/>
     </>
 )
 }

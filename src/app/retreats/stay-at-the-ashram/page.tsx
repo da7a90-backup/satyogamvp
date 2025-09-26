@@ -1,6 +1,6 @@
 // app/page.tsx (using App Router in Next.js 13+)
 
-import AboutShunyaPage from "@/components/aboutPage/AboutShunyamurti";
+import AshramStayPage from "@/components/retreats/StayingAtAshram";
 
 
 // This is a server component that fetches data
@@ -10,7 +10,7 @@ export default async function AboutShunyamurti() {
   
     
     // Pass the data to your client component
-    return <AboutShunyaPage
+    return <AshramStayPage
      />;
   } catch (error) {
     console.error("Error loading about page data:", error);
