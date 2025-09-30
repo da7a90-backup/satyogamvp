@@ -11,10 +11,8 @@ const CurriculumVitaeSection = () => {
     >
       {/* Content Container */}
       <div 
-        className="w-full flex flex-col lg:flex-row items-start relative"
+        className="w-full flex flex-col lg:flex-row items-start relative max-w-7xl mx-auto"
         style={{
-          maxWidth: '1312px',
-          margin: '0 auto',
           gap: '80px'
         }}
       >
@@ -22,18 +20,12 @@ const CurriculumVitaeSection = () => {
         <div 
           className="w-full lg:w-auto lg:flex-shrink-0 flex flex-col items-start relative"
           style={{
-            width: 'clamp(300px, 50vw, 616px)',
+            maxWidth: '616px',
             gap: '16px'
           }}
         >
           {/* Tagline */}
-          <div 
-            className="flex items-center"
-            style={{
-              width: '56px',
-              height: '24px'
-            }}
-          >
+          <div className="flex items-center">
             <span 
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
@@ -50,14 +42,13 @@ const CurriculumVitaeSection = () => {
 
           {/* Title */}
           <h2 
-            className="text-black"
+            className="text-black w-full"
             style={{
               fontFamily: 'Optima, Georgia, serif',
               fontWeight: 550,
               fontSize: 'clamp(28px, 4vw, 48px)',
               lineHeight: '125%',
-              letterSpacing: '-0.02em',
-              width: '100%'
+              letterSpacing: '-0.02em'
             }}
           >
             Shunyamurti's Curriculum Vitae
@@ -82,49 +73,32 @@ const CurriculumVitaeSection = () => {
 
         {/* Right Column - Content */}
         <div 
-          className="w-full flex flex-col items-start relative z-10"
+          className="w-full flex flex-col items-start relative z-10 space-y-8"
           style={{
-            maxWidth: '616px',
-            gap: '32px'
+            maxWidth: '616px'
           }}
         >
           {/* Early Inspirations */}
-          <div 
-            className="flex flex-col items-start"
-            style={{
-              gap: '16px',
-              width: '100%'
-            }}
-          >
-            <div 
-              className="flex items-center"
+          <div className="flex flex-col items-start space-y-4 w-full">
+            <h3 
               style={{
-                gap: '4px',
-                width: '178px',
-                height: '30px'
+                fontFamily: 'Avenir Next, sans-serif',
+                fontWeight: 600,
+                fontSize: '20px',
+                lineHeight: '30px',
+                color: '#000000'
               }}
             >
-              <h3 
-                style={{
-                  fontFamily: 'Avenir Next, sans-serif',
-                  fontWeight: 600,
-                  fontSize: '20px',
-                  lineHeight: '30px',
-                  color: '#000000',
-                  width: '158px'
-                }}
-              >
-                Early Inspirations
-              </h3>
-            </div>
+              Early Inspirations
+            </h3>
             <p 
+              className="w-full"
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
                 fontWeight: 400,
-                fontSize: '18px',
+                fontSize: 'clamp(16px, 2.5vw, 18px)',
                 lineHeight: '28px',
-                color: '#384250',
-                width: '596px'
+                color: '#384250'
               }}
             >
               For Shunyamurti, consciousness awakened early. As a child, he would spend afternoons outdoors contemplating and writing poetry. This led to reading classic poetry and discovering the world of literature. He was active in sports, especially martial arts such as judo and aikido. Political consciousness awakened with the news of the murder of President Kennedy. He became an activist opposing the U.S. war in Vietnam, and that brought him to study Gandhi, the Bhagavad Gita, and the Upanishads—which explained his own inner states. His search culminated in the discovery of the books of Sri Ramana Maharshi, who most clearly exemplified the eternal Truths. By then, no doubt remained.
@@ -132,13 +106,7 @@ const CurriculumVitaeSection = () => {
           </div>
 
           {/* Encountering Baba Hari Dass */}
-          <div 
-            className="flex flex-col items-start"
-            style={{
-              gap: '16px',
-              width: '100%'
-            }}
-          >
+          <div className="flex flex-col items-start space-y-4 w-full">
             <h3 
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
@@ -151,10 +119,11 @@ const CurriculumVitaeSection = () => {
               Encountering Baba Hari Dass
             </h3>
             <p 
+              className="w-full"
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
                 fontWeight: 400,
-                fontSize: '18px',
+                fontSize: 'clamp(16px, 2.5vw, 18px)',
                 lineHeight: '28px',
                 color: '#384250'
               }}
@@ -164,13 +133,7 @@ const CurriculumVitaeSection = () => {
           </div>
 
           {/* Journey from Worldly to Otherworldly */}
-          <div 
-            className="flex flex-col items-start"
-            style={{
-              gap: '16px',
-              width: '100%'
-            }}
-          >
+          <div className="flex flex-col items-start space-y-4 w-full">
             <h3 
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
@@ -183,10 +146,11 @@ const CurriculumVitaeSection = () => {
               Journey from Worldly to Otherworldly
             </h3>
             <p 
+              className="w-full"
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
                 fontWeight: 400,
-                fontSize: '18px',
+                fontSize: 'clamp(16px, 2.5vw, 18px)',
                 lineHeight: '28px',
                 color: '#384250'
               }}
@@ -196,13 +160,7 @@ const CurriculumVitaeSection = () => {
           </div>
 
           {/* A Passage to India */}
-          <div 
-            className="flex flex-col items-start"
-            style={{
-              gap: '16px',
-              width: '100%'
-            }}
-          >
+          <div className="flex flex-col items-start space-y-4 w-full">
             <h3 
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
@@ -215,10 +173,11 @@ const CurriculumVitaeSection = () => {
               A Passage to India
             </h3>
             <p 
+              className="w-full"
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
                 fontWeight: 400,
-                fontSize: '18px',
+                fontSize: 'clamp(16px, 2.5vw, 18px)',
                 lineHeight: '28px',
                 color: '#384250'
               }}
@@ -228,13 +187,7 @@ const CurriculumVitaeSection = () => {
           </div>
 
           {/* Hypnosis and Beyond */}
-          <div 
-            className="flex flex-col items-start"
-            style={{
-              gap: '16px',
-              width: '100%'
-            }}
-          >
+          <div className="flex flex-col items-start space-y-4 w-full">
             <h3 
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
@@ -246,17 +199,13 @@ const CurriculumVitaeSection = () => {
             >
               Hypnosis and Beyond
             </h3>
-            <div 
-              className="flex flex-col"
-              style={{
-                gap: '16px'
-              }}
-            >
+            <div className="flex flex-col space-y-4 w-full">
               <p 
+                className="w-full"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
                   fontWeight: 400,
-                  fontSize: '18px',
+                  fontSize: 'clamp(16px, 2.5vw, 18px)',
                   lineHeight: '28px',
                   color: '#384250'
                 }}
@@ -264,10 +213,11 @@ const CurriculumVitaeSection = () => {
                 After studying hypnotherapy, he began a private practice. He also took graduate courses in psychology at night and on weekends.
               </p>
               <p 
+                className="w-full"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
                   fontWeight: 400,
-                  fontSize: '18px',
+                  fontSize: 'clamp(16px, 2.5vw, 18px)',
                   lineHeight: '28px',
                   color: '#384250'
                 }}
@@ -278,13 +228,7 @@ const CurriculumVitaeSection = () => {
           </div>
 
           {/* But then ... */}
-          <div 
-            className="flex flex-col items-start"
-            style={{
-              gap: '16px',
-              width: '100%'
-            }}
-          >
+          <div className="flex flex-col items-start space-y-4 w-full">
             <h3 
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
@@ -296,17 +240,13 @@ const CurriculumVitaeSection = () => {
             >
               But then ...
             </h3>
-            <div 
-              className="flex flex-col"
-              style={{
-                gap: '16px'
-              }}
-            >
+            <div className="flex flex-col space-y-4 w-full">
               <p 
+                className="w-full"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
                   fontWeight: 400,
-                  fontSize: '18px',
+                  fontSize: 'clamp(16px, 2.5vw, 18px)',
                   lineHeight: '28px',
                   color: '#384250'
                 }}
@@ -314,10 +254,11 @@ const CurriculumVitaeSection = () => {
                 But then, a very different immersion in psychoanalysis training—first Kleinian, then Lacanian—led Shunyamurti to a critical reappraisal of the role of such a focus on the paranormal, transforming his shamanic level of work to a higher spiritual level. He came to see that the subconscious had to be countervailed by the Superconscious, and those pivotal insights concerned the use of Kundalini energy. After correcting the psychoanalytic map of the structure of the ego and learning the language of dreams, the function was to abide in the Absolute.
               </p>
               <p 
+                className="w-full"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
                   fontWeight: 400,
-                  fontSize: '18px',
+                  fontSize: 'clamp(16px, 2.5vw, 18px)',
                   lineHeight: '28px',
                   color: '#384250'
                 }}

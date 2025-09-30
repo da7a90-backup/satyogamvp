@@ -110,19 +110,41 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!event.target || !(event.target as Element).closest('nav')) {
+      const target = event.target as Element;
+      if (!target || (!target.closest('.dropdown-container') && !target.closest('.mobile-menu-container'))) {
         setActiveDropdown(null);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    // Only add click outside listener if mobile menu is closed
+    if (!isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isMenuOpen]);
 
   const handleDropdownToggle = (label: string) => {
     setActiveDropdown(prevState => (prevState === label ? null : label));
+  };
+
+  const handleDropdownLinkClick = () => {
+    // Small delay to ensure navigation completes before closing dropdown
+    setTimeout(() => {
+      setActiveDropdown(null);
+    }, 100);
+  };
+
+  const handleMobileLinkClick = (e: React.MouseEvent, url: string) => {
+    // Don't prevent default - let Next.js handle the navigation
+    e.stopPropagation(); // Prevent event bubbling
+    // Close menu after a small delay to allow navigation
+    setTimeout(() => {
+      setIsMenuOpen(false);
+      setActiveDropdown(null);
+    }, 50);
   };
 
   const ChevronDownIcon = ({ isOpen }: { isOpen: boolean }) => (
@@ -149,7 +171,6 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
     </svg>
   );
-
 
   const HamburgerIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -192,7 +213,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       )}
 
       {/* Main Navigation */}
-      <nav className="border-b border-black" style={{ backgroundColor: '#FAF8F1' }}>
+      <nav className="border-b border-black dropdown-container" style={{ backgroundColor: '#FAF8F1' }}>
         <div className="px-4 md:px-16 h-16 flex items-center justify-between max-w-screen-2xl mx-auto py-8">
           {/* Logo */}
           <Link 
@@ -316,7 +337,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
 
       {/* Dropdown Menu */}
       {activeDropdown && (
-        <div className="absolute left-0 right-0 bg-white z-10" style={{ top: '100%' }}>
+        <div className="absolute left-0 right-0 bg-white z-10 dropdown-container" style={{ top: '100%' }}>
           <div className="pt-8 px-4 md:px-16 max-w-screen-2xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 mb-8">
               {navItems.find(item => item.label === activeDropdown)?.children?.map((child, index) => (
@@ -324,7 +345,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                   key={index} 
                   href={child.url}
                   className="no-underline block hover:opacity-80 transition-opacity"
-                  onClick={() => setActiveDropdown(null)}
+                  onClick={handleDropdownLinkClick}
                 >
                   <div className="py-2">
                     <h3 
@@ -335,7 +356,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                     </h3>
                     <p 
                       className="text-sm font-normal text-black m-0 leading-5"
-                      style={{ fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif' }}
+                      style={{ fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segue UI, sans-serif' }}
                     >
                       {child.description}
                     </p>
@@ -366,7 +387,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div 
-          className="md:hidden absolute left-0 right-0 bg-white z-20 max-h-screen overflow-y-auto"
+          className="md:hidden absolute left-0 right-0 bg-white z-20 max-h-screen overflow-y-auto mobile-menu-container"
           style={{ 
             top: '100%',
             boxShadow: '0px 12px 16px -4px rgba(10, 13, 18, 0.08), 0px 4px 6px -2px rgba(10, 13, 18, 0.03), 0px 2px 2px -1px rgba(10, 13, 18, 0.04)'
@@ -405,10 +426,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                               color: '#404040',
                               fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
                             }}
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              setActiveDropdown(null);
-                            }}
+                            onClick={(e) => handleMobileLinkClick(e, child.url)}
                           >
                             {child.title}
                           </Link>
@@ -426,7 +444,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                       color: pathname === item.url ? '#7D1A13' : '#404040',
                       fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
                     }}
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={(e) => handleMobileLinkClick(e, item.url)}
                   >
                     {item.label}
                   </Link>
@@ -449,7 +467,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                   filter: 'drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.05))',
                   fontFamily: 'Montserrat, sans-serif'
                 }}
-                onClick={() => setIsMenuOpen(false)}
+                onClick={(e) => handleMobileLinkClick(e, "/donate")}
               >
                 Donate
               </Link>
@@ -460,7 +478,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                   boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
                   fontFamily: 'Montserrat, sans-serif'
                 }}
-                onClick={() => setIsMenuOpen(false)}
+                onClick={(e) => handleMobileLinkClick(e, "/login")}
               >
                 Login
               </Link>

@@ -29,31 +29,26 @@ const WhichRetreatSection = () => {
 
   return (
     <section 
-      className="w-full flex flex-col items-center"
+      className="w-full flex flex-col items-center px-4 lg:px-16 py-16 lg:py-28"
       style={{ 
-        backgroundColor: '#FAF8F1',
-        padding: '112px 64px',
-        gap: '80px'
+        backgroundColor: '#FAF8F1'
       }}
     >
       <div 
-        className="flex flex-col items-center"
+        className="flex flex-col items-center w-full max-w-4xl"
         style={{ 
-          width: '768px',
-          gap: '80px'
+          gap: 'clamp(40px, 8vw, 80px)'
         }}
       >
         {/* Heading */}
         <h2 
-          className="text-center"
+          className="text-center w-full"
           style={{
-            width: '768px',
-            height: '60px',
             fontFamily: 'Optima',
             fontStyle: 'normal',
             fontWeight: 550,
-            fontSize: '48px',
-            lineHeight: '60px',
+            fontSize: 'clamp(28px, 4vw, 48px)',
+            lineHeight: '125%',
             textAlign: 'center',
             letterSpacing: '-0.02em',
             color: '#000000'
@@ -63,7 +58,7 @@ const WhichRetreatSection = () => {
         </h2>
 
         {/* FAQ Items */}
-        <div className="w-full" style={{ width: '768px' }}>
+        <div className="w-full">
           {retreats.map((retreat, index) => (
             <div key={retreat.id}>
               {/* Question */}
@@ -75,10 +70,10 @@ const WhichRetreatSection = () => {
                   display: 'flex',
                   flexDirection: 'row',
                   alignItems: 'center',
-                  padding: '20px 0px',
+                  padding: 'clamp(16px, 3vw, 20px) 0px',
                   gap: '24px',
-                  width: '768px',
-                  height: '72px',
+                  width: '100%',
+                  minHeight: 'clamp(60px, 10vw, 72px)',
                   borderTop: '1px solid #000000'
                 }}
               >
@@ -86,15 +81,16 @@ const WhichRetreatSection = () => {
                   className="text-left flex-1"
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
-                    fontSize: '20px',
+                    fontSize: 'clamp(16px, 2.5vw, 20px)',
                     fontWeight: 600,
-                    color: '#000000'
+                    color: '#000000',
+                    lineHeight: '140%'
                   }}
                 >
                   {retreat.title}
                 </span>
                 <div 
-                  className="transition-transform duration-300"
+                  className="transition-transform duration-300 flex-shrink-0"
                   style={{
                     transform: expandedRetreat === retreat.id ? 'rotate(180deg)' : 'rotate(0deg)'
                   }}
@@ -108,20 +104,21 @@ const WhichRetreatSection = () => {
               {/* Answer */}
               {expandedRetreat === retreat.id && (
                 <div 
+                  className="w-full pb-6"
                   style={{
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'flex-start',
                     padding: '0px 0px 24px',
-                    gap: '16px',
-                    width: '768px'
+                    gap: '16px'
                   }}
                 >
                   <p 
+                    className="w-full"
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
-                      fontSize: '16px',
-                      lineHeight: '24px',
+                      fontSize: 'clamp(14px, 2vw, 16px)',
+                      lineHeight: '150%',
                       color: '#384250',
                       margin: 0,
                       flex: 1

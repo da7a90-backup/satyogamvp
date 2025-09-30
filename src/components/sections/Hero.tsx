@@ -26,6 +26,9 @@ const HeroSection = () => {
         muted
         loop
         playsInline
+        preload="auto"
+        disablePictureInPicture
+        webkit-playsinline="true"
       >
         <source src="/HOMEPAGELOOP.mp4" type="video/mp4" />
         Your browser does not support the video tag.

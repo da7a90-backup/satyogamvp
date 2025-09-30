@@ -1,6 +1,9 @@
 'use client';
+import { useState, useEffect } from 'react';
 
 const BooksSection = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   const books = [
     {
       id: 1,
@@ -30,6 +33,27 @@ const BooksSection = () => {
       description: "Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo. Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo."
     }
   ];
+
+  // Auto-slide functionality for mobile only
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % books.length);
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [books.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % books.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + books.length) % books.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
 
   return (
     <section 
@@ -149,9 +173,9 @@ const BooksSection = () => {
           </button>
         </div>
 
-        {/* Books Grid - 3 Cards */}
+        {/* Desktop Grid - Exactly as Original */}
         <div 
-          className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="hidden lg:grid lg:grid-cols-3 w-full"
           style={{
             gap: '32px'
           }}
@@ -197,7 +221,7 @@ const BooksSection = () => {
                       borderRadius: '80px'
                     }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                       <path d="M2.6665 11.9869V6.47136C2.6665 4.04912 2.6665 2.838 3.44755 2.0855C4.2286 1.33301 5.48568 1.33301 7.99984 1.33301C10.514 1.33301 11.7711 1.33301 12.5521 2.0855C13.3332 2.838 13.3332 4.04912 13.3332 6.47136V11.9869C13.3332 13.5241 13.3332 14.2927 12.8179 14.5679C11.8202 15.1006 9.94864 13.3231 9.05984 12.7879C8.54437 12.4776 8.28663 12.3224 7.99984 12.3224C7.71304 12.3224 7.45531 12.4776 6.93984 12.7879C6.05104 13.3231 4.17948 15.1006 3.18174 14.5679C2.6665 14.2927 2.6665 13.5241 2.6665 11.9869Z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M2.6665 4.66602H13.3332" stroke="black" strokeWidth="1.5"/>
                     </svg>
@@ -375,30 +399,181 @@ const BooksSection = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  <div 
-                    className="flex justify-center items-center"
+                  <span
                     style={{
-                      padding: '0px 2px',
-                      width: '77px',
-                      height: '20px'
+                      fontFamily: 'Avenir Next, sans-serif',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      lineHeight: '20px',
+                      color: '#414651'
                     }}
                   >
-                    <span
-                      style={{
-                        fontFamily: 'Avenir Next, sans-serif',
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        lineHeight: '20px',
-                        color: '#414651'
-                      }}
-                    >
-                      Add to cart
-                    </span>
-                  </div>
+                    Add to cart
+                  </span>
                 </button>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Mobile Carousel */}
+        <div className="lg:hidden relative w-full">
+          <div className="overflow-hidden rounded-lg">
+            <div 
+              className="flex transition-transform duration-300 ease-in-out"
+              style={{
+                transform: `translateX(-${currentSlide * 100}%)`
+              }}
+            >
+              {books.map((book) => (
+                <div key={book.id} className="w-full flex-shrink-0 px-2">
+                  <div className="flex flex-col items-start w-full max-w-sm mx-auto bg-white rounded-lg overflow-hidden shadow-sm">
+                    {/* Mobile Book Image */}
+                    <div 
+                      className="relative w-full h-80"
+                      style={{
+                        background: '#E4DBCD'
+                      }}
+                    >
+                      {/* Heart/Bookmark Icon */}
+                      <div className="absolute top-4 right-4 z-10">
+                        <div 
+                          className="flex justify-center items-center w-12 h-12 rounded-full"
+                          style={{
+                            background: 'rgba(0, 0, 0, 0.1)'
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M2.6665 11.9869V6.47136C2.6665 4.04912 2.6665 2.838 3.44755 2.0855C4.2286 1.33301 5.48568 1.33301 7.99984 1.33301C10.514 1.33301 11.7711 1.33301 12.5521 2.0855C13.3332 2.838 13.3332 4.04912 13.3332 6.47136V11.9869C13.3332 13.5241 13.3332 14.2927 12.8179 14.5679C11.8202 15.1006 9.94864 13.3231 9.05984 12.7879C8.54437 12.4776 8.28663 12.3224 7.99984 12.3224C7.71304 12.3224 7.45531 12.4776 6.93984 12.7879C6.05104 13.3231 4.17948 15.1006 3.18174 14.5679C2.6665 14.2927 2.6665 13.5241 2.6665 11.9869Z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2.6665 4.66602H13.3332" stroke="black" strokeWidth="1.5"/>
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Book Cover */}
+                      <div className="absolute inset-0 flex items-center justify-center p-8">
+                        <div className="w-32 h-48">
+                          <img
+                            src={book.image}
+                            alt={book.title}
+                            className="w-full h-full object-cover rounded shadow-lg"
+                            onError={(e: any) => {
+                              e.target.style.backgroundColor = '#D4C5B3';
+                              e.target.style.display = 'flex';
+                              e.target.style.alignItems = 'center';
+                              e.target.style.justifyContent = 'center';
+                              e.target.innerHTML = `<span style="color: #6b7280; font-size: 12px; text-align: center; padding: 8px;">${book.title}</span>`;
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Type Badge */}
+                      <div className="absolute bottom-3 left-3">
+                        <div
+                          className="px-3 py-1 rounded text-xs font-medium text-white"
+                          style={{
+                            background: 'rgba(82, 82, 82, 0.4)',
+                            backdropFilter: 'blur(4px)'
+                          }}
+                        >
+                          {book.type}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile Content */}
+                    <div className="p-4 w-full space-y-3">
+                      {/* Category and Price Row */}
+                      <div className="flex justify-between items-start">
+                        <span 
+                          className="text-sm font-bold"
+                          style={{ color: '#942017' }}
+                        >
+                          {book.category}
+                        </span>
+                        <span 
+                          className="text-lg font-semibold"
+                          style={{ color: '#000000' }}
+                        >
+                          {book.price}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 
+                        className="text-lg font-semibold text-black"
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif'
+                        }}
+                      >
+                        {book.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p 
+                        className="text-sm text-gray-600 line-clamp-4"
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif',
+                          lineHeight: '20px'
+                        }}
+                      >
+                        {book.description}
+                      </p>
+
+                      {/* Add to Cart Button */}
+                      <button
+                        className="w-full py-2 px-4 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif',
+                          boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)'
+                        }}
+                      >
+                        Add to cart
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevSlide}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-2 bg-white bg-opacity-90 rounded-full p-3 shadow-lg hover:bg-opacity-100 transition-all duration-200"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          <button
+            onClick={nextSlide}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-2 bg-white bg-opacity-90 rounded-full p-3 shadow-lg hover:bg-opacity-100 transition-all duration-200"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {/* Dots Indicator */}
+          <div className="flex justify-center mt-6 space-x-2">
+            {books.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  currentSlide === index 
+                    ? 'w-6' 
+                    : 'hover:bg-gray-600'
+                }`}
+                style={{
+                  backgroundColor: currentSlide === index ? '#7D1A13' : '#9CA3AF'
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>

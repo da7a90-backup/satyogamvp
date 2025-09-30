@@ -20,7 +20,7 @@ const QuoteSection = () => {
       >
         {/* Quote Card */}
         <div 
-          className="relative w-full flex flex-row justify-center items-center p-8 lg:p-8 rounded-2xl border overflow-hidden"
+          className="relative w-full flex flex-row justify-center items-center p-4 sm:p-6 lg:p-8 rounded-2xl border overflow-hidden"
           style={{
             background: 'linear-gradient(360deg, rgba(156, 117, 32, 0.1) 0%, rgba(218, 165, 14, 0.1) 99.04%)',
             borderColor: '#E4DED9',
@@ -49,16 +49,14 @@ const QuoteSection = () => {
           {/* Quote Content */}
           <div className="flex flex-col justify-center items-center w-full">
             <p 
-              className="text-center max-w-3xl"
+              className="text-center w-full max-w-3xl px-2 sm:px-4"
               style={{
                 fontFamily: 'Optima, Georgia, serif',
                 fontStyle: 'italic',
                 fontWeight: 500,
-                fontSize: '24px',
-                lineHeight: '38px',
-                color: '#9C7520',
-                width: '702px',
-                height: '152px'
+                fontSize: 'clamp(16px, 3.5vw, 24px)', // Responsive: 16px mobile → 24px desktop
+                lineHeight: 'clamp(24px, 5.5vw, 38px)', // Responsive line height
+                color: '#9C7520'
               }}
             >
               "A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."
@@ -86,16 +84,16 @@ const QuoteSection = () => {
           <div 
             className="absolute lg:hidden"
             style={{
-              width: '399px',
-              height: '399px',
-              left: '-200px',
-              top: '-259px',
+              width: '299px', // Smaller on mobile
+              height: '299px',
+              left: '-150px', // Adjusted position
+              top: '-200px',
               backgroundImage: 'url(/innerlab.png)',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               transform: 'matrix(1, 0, 0, -1, 0, 0)',
-              opacity: 0.3,
-              zIndex: 2
+              opacity: 0.2, // Slightly more transparent on mobile
+              zIndex: 1
             }}
           />
         </div>
@@ -103,6 +101,5 @@ const QuoteSection = () => {
     </section>
   );
 };
-
 
 export default QuoteSection;
