@@ -7,16 +7,18 @@ import AshramActivitiesCarousel from "../about/aboutAshram/Activities";
 import SpiritualTribeSection from "../about/aboutAshram/SpiriualTribe";
 import ShunyamurtiVideoSection from "../about/aboutAshram/ShunyaVideo";
 import AshramRetreatsSection from "../about/aboutAshram/StayingAtAshram";
+import TwoPaneComponent from "../shared/TwoPaneComponent";
+import { ashramEndTimeData, spiritualTribeData } from "@/lib/data";
 
 export default function AboutAshramPage({ data }: any) {
 
 return (
     <>
       <AboutHeroSection />
-      <AshramEndTimeSection/>
+      <TwoPaneComponent data={ashramEndTimeData}/>
       <AshramActivitiesCarousel/>
       <QuoteSection/>
-      <SpiritualTribeSection/>
+      <TwoPaneComponent data={spiritualTribeData}/>
       <ShunyamurtiVideoSection/>
       <BlogSection/>
       <AshramRetreatsSection/>

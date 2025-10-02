@@ -10,17 +10,19 @@ import OnlineRetreatsSection from "../about/aboutShunyamurti/OnlineRetreats";
 import FreeTeachingsSection from "../about/aboutSatyoga/Teachings";
 import QuoteSection from "../about/aboutSatyoga/QuoteSection";
 import EncountersSection from "../about/aboutShunyamurti/Testimonial";
+import TwoPaneComponent from "../shared/TwoPaneComponent";
+import { curriculumVitaeData, whatIsShunyamurtiData } from "@/lib/data";
 
 export default function AboutShunyaPage({ data }: any) {
 
 return (
     <>
       <AboutHeroSection />
-      <WhatIsShunyamurtiSection />
+      <TwoPaneComponent data={whatIsShunyamurtiData} />
       <QuestionsAnswersSection />
       <QuoteSection/>
       <BooksSection />
-      <CurriculumVitaeSection />
+      <TwoPaneComponent data={curriculumVitaeData} />
       <EncountersSection />
       <SriRamanaConnectionSection />
       <OnlineRetreatsSection />

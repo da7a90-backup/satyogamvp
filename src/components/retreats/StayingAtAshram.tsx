@@ -10,13 +10,15 @@ import WhatWillYouEncounterSection from "./WhatWillYouEncounter";
 import ContactUsSection from "../about/aboutSatyoga/ContactUsSection";
 import TestimonialSection from "./Testimonial";
 import OnlineRetreatsSection from "../about/aboutShunyamurti/OnlineRetreats";
+import TwoPaneComponent from "../shared/TwoPaneComponent";
+import { whyParticipateData } from "@/lib/data";
 
 export default function AshramStayPage({ data }: any) {
 
 return (
     <>
     <AshramStayHeroSection/>
-    <WhyParticipateSection/>
+    <TwoPaneComponent data={whyParticipateData}/>
     <RetreatCardsSection/>
     <QuoteSection/>
     <WhichRetreatSection/>

@@ -8,17 +8,19 @@ import AtmanologySection from "../about/aboutSatyoga/Atmanology";
 import ContactUsSection from "../about/aboutSatyoga/ContactUsSection";
 import BlogSection from "../about/aboutSatyoga/Blog";
 import FreeTeachingsSection from "../about/aboutSatyoga/Teachings";
+import TwoPaneComponent from "../shared/TwoPaneComponent";
+import { atmanologyData, methodologyData, whatIsSatYogaData } from "@/lib/data";
 
 export default function AboutPage({ data }: any) {
 
 return (
     <>
     <AboutHeroSection/>
-    <WhatIsSatYogaSection/>
+    <TwoPaneComponent data={whatIsSatYogaData}/>
     <XatronSagesGallery/>
     <QuoteSection/>
-    <MethodologySection/>
-    <AtmanologySection/>
+    <TwoPaneComponent data={methodologyData}/>
+    <TwoPaneComponent data={atmanologyData}/>
     <ContactUsSection/>
     <BlogSection/>
     <FreeTeachingsSection/>
