@@ -1,14 +1,29 @@
 'use client';
 
-const AshramStayHeroSection = (background: string) => {
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface HeroSectionData {
+  tagline: string;
+  heading: string;
+  subtext: string;
+  background: string;
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+const StandardHeroSection = ({ data }: { data: HeroSectionData }) => {
   return (
-<section 
-  className="relative w-full flex items-end overflow-hidden bg-cover bg-center h-[55vh] lg:h-screen"
-  style={{
-    minHeight: '400px',
-    backgroundImage: `url(${background})`
-  }}
->
+    <section 
+      className="relative w-full flex items-end overflow-hidden bg-cover bg-center h-[55vh] lg:h-screen"
+      style={{
+        minHeight: '400px',
+        backgroundImage: `url(${data.background})`
+      }}
+    >
       {/* Very subtle vignette for text readability */}
       <div 
         className="absolute inset-0"
@@ -17,38 +32,41 @@ const AshramStayHeroSection = (background: string) => {
         }}
       />
 
-{/* Strong blur - smallest area */}
-<div className="absolute bottom-0 left-0 w-1/4 h-1/4" style={{
-  backdropFilter: 'blur(15px)',
-  WebkitBackdropFilter: 'blur(15px)',
-  clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
-}} />
+      {/* Strong blur - smallest area */}
+      <div className="absolute bottom-0 left-0 w-1/4 h-1/4" style={{
+        backdropFilter: 'blur(15px)',
+        WebkitBackdropFilter: 'blur(15px)',
+        clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
+      }} />
 
-{/* Medium blur - medium area */}
-<div className="absolute bottom-0 left-0 w-1/3 h-1/3" style={{
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
-}} />
-{/* Light blur - largest area */}
-<div className="absolute bottom-0 left-0 w-1/2 h-1/2" style={{
-  backdropFilter: 'blur(5px)',
-  WebkitBackdropFilter: 'blur(5px)',
-  clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
-}} />
+      {/* Medium blur - medium area */}
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3" style={{
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
+      }} />
 
-{/* Light blur - largest area */}
-<div className="absolute bottom-0 left-0 w-2/3 h-2/3" style={{
-  backdropFilter: 'blur(4px)',
-  WebkitBackdropFilter: 'blur(4px)',
-  clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
-}} />
-{/* Light blur - largest area */}
-<div className="absolute bottom-0 left-0 w-3/4 h-3/4" style={{
-  backdropFilter: 'blur(2px)',
-  WebkitBackdropFilter: 'blur(2px)',
-  clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
-}} />
+      {/* Light blur - largest area */}
+      <div className="absolute bottom-0 left-0 w-1/2 h-1/2" style={{
+        backdropFilter: 'blur(5px)',
+        WebkitBackdropFilter: 'blur(5px)',
+        clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
+      }} />
+
+      {/* Light blur - largest area */}
+      <div className="absolute bottom-0 left-0 w-2/3 h-2/3" style={{
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+        clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
+      }} />
+
+      {/* Light blur - largest area */}
+      <div className="absolute bottom-0 left-0 w-3/4 h-3/4" style={{
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
+        clipPath: 'polygon(0% 100%, 0% 0%, 100% 100%)'
+      }} />
+
       {/* Content Container */}
       <div 
         className="relative z-10 w-full flex justify-start items-end pb-16 px-8 lg:px-16"
@@ -74,7 +92,7 @@ const AshramStayHeroSection = (background: string) => {
                 lineHeight: '24px'
               }}
             >
-              Ashram Onsite Retreats
+              {data.tagline}
             </span>
           </div>
 
@@ -89,7 +107,7 @@ const AshramStayHeroSection = (background: string) => {
               letterSpacing: '-0.02em'
             }}
           >
-            Staying at the Ashram
+            {data.heading}
           </h1>
 
           {/* Subtext */}
@@ -103,7 +121,7 @@ const AshramStayHeroSection = (background: string) => {
               color: 'rgba(255, 255, 255, 0.8)'
             }}
           >
-            Visit, Study, and Serve at the Sat Yoga Ashram, Costa Rica
+            {data.subtext}
           </p>
         </div>
       </div>
@@ -111,4 +129,4 @@ const AshramStayHeroSection = (background: string) => {
   );
 };
 
-export default AshramStayHeroSection;
+export default StandardHeroSection;

@@ -2,41 +2,45 @@
 
 import { useState, useEffect } from 'react';
 
-const TestimonialSection = () => {
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+// ============================================================================
+// TYPES
+// ============================================================================
 
-  const testimonials = [
-    {
-      id: 1,
-      quote: "I've received so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-      author: 'Mandy',
-      location: 'UK',
-      video: '/testimonial.png'
-    },
-    {
-      id: 2,
-      quote: "I've so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-      author: 'Mandy',
-      location: 'UK',
-      video: '/testimonial.png'
-    }
-  ];
+interface Testimonial {
+  id: number;
+  quote: string;
+  author: string;
+  location: string;
+  video: string;
+}
+
+interface TestimonialCarouselData {
+  tagline: string;
+  testimonials: Testimonial[];
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+const TestimonialCarousel = ({ data }: { data: TestimonialCarouselData }) => {
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   // Auto-slide functionality
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 4000); // Auto-slide every 4 seconds
+      setCurrentTestimonial((prev) => (prev + 1) % data.testimonials.length);
+    }, 4000);
 
     return () => clearInterval(timer);
-  }, [testimonials.length]);
+  }, [data.testimonials.length]);
 
   const nextTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    setCurrentTestimonial((prev) => (prev + 1) % data.testimonials.length);
   };
 
   const prevTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setCurrentTestimonial((prev) => (prev - 1 + data.testimonials.length) % data.testimonials.length);
   };
 
   return (
@@ -52,7 +56,7 @@ const TestimonialSection = () => {
             className="text-sm font-medium uppercase tracking-wider"
             style={{ fontFamily: 'Avenir Next, sans-serif', color: '#B8860B' }}
           >
-            TESTIMONIAL CARROUSEL
+            {data.tagline}
           </span>
           
           <p 
@@ -64,15 +68,15 @@ const TestimonialSection = () => {
               color: '#000000'
             }}
           >
-            "{testimonials[currentTestimonial].quote}"
+            "{data.testimonials[currentTestimonial].quote}"
           </p>
           
           <div>
             <p style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', fontWeight: 600, color: '#000000' }}>
-              {testimonials[currentTestimonial].author}
+              {data.testimonials[currentTestimonial].author}
             </p>
             <p style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px', color: '#6B7280' }}>
-              {testimonials[currentTestimonial].location}
+              {data.testimonials[currentTestimonial].location}
             </p>
           </div>
         </div>
@@ -84,7 +88,7 @@ const TestimonialSection = () => {
             style={{
               aspectRatio: '16/10',
               borderRadius: '16px',
-              backgroundImage: `url(${testimonials[currentTestimonial].video})`,
+              backgroundImage: `url(${data.testimonials[currentTestimonial].video})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
@@ -109,7 +113,7 @@ const TestimonialSection = () => {
             style={{
               aspectRatio: '16/10',
               borderRadius: '16px',
-              backgroundImage: `url(${testimonials[currentTestimonial].video})`,
+              backgroundImage: `url(${data.testimonials[currentTestimonial].video})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
@@ -130,7 +134,7 @@ const TestimonialSection = () => {
             className="text-sm font-medium uppercase tracking-wider"
             style={{ fontFamily: 'Avenir Next, sans-serif', color: '#B8860B' }}
           >
-            TESTIMONIAL CARROUSEL
+            {data.tagline}
           </span>
           
           <p 
@@ -142,7 +146,7 @@ const TestimonialSection = () => {
               color: '#000000'
             }}
           >
-            "{testimonials[currentTestimonial].quote}"
+            "{data.testimonials[currentTestimonial].quote}"
           </p>
           
           <div>
@@ -152,14 +156,14 @@ const TestimonialSection = () => {
               fontWeight: 600, 
               color: '#000000' 
             }}>
-              {testimonials[currentTestimonial].author}
+              {data.testimonials[currentTestimonial].author}
             </p>
             <p style={{ 
               fontFamily: 'Avenir Next, sans-serif', 
               fontSize: 'clamp(12px, 2vw, 14px)', 
               color: '#6B7280' 
             }}>
-              {testimonials[currentTestimonial].location}
+              {data.testimonials[currentTestimonial].location}
             </p>
           </div>
         </div>
@@ -169,7 +173,7 @@ const TestimonialSection = () => {
       <div className="hidden lg:flex justify-between items-center mt-8 w-full max-w-7xl mx-auto">
         {/* Slider Dots */}
         <div className="flex items-center gap-2">
-          {testimonials.map((_, index) => (
+          {data.testimonials.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentTestimonial(index)}
@@ -204,7 +208,7 @@ const TestimonialSection = () => {
       {/* Navigation - Mobile (dots only, auto-slides) */}
       <div className="lg:hidden flex justify-center mt-6">
         <div className="flex items-center space-x-2">
-          {testimonials.map((_, index) => (
+          {data.testimonials.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentTestimonial(index)}
@@ -225,4 +229,4 @@ const TestimonialSection = () => {
   );
 };
 
-export default TestimonialSection;
+export default TestimonialCarousel;

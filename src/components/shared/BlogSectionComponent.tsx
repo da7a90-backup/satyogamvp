@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-const BlogSection = () => {
+const BlogSection = ({data}: {data: any}) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -17,51 +17,9 @@ const BlogSection = () => {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  const blogPosts = [
-    {
-      id: 1,
-      image: "/aboutblog1.jpg",
-      category: "Ashram Retreats (Onsite)",
-      title: "Staying at Our Ashram in Costa Rica",
-      description: "The Sat Yoga Ashram offers onsite retreats for all souls who resonate with Shunyamurti's tea...",
-      author: "Donna",
-      date: "March 21, 2024",
-      readTime: "5 min read"
-    },
-    {
-      id: 2,
-      image: "/aboutblog2.jpg",
-      category: "Ashram Life",
-      title: "How to Thrive as a Community...",
-      description: "By Donna | As Shunyamurti recently stated, the undesirableness of the locati...",
-      author: "Donna",
-      date: "March 21, 2024",
-      readTime: "5 min read"
-    },
-    {
-      id: 3,
-      image: "/aboutblog3.jpg",
-      category: "Ashram Life",
-      title: "The Mission & Vision",
-      description: "By Donna | As Shunyamurti recently stated, the undesirableness of the locati...",
-      author: "Donna",
-      date: "March 21, 2024",
-      readTime: "5 min read"
-    },
-    {
-      id: 4,
-      image: "/aboutblog1.jpg",
-      category: "Ashram Life",
-      title: "The Mission & Vision",
-      description: "By Donna | As Shunyamurti recently stated, the undesirableness of the locati...",
-      author: "Donna",
-      date: "March 21, 2024",
-      readTime: "5 min read"
-    }
-  ];
 
   const slidesPerView = isMobile ? 1 : 3;
-  const maxSlides = isMobile ? blogPosts.length : Math.max(1, blogPosts.length - slidesPerView + 1);
+  const maxSlides = isMobile ? data.length : Math.max(1, data.length - slidesPerView + 1);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % maxSlides);
@@ -203,7 +161,7 @@ const BlogSection = () => {
                 transform: `translateX(-${currentSlide * (isMobile ? 100 : 33.33)}%)`,
               }}
             >
-              {blogPosts.map((post, index) => (
+              {data.map((post: any, index: number) => (
                 <div 
                   key={post.id}
                   className="flex-shrink-0"

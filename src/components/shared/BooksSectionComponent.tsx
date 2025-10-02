@@ -1,54 +1,24 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-const BooksSection = () => {
+const dataSection = ({data}: {data: any[]}) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  const books = [
-    {
-      id: 1,
-      title: "The seven veils of Maya",
-      category: "Shunyamurti Reads",
-      price: "$20.00",
-      type: "Text",
-      image: "/bookcover1.jpg",
-      description: "Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo. Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo."
-    },
-    {
-      id: 2,
-      title: "The secret of singularity",
-      category: "Guided meditation",
-      price: "$20.00", 
-      type: "Audio",
-      image: "/bookcover2.png",
-      description: "Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo. Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo."
-    },
-    {
-      id: 3,
-      title: "Tibetan Zen",
-      category: "Shunyamurti Reads",
-      price: "$20.00",
-      type: "Text", 
-      image: "/bookcover3.jpg",
-      description: "Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo. Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo."
-    }
-  ];
 
   // Auto-slide functionality for mobile only
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % books.length);
+      setCurrentSlide((prev) => (prev + 1) % data.length);
     }, 4000);
 
     return () => clearInterval(timer);
-  }, [books.length]);
+  }, [data.length]);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % books.length);
+    setCurrentSlide((prev) => (prev + 1) % data.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + books.length) % books.length);
+    setCurrentSlide((prev) => (prev - 1 + data.length) % data.length);
   };
 
   const goToSlide = (index: number) => {
@@ -107,7 +77,7 @@ const BooksSection = () => {
               letterSpacing: '-0.02em'
             }}
           >
-            Books by Shunyamurti
+            data by Shunyamurti
           </h2>
 
           {/* Description */}
@@ -121,7 +91,7 @@ const BooksSection = () => {
               color: '#384250'
             }}
           >
-            Shunyamurti's books convey the knowledge needed to gain mastery over the ego mind and attain complete liberation from illusion and anxiety—in fact, to transcend every kind of suffering. This is the great value of understanding these teachings. Four mind-expanding and heart-opening volumes have been published:
+            Shunyamurti's data convey the knowledge needed to gain mastery over the ego mind and attain complete liberation from illusion and anxiety—in fact, to transcend every kind of suffering. This is the great value of understanding these teachings. Four mind-expanding and heart-opening volumes have been published:
           </p>
         </div>
 
@@ -180,7 +150,7 @@ const BooksSection = () => {
             gap: '32px'
           }}
         >
-          {books.map((book) => (
+          {data.map((book) => (
             <div 
               key={book.id} 
               className="flex flex-col items-start"
@@ -425,7 +395,7 @@ const BooksSection = () => {
                 transform: `translateX(-${currentSlide * 100}%)`
               }}
             >
-              {books.map((book) => (
+              {data.map((book) => (
                 <div key={book.id} className="w-full flex-shrink-0 px-2">
                   <div className="flex flex-col items-start w-full max-w-sm mx-auto bg-white rounded-lg overflow-hidden shadow-sm">
                     {/* Mobile Book Image */}
@@ -559,7 +529,7 @@ const BooksSection = () => {
 
           {/* Dots Indicator */}
           <div className="flex justify-center mt-6 space-x-2">
-            {books.map((_, index) => (
+            {data.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
@@ -580,4 +550,4 @@ const BooksSection = () => {
   );
 };
 
-export default BooksSection;
+export default dataSection;

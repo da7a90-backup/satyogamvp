@@ -8,7 +8,19 @@ export const whatIsSatYogaData = {
     leftPane: {
       title: "What is Sat Yoga?",
       titleLineHeight: "120%",
-      description: "The ancient Sanskrit term Sat refers to what is absolutely Real and thus implicitly imperishable. The term Yoga means union, or realization of oneness. To live in oneness with the eternally present Absolute Real is both the way and the goal of Sat Yoga."
+      description: "The ancient Sanskrit term Sat refers to what is absolutely Real and thus implicitly imperishable. The term Yoga means union, or realization of oneness. To live in oneness with the eternally present Absolute Real is both the way and the goal of Sat Yoga.",
+    /*  buttons: [
+        {
+          text: "Primary Action",
+          url: "/link-here",
+          variant: 'primary' // Red button
+        },
+        {
+          text: "Secondary Action", 
+          url: "/another-link",
+          variant: 'secondary' // White button with red border
+        }
+      ]*/
     },
     rightPane: {
       type: 'accordion' as const,

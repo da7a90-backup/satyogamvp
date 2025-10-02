@@ -1,29 +1,51 @@
 import React from "react";
 
 import AshramStayHeroSection from "./Hero";
-import QuoteSection from "../about/aboutSatyoga/QuoteSection";
-import AshramRetreatsSection from "../about/aboutAshram/StayingAtAshram";
-import WhyParticipateSection from "./WhyParticipate";
 import RetreatCardsSection from "./RetreatsAvailable";
 import WhichRetreatSection from "./WhichRetreatIsRightForMe";
 import WhatWillYouEncounterSection from "./WhatWillYouEncounter";
-import ContactUsSection from "../about/aboutSatyoga/ContactUsSection";
-import TestimonialSection from "./Testimonial";
 import OnlineRetreatsSection from "../about/aboutShunyamurti/OnlineRetreats";
 import TwoPaneComponent from "../shared/TwoPaneComponent";
 import { whyParticipateData } from "@/lib/data";
+import QuoteSection from "../shared/Quote";
+import ContactUsSection from "../shared/ContactUsSection";
+import TestimonialCarousel from "../shared/Testimonial";
+import StandardHeroSection from "../shared/Hero";
 
 export default function AshramStayPage({ data }: any) {
+// Data structure for Testimonial Carousel Section
+
+ const testimonialCarouselData = {
+    tagline: "TESTIMONIAL CARROUSEL",
+    testimonials: [
+      {
+        id: 1,
+        quote: "I've received so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
+        author: 'Mandy',
+        location: 'UK',
+        video: '/testimonial.png'
+      },
+      {
+        id: 2,
+        quote: "I've so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
+        author: 'Mandy',
+        location: 'UK',
+        video: '/testimonial.png'
+      }
+    ]
+  };
+
+  const heroData = {tagline:"Ashram Onsite Retreats", background: "/ashramstaybanner.jpg", heading: "Staying at the Ashram", subtext: "Visit, Study, and Serve at the Sat Yoga Ashram, Costa Rica"}
 
 return (
     <>
-    <AshramStayHeroSection/>
+    <StandardHeroSection data={heroData}/>
     <TwoPaneComponent data={whyParticipateData}/>
     <RetreatCardsSection/>
-    <QuoteSection/>
+    <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
     <WhichRetreatSection/>
     <WhatWillYouEncounterSection/>
-    <TestimonialSection/>
+    <TestimonialCarousel data={testimonialCarouselData}/>
     <ContactUsSection/>
     <OnlineRetreatsSection/>
     </>

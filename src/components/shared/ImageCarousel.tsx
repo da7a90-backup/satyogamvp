@@ -1,26 +1,26 @@
 'use client'
 import { useState, useEffect } from 'react';
 
-interface Image {
+export interface CarouselImage {
     src: string
     alt: string
 }
 
-const ShaktiCarouselSection = (carouselImages: Image[]) => {
+const ImageCarouselSection = ({data}: {data: CarouselImage[]}) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
 
   // Auto-slide functionality
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % Math.max(1, carouselImages.length - 2));
+      setCurrentSlide(prev => (prev + 1) % Math.max(1, data.length - 2));
     }, 4000);
 
     return () => clearInterval(timer);
   }, []);
 
   const nextSlide = () => {
-    setCurrentSlide(prev => Math.min(prev + 1, carouselImages.length - 3));
+    setCurrentSlide(prev => Math.min(prev + 1, data.length - 3));
   };
 
   const prevSlide = () => {
@@ -41,7 +41,7 @@ const ShaktiCarouselSection = (carouselImages: Image[]) => {
               transform: `translateX(-${currentSlide * 33.33}%)`,
             }}
           >
-            {carouselImages.map((item, index) => (
+            {data.map((item, index) => (
               <div 
                 key={index}
                 className="flex-shrink-0"
@@ -65,7 +65,7 @@ const ShaktiCarouselSection = (carouselImages: Image[]) => {
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center justify-between w-full mt-8">
           <div className="flex items-center gap-2">
-            {Array.from({ length: Math.max(1, carouselImages.length - 2) }, (_, index) => (
+            {Array.from({ length: Math.max(1, data.length - 2) }, (_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
@@ -88,7 +88,7 @@ const ShaktiCarouselSection = (carouselImages: Image[]) => {
             </button>
             <button
               onClick={nextSlide}
-              disabled={currentSlide >= carouselImages.length - 3}
+              disabled={currentSlide >= data.length - 3}
               className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -107,7 +107,7 @@ const ShaktiCarouselSection = (carouselImages: Image[]) => {
                 transform: `translateX(-${currentSlide * 100}%)`,
               }}
             >
-              {carouselImages.map((item, index) => (
+              {data.map((item, index) => (
                 <div 
                   key={index}
                   className="w-full flex-shrink-0"
@@ -129,7 +129,7 @@ const ShaktiCarouselSection = (carouselImages: Image[]) => {
 
           {/* Mobile Dots */}
           <div className="flex justify-center mt-6 gap-2">
-            {carouselImages.map((_, index) => (
+            {data.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
@@ -147,4 +147,4 @@ const ShaktiCarouselSection = (carouselImages: Image[]) => {
   );
 };
 
-export default ShaktiCarouselSection;
+export default ImageCarouselSection;

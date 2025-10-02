@@ -1,44 +1,5 @@
-const ShaktiScheduleSection = () => {
-    // Schedule data structure - ready for CMS migration
-    const scheduleData = {
-      tagline: "A TYPICAL ASHRAM DAY",
-      title: "Sample Daily Schedule",
-      items: [
-        {
-          time: "4:00 - 4:45am",
-          activity: "Morning meditation"
-        },
-        {
-          time: "5:00 - 8:00am",
-          activity: "Personal Time, Asanas, or Optional Outdoor Service"
-        },
-        {
-          time: "8:45 - 11:45 am",
-          activity: "Class, Optional Service, or Atmanology Session"
-        },
-        {
-          time: "12:15 - 12:50 pm",
-          activity: "Midday Meditation"
-        },
-        {
-          time: "1:00 - 1:45 pm",
-          activity: "Lunch"
-        },
-        {
-          time: "2:30 - 5:30 pm",
-          activity: "Personal Time"
-        },
-        {
-          time: "5:30 - 7:00 pm",
-          activity: "Evening Class / Meditation"
-        },
-        {
-          time: "7:00 - 7:30 pm",
-          activity: "Evening Meal"
-        }
-      ]
-    };
-  
+const ScheduleSection = ({data}:{data: any}) => {
+
     return (
       <section 
         className="w-full flex flex-col justify-center items-center px-4 lg:px-16 py-16 lg:py-16"
@@ -63,7 +24,7 @@ const ShaktiScheduleSection = () => {
                   textTransform: 'uppercase'
                 }}
               >
-                {scheduleData.tagline}
+                {data.tagline}
               </span>
             </div>
   
@@ -77,13 +38,13 @@ const ShaktiScheduleSection = () => {
                 color: '#000000'
               }}
             >
-              {scheduleData.title}
+              {data.title}
             </h2>
           </div>
   
           {/* Schedule Items */}
           <div className="flex flex-col">
-            {scheduleData.items.map((item, index) => (
+            {data.items.map((item:any, index: number) => (
               <div key={index}>
                 {/* Row */}
                 <div 
@@ -128,7 +89,7 @@ const ShaktiScheduleSection = () => {
                 </div>
   
                 {/* Divider Line - don't show after last item */}
-                {index < scheduleData.items.length - 1 && (
+                {index < data.items.length - 1 && (
                   <div 
                     style={{
                       width: '100%',
@@ -145,4 +106,4 @@ const ShaktiScheduleSection = () => {
     );
   };
   
-  export default ShaktiScheduleSection;
+  export default ScheduleSection;

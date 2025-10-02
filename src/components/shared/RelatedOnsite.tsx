@@ -1,43 +1,41 @@
 import { useState, useEffect } from 'react';
 
-const RelatedProgramsSection = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+// ============================================================================
+// TYPES
+// ============================================================================
 
-  // Programs data structure - ready for CMS migration
-  const programsData = {
-    sectionTitle: "Related onsite programs",
-    programs: [
-      {
-        image: '/darshan.jpg',
-        icon: '/progicon.png',
-        duration: "7-Day",
-        location: "Onsite Retreat",
-        tagline: "Personal encounter with shunyamurti",
-        title: "Private Darshan Retreat",
-        link: "/private-darshan"
-      },
-      {
-        image: '/sevadhari.jpg',
-        icon: '/progicon.png',
-        duration: "6 months",
-        location: "Onsite Retreat",
-        tagline: "Live and Study at the Ashram!",
-        title: "Become a Sevadhari",
-        link: "/sevadhari"
-      }
-    ]
-  };
+interface Program {
+  image: string;
+  icon: string;
+  duration: string;
+  location: string;
+  tagline: string;
+  title: string;
+  link: string;
+}
+
+interface RelatedProgramsData {
+  sectionTitle: string;
+  programs: Program[];
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+const RelatedProgramsSection = ({ data }: { data: RelatedProgramsData }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto-slide for mobile
   useEffect(() => {
     const timer = setInterval(() => {
       if (window.innerWidth < 1024) {
-        setCurrentSlide(prev => (prev + 1) % programsData.programs.length);
+        setCurrentSlide(prev => (prev + 1) % data.programs.length);
       }
     }, 5000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [data.programs.length]);
 
   return (
     <section 
@@ -56,14 +54,13 @@ const RelatedProgramsSection = () => {
               color: '#000000'
             }}
           >
-            {programsData.sectionTitle}
+            {data.sectionTitle}
           </h2>
-
         </div>
 
         {/* Desktop: Grid Layout */}
         <div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {programsData.programs.map((program, index) => (
+          {data.programs.map((program, index) => (
             <div
               key={index}
               className="bg-white rounded-lg overflow-hidden border border-gray-200 flex flex-col"
@@ -79,9 +76,9 @@ const RelatedProgramsSection = () => {
                 <div 
                   className="absolute bottom-0 right-0 flex items-center justify-center"
                   style={{
-                    width: '100%',
-                    height: '100%',
-                    background: 'radial-gradient(ellipse at bottom right, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.3) 50%, transparent 65%)',
+                    width: '50%',
+                    height: '50%',
+                    background: 'radial-gradient(ellipse at bottom right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 25%, rgba(0,0,0,0.15) 45%, transparent 65%)',
                     borderRadius: '0 0 8px 0'
                   }}
                 >
@@ -188,7 +185,7 @@ const RelatedProgramsSection = () => {
                 transform: `translateX(-${currentSlide * 100}%)`
               }}
             >
-              {programsData.programs.map((program, index) => (
+              {data.programs.map((program, index) => (
                 <div
                   key={index}
                   className="w-full flex-shrink-0 px-2"

@@ -1,7 +1,7 @@
 'use client';
 
 // Quote Section Component
-const QuoteSection = () => {
+const QuoteSection = ({data}:{data:string}) => {
   return (
     <section 
       className="relative w-full flex flex-col items-center overflow-hidden py-16 lg:py-16 px-4 lg:px-16"
@@ -59,7 +59,7 @@ const QuoteSection = () => {
                 color: '#9C7520'
               }}
             >
-              "A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."
+                {data}
             </p>
           </div>
 

@@ -1,24 +1,22 @@
 import React from "react";
-import AboutHeroSection from "../about/aboutSatyoga/Hero";
-import WhatIsSatYogaSection from "../about/aboutSatyoga/WhatIsSatYoga";
 import XatronSagesGallery from "../about/aboutSatyoga/XatronSages";
-import QuoteSection from "../about/aboutSatyoga/QuoteSection";
-import MethodologySection from "../about/aboutSatyoga/Methodology";
-import AtmanologySection from "../about/aboutSatyoga/Atmanology";
-import ContactUsSection from "../about/aboutSatyoga/ContactUsSection";
 import BlogSection from "../about/aboutSatyoga/Blog";
 import FreeTeachingsSection from "../about/aboutSatyoga/Teachings";
 import TwoPaneComponent from "../shared/TwoPaneComponent";
 import { atmanologyData, methodologyData, whatIsSatYogaData } from "@/lib/data";
+import QuoteSection from "../shared/Quote";
+import ContactUsSection from "../shared/ContactUsSection";
+import StandardHeroSection from "../shared/Hero";
 
 export default function AboutPage({ data }: any) {
+    const heroData = {tagline:"", background: "/aboutbanner.jpg", heading: "", subtext: ""}
 
 return (
     <>
-    <AboutHeroSection/>
+    <StandardHeroSection data={heroData}/>
     <TwoPaneComponent data={whatIsSatYogaData}/>
     <XatronSagesGallery/>
-    <QuoteSection/>
+    <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
     <TwoPaneComponent data={methodologyData}/>
     <TwoPaneComponent data={atmanologyData}/>
     <ContactUsSection/>

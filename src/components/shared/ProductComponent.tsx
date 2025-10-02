@@ -1,38 +1,42 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 
-const ShaktiBookingSection = () => {
-  const [selectedImage, setSelectedImage] = useState(0);
+// ============================================================================
+// TYPES
+// ============================================================================
 
-  // Booking data structure - ready for CMS migration
-  const bookingData = {
-    tagline: "PROGRAM CONTRIBUTION",
-    title: "Shakti Saturation Immersion",
-    price: "$3950",
-    priceNote: "(inc. all taxes)",
-    description: "The Shakti Saturation Immersion is a life-changing rite of passage. Over four weeks, you can restore and redirect your existence, guided by profound teachings and the support of an ascending tribal community.",
-    accommodation: "Accommodation: Stay in a charming cabin with a balcony and private bath.",
-    meals: "Meals: Delectable vegetarian cuisine, with vegan and gluten-free options.",
-    dateLabel: "Select a date",
-    dateOptions: [
-      "Dec. 17th - Jan. 13th, 2025"
-    ],
-    memberLabel: "Are you a member?",
-    memberOptions: [
-      "Select an option"
-    ],
-    buttonText: "Begin application",
-    membershipText: "Discover our",
-    membershipLink: "memberships",
-    membershipNote: "to receive discounts",
-    images: [
-        { src: '/Contribution Gallery 1.jpg',  alt: 'Woman meditating by water' },
-      { src: '/Contribution Gallery 2.jpg', alt: 'Interior cabin view' },
-      { src: '/Contribution Gallery 3.jpg', alt: 'Bathroom interior' },
-      { src: '/Contribution Gallery 4.jpg', alt: 'Evening meditation' },
-      { src: '/Contribution Gallery 5.jpg', alt: 'Meditation by nature' }
-    ]
-  };
+interface ImageData {
+  src: string;
+  alt: string;
+}
+
+interface ProductComponentData {
+  tagline: string;
+  title: string;
+  price: string;
+  priceNote: string;
+  description: string;
+  accommodation: string;
+  meals: string;
+  dateLabel: string;
+  dateOptions: string[];
+  memberLabel: string;
+  memberOptions: string[];
+  buttonText: string;
+  buttonUrl: string;
+  membershipText: string;
+  membershipLink: string;
+  membershipLinkUrl: string;
+  membershipNote: string;
+  images: ImageData[];
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+const ProductComponent = ({ data }: { data: ProductComponentData }) => {
+  const [selectedImage, setSelectedImage] = useState(0);
 
   return (
     <section 
@@ -45,19 +49,18 @@ const ShaktiBookingSection = () => {
           {/* Main Hero Image */}
           <div className="w-full mb-4 rounded-2xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
             <img
-              src={bookingData.images[selectedImage].src}
-              alt={bookingData.images[selectedImage].alt}
+              src={data.images[selectedImage].src}
+              alt={data.images[selectedImage].alt}
               className="w-full h-full object-cover"
             />
           </div>
 
           {/* Thumbnail Row - Hide currently selected image */}
           <div className="grid grid-cols-4 gap-3">
-            {bookingData.images
+            {data.images
               .filter((_, index) => index !== selectedImage)
               .map((image, filterIndex) => {
-                // Get the original index from the full array
-                const originalIndex = bookingData.images.findIndex(
+                const originalIndex = data.images.findIndex(
                   (img, idx) => idx !== selectedImage && img.src === image.src
                 );
                 return (
@@ -84,7 +87,7 @@ const ShaktiBookingSection = () => {
           <div className="hidden lg:flex items-start" style={{ gap: '24px' }}>
             {/* Thumbnail Column */}
             <div className="flex flex-col" style={{ gap: '16px' }}>
-              {bookingData.images.map((image, index) => (
+              {data.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -105,8 +108,8 @@ const ShaktiBookingSection = () => {
             {/* Main Image */}
             <div className="rounded-2xl overflow-hidden" style={{ width: '500px', height: '600px' }}>
               <img
-                src={bookingData.images[selectedImage].src}
-                alt={bookingData.images[selectedImage].alt}
+                src={data.images[selectedImage].src}
+                alt={data.images[selectedImage].alt}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -127,7 +130,7 @@ const ShaktiBookingSection = () => {
                   textTransform: 'uppercase'
                 }}
               >
-                {bookingData.tagline}
+                {data.tagline}
               </span>
             </div>
 
@@ -142,7 +145,7 @@ const ShaktiBookingSection = () => {
                 color: '#000000'
               }}
             >
-              {bookingData.title}
+              {data.title}
             </h2>
 
             {/* Price with Info Icon */}
@@ -156,7 +159,7 @@ const ShaktiBookingSection = () => {
                   color: '#000000'
                 }}
               >
-                {bookingData.price}
+                {data.price}
               </span>
               <span
                 style={{
@@ -166,7 +169,7 @@ const ShaktiBookingSection = () => {
                   color: '#384250'
                 }}
               >
-                {bookingData.priceNote}
+                {data.priceNote}
               </span>
             </div>
 
@@ -181,7 +184,7 @@ const ShaktiBookingSection = () => {
                 color: '#384250'
               }}
             >
-              {bookingData.description}
+              {data.description}
             </p>
 
             {/* Accommodation */}
@@ -195,7 +198,7 @@ const ShaktiBookingSection = () => {
                 color: '#384250'
               }}
             >
-              {bookingData.accommodation}
+              {data.accommodation}
             </p>
 
             {/* Meals */}
@@ -209,7 +212,7 @@ const ShaktiBookingSection = () => {
                 color: '#384250'
               }}
             >
-              {bookingData.meals}
+              {data.meals}
             </p>
 
             {/* Date Selector */}
@@ -223,7 +226,7 @@ const ShaktiBookingSection = () => {
                   color: '#000000'
                 }}
               >
-                {bookingData.dateLabel}
+                {data.dateLabel}
               </label>
               <select
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 appearance-none bg-white"
@@ -236,7 +239,7 @@ const ShaktiBookingSection = () => {
                   backgroundPosition: 'right 16px center'
                 }}
               >
-                {bookingData.dateOptions.map((option, index) => (
+                {data.dateOptions.map((option, index) => (
                   <option key={index}>{option}</option>
                 ))}
               </select>
@@ -253,7 +256,7 @@ const ShaktiBookingSection = () => {
                   color: '#000000'
                 }}
               >
-                {bookingData.memberLabel}
+                {data.memberLabel}
               </label>
               <select
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 appearance-none bg-white"
@@ -266,23 +269,24 @@ const ShaktiBookingSection = () => {
                   backgroundPosition: 'right 16px center'
                 }}
               >
-                {bookingData.memberOptions.map((option, index) => (
+                {data.memberOptions.map((option, index) => (
                   <option key={index}>{option}</option>
                 ))}
               </select>
             </div>
 
             {/* Apply Button */}
-            <button
-              className="w-full py-4 rounded-lg font-semibold text-white transition-opacity hover:opacity-90 mb-4"
+            <a
+              href={data.buttonUrl}
+              className="w-full py-4 rounded-lg font-semibold text-white transition-opacity hover:opacity-90 mb-4 block text-center"
               style={{
                 backgroundColor: '#7D1A13',
                 fontFamily: 'Avenir Next, sans-serif',
                 fontSize: '16px'
               }}
             >
-              {bookingData.buttonText}
-            </button>
+              {data.buttonText}
+            </a>
 
             {/* Membership Link */}
             <p
@@ -293,18 +297,18 @@ const ShaktiBookingSection = () => {
                 color: '#384250'
               }}
             >
-              {bookingData.membershipText}{' '}
+              {data.membershipText}{' '}
               <a
-                href="#"
+                href={data.membershipLinkUrl}
                 style={{
                   color: '#000000',
                   textDecoration: 'underline',
                   fontWeight: 600
                 }}
               >
-                {bookingData.membershipLink}
+                {data.membershipLink}
               </a>{' '}
-              {bookingData.membershipNote}
+              {data.membershipNote}
             </p>
           </div>
         </div>
@@ -313,4 +317,4 @@ const ShaktiBookingSection = () => {
   );
 };
 
-export default ShaktiBookingSection;
+export default ProductComponent;

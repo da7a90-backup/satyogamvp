@@ -35,6 +35,12 @@ interface TopMediaSection {
   hasPlayButton?: boolean;
 }
 
+interface ButtonConfig {
+  text: string;
+  url: string;
+  variant: 'primary' | 'secondary'; // primary = red, secondary = white
+}
+
 interface TwoPaneData {
   backgroundColor?: string;
   topMedia?: TopMediaSection;
@@ -44,6 +50,7 @@ interface TwoPaneData {
     title: string;
     titleLineHeight?: string;
     description?: string;
+    buttons?: ButtonConfig[]; // Up to 2 buttons
   };
   rightPane: {
     type: 'accordion' | 'list' | 'sections' | 'paragraphs';
@@ -189,6 +196,28 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
               >
                 {data.leftPane.description}
               </p>
+            )}
+
+            {/* Buttons */}
+            {data.leftPane.buttons && data.leftPane.buttons.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                {data.leftPane.buttons.slice(0, 2).map((button, index) => (
+                  <a
+                    key={index}
+                    href={button.url}
+                    className="px-6 py-3 rounded-lg font-medium text-center transition-opacity hover:opacity-90"
+                    style={{
+                      fontFamily: 'Avenir Next, sans-serif',
+                      fontSize: '16px',
+                      backgroundColor: button.variant === 'primary' ? '#7D1A13' : '#FFFFFF',
+                      color: button.variant === 'primary' ? '#FFFFFF' : '#7D1A13',
+                      border: button.variant === 'secondary' ? '2px solid #7D1A13' : 'none'
+                    }}
+                  >
+                    {button.text}
+                  </a>
+                ))}
+              </div>
             )}
           </div>
 
