@@ -23,7 +23,7 @@ export const whatIsSatYogaData = {
       ]*/
     },
     rightPane: {
-      type: 'accordion' as const,
+      type: 'bulletaccordion' as const,
       content: [
         {
           id: 0,
@@ -241,3 +241,4 @@ export const whatIsSatYogaData = {
       ]
     }
   };
+

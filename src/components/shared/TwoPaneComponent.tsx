@@ -22,6 +22,19 @@ interface ContentSection {
   paragraphs: string[];
 }
 
+interface TimelineItem {
+  number: number;
+  tagline: string;
+  title: string;
+  description: string;
+}
+
+interface BulletAccordionItem {
+  id: number;
+  title: string;
+  content: string;
+}
+
 interface BackgroundElement {
   image: string;
   desktop?: React.CSSProperties;
@@ -53,9 +66,9 @@ interface TwoPaneData {
     buttons?: ButtonConfig[]; // Up to 2 buttons
   };
   rightPane: {
-    type: 'accordion' | 'list' | 'sections' | 'paragraphs';
+    type: 'accordion' | 'list' | 'sections' | 'paragraphs' | 'timeline' | 'bulletaccordion';
     gap?: string;
-    content: AccordionItem[] | ListItem[] | ContentSection[] | string[];
+    content: AccordionItem[] | ListItem[] | ContentSection[] | string[] | TimelineItem[] | BulletAccordionItem[];
   };
   backgroundElements?: BackgroundElement[];
 }
@@ -370,6 +383,165 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                     dangerouslySetInnerHTML={{ __html: paragraph }}
                   />
                 ))}
+              </>
+            )}
+
+            {/* Timeline */}
+            {data.rightPane.type === 'timeline' && (
+              <div className="flex flex-col">
+                {(data.rightPane.content as TimelineItem[]).map((item, index) => (
+                  <div key={index} className="flex items-start" style={{ gap: '24px' }}>
+                    {/* Timeline indicator */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <div 
+                        className="w-5 h-5 rounded-full border-2 bg-white"
+                        style={{ 
+                          borderColor: '#D1D5DB',
+                          marginTop: '4px'
+                        }}
+                      />
+                      {index < (data.rightPane.content as TimelineItem[]).length - 1 && (
+                        <div 
+                          className="w-0.5 flex-1"
+                          style={{ 
+                            backgroundColor: '#D1D5DB',
+                            minHeight: '80px'
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex flex-col pb-12" style={{ gap: '8px' }}>
+                      {/* Tagline */}
+                      <span
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#942017',
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {item.tagline}
+                      </span>
+
+                      {/* Title */}
+                      <h3
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif',
+                          fontSize: '18px',
+                          fontWeight: 600,
+                          lineHeight: '28px',
+                          color: '#000000'
+                        }}
+                      >
+                        {item.number}. {item.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif',
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          lineHeight: '24px',
+                          color: '#384250'
+                        }}
+                      >
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Bullet Accordion - Desktop: Simple list, Mobile: Accordion */}
+            {data.rightPane.type === 'bulletaccordion' && (
+              <>
+                {/* Desktop View - Simple Bullet List */}
+                <div className="hidden lg:flex flex-col" style={{ gap: '32px' }}>
+                  {(data.rightPane.content as BulletAccordionItem[]).map((item) => (
+                    <div key={item.id} className="flex flex-col" style={{ gap: '8px' }}>
+                      <h3
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif',
+                          fontSize: '18px',
+                          fontWeight: 600,
+                          lineHeight: '28px',
+                          color: '#000000'
+                        }}
+                      >
+                        {item.title}
+                      </h3>
+                      <p
+                        style={{
+                          fontFamily: 'Avenir Next, sans-serif',
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          lineHeight: '24px',
+                          color: '#384250'
+                        }}
+                      >
+                        {item.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mobile View - Accordion */}
+                <div className="lg:hidden flex flex-col gap-4">
+                  {(data.rightPane.content as BulletAccordionItem[]).map((item) => (
+                    <div key={item.id} className="w-full border-b border-gray-200">
+                      <button
+                        onClick={() => handleAccordionToggle(item.id)}
+                        className="w-full flex items-center justify-between py-6 text-left hover:bg-gray-50 transition-colors"
+                      >
+                        <h3 
+                          style={{
+                            fontFamily: 'Avenir Next, sans-serif',
+                            fontSize: '18px',
+                            lineHeight: '28px',
+                            fontWeight: 600,
+                            color: '#000000'
+                          }}
+                        >
+                          {item.title}
+                        </h3>
+                        <div 
+                          className="ml-4 transition-transform duration-300"
+                          style={{
+                            transform: openAccordion === item.id ? 'rotate(180deg)' : 'rotate(0deg)'
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      </button>
+                      <div 
+                        className="overflow-hidden transition-all duration-300 ease-in-out"
+                        style={{
+                          maxHeight: openAccordion === item.id ? '1000px' : '0px'
+                        }}
+                      >
+                        <div className="pb-6">
+                          <p 
+                            style={{
+                              fontFamily: 'Avenir Next, sans-serif',
+                              fontSize: '16px',
+                              lineHeight: '150%',
+                              color: '#4A5568'
+                            }}
+                          >
+                            {item.content}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </>
             )}
           </div>

@@ -10,49 +10,15 @@ import ScheduleSection from "@/components/shared/TypicalDay";
 import ProductComponent from "@/components/shared/ProductComponent";
 import RelatedProgramsSection from "@/components/shared/RelatedOnsite";
 import TestimonialCarousel from "@/components/shared/Testimonial";
+import VideoHeroSection from "@/components/shared/VideoHero";
+import StandardSection, { StandardSectionData } from "@/components/shared/StandardSection";
 
 
 
-export default function DarshanPage({ data }: any) {
+export default function SevadhariPage({ data }: any) {
 // Data structure for Shakti Saturation Included Section
 
-const shaktiIncludedData = {
-    sectionTitle: "Included in this 7-day retreat",
-    items: [
-      {
-        title: "Private Darshan with Shunyamurti",
-        description: "In your profound meeting with Shunyamurti, you can ask your most personal and urgent questions and receive direct guidance and affirmation of your Being. If you want to sustain inner peace and luminous clarity, this session can prove a turning point."
-      },
-      {
-        title: "Core Curriculum Module Classes",
-        description: "Small group classes delve into the core modules of our wisdom school curriculum. Designed to help you deconstruct the false self and be free of the suffering it causes, these tutorials will open your third eye and give you x-ray vision of your subconscious attachments and empower you to drop the ego illusion and return to your true nature of illumined Consciousness."
-      },
-      {
-        title: "Nourishing, Vegetarian Cuisine",
-        description: "Reinvigorate your organism with nourishing vegetarian meals, prepared with organic, high-vibrational ingredients—many sourced from our own gardens. We always offer vegan and gluten-free options. "
-      },
-      {
-        title: "Meditation Gatherings",
-        description: "Your soul will bask in the Light of God as you let go of constrictions and enter the deep silence of Pure Awareness during our group meditation sittings. We assemble several times daily to cultivate stillness, serene joy, and an ever-deepening connection to our Supreme Source."
-      },
-      {
-        title: "Ashram Tours",
-        description: "Explore the ashram’s food-growing infrastructure and processes on our popular Prema-culture tour, and learn our unique approach to permaculture infused with divine love (prema). Visit our thriving greenhouses and magical food gardens and learn how we cultivate organic produce in harmony with Nature and Spirit."
-      },
-      {
-        title: "Personal Time for Gaia Gazing and Walking Meditation.",
-        description: "Wander through our sacred landscape mindfully, and discover how every tree, stream, and breeze carries the whisper of the Absolute. You may meet fascinating birds, butterflies, sloths, or monkeys during such contemplative walks! As you attune to the rhythms of Nature, let the power of the energy field saturate your soul with healing grace."
-      },
-      {
-        title: "Evening Community Classes",
-        description: "The evenings bring a variety of events, which may include a documentary or feature film, a deep dive into recent teachings, or a tranquil guided meditation."
-      },
-      {
-        title: "Charming Cabin Accommodations",
-        description: "Nestled in colourful and fragrant gardens by a placid forest, our peaceful lodgings provide the perfect refuge for deep relaxation and renewal. Your personal space will bring comfort, beauty, and calm. Each room the option of a  private bath and a balcony to immerse yourself in the tranquil energy of the holy mountain."
-      }
-    ]
-  };
+
 
   const introData = {
     leftPane: {
@@ -70,12 +36,12 @@ const shaktiIncludedData = {
   };
 
   const carouselImages : CarouselImage[] = [
-    { src: '/darshangallery1.jpg', alt: 'Teaching session' },
-    { src: '/darshangallery2.jpg', alt: 'Shunyamurti with student' },
-    { src: '/darshangallery3.jpg', alt: 'Community gathering' },
-    { src: '/darshangallery4.jpg', alt: 'Ashram activities' },
-    { src: '/darshangallery5.jpg', alt: 'Group learning' },
-    { src: '/darshangallery6.jpg', alt: 'Meditation practice' }
+    { src: '/SD GALLERY 1.jpg', alt: 'Teaching session' },
+    { src: '/SD GALLERY 2.jpg', alt: 'Shunyamurti with student' },
+    { src: '/SD GALLERY 3.jpg', alt: 'Community gathering' },
+    { src: '/SD GALLERY 4.jpg', alt: 'Ashram activities' },
+    { src: '/SD GALLERY 5.jpg', alt: 'Group learning' },
+    { src: '/SD GALLERY 6.jpg', alt: 'Meditation practice' }
   ];
 
   const scheduleData = {
@@ -168,7 +134,7 @@ const shaktiIncludedData = {
       }
     ]
   };
-  const heroData = {tagline:"Ashram Retreats", background: "/darshan.jpg", heading: "Staying at the Ashram", subtext: "Visit, Study, and Serve at the Sat Yoga Ashram, Costa Rica"}
+  const heroData = {tagline:"Ashram Onsite Retreats", background: "/sevadhari.jpg", heading: "Staying at the Ashram", subtext: "Visit, Study, and Serve at the Sat Yoga Ashram, Costa Rica"}
   const relatedProgramsData = {
     sectionTitle: "Related onsite programs",
     programs: [
@@ -182,16 +148,17 @@ const shaktiIncludedData = {
         link: "/retreats/shakti"
       },
       {
-        image: '/sevadhari.jpg',
+        image: '/darshan.jpg',
         icon: '/progicon.png',
-        duration: "6 months",
+        duration: "7 days",
         location: "Onsite Retreat",
-        tagline: "Live and Study at the Ashram!",
-        title: "Become a Sevadhari",
-        link: "/retreats/sevadhari"
+        tagline: "Darshan Retreat!",
+        title: "Darshan retreat",
+        link: "/retreats/darshan"
       }
     ]
   };
+
   const applicationProcessData = {
     leftPane: {
       tagline: "AFTER ADMISSION",
@@ -229,18 +196,60 @@ const shaktiIncludedData = {
       ]
     }
   };
-  
+
+  const whatSeva = {
+    leftPane: {
+        tagline:"GENERAL REQUIREMENTS FOR PROSPECTIVE APPLICANTS",
+      title: "What will qualify me to be a sevadhari?",
+      titleLineHeight: "120%",
+    /*  buttons: [
+        {
+          text: "Primary Action",
+          url: "/link-here",
+          variant: 'primary' // Red button
+        },
+        {
+          text: "Secondary Action", 
+          url: "/another-link",
+          variant: 'secondary' // White button with red border
+        }
+      ]*/
+    },
+    rightPane: {
+      type: 'bulletaccordion' as const,
+      content: [
+        {
+          id: 0,
+          title: "A Treasure Map",
+          content: "To help the seeker of Truth fully understand what that means, Sat Yoga has elaborated a user-friendly map of the hidden treasures of reality, encompassing the entire spectrum of consciousness. We have also developed empowering operations for taking command of the mind. We offer these online and at our ashram, a self-sustaining spiritual community in the rural mountains of southern Costa Rica, where those seeking a shorter or longer retreat (or a permanent refuge) from this dying world can awaken latent powers and live joyously in Total Presence."
+        },
+        {
+          id: 1,
+          title: "An Agency for Intelligence Amplification",
+          content: "The original Sat Yoga was already functioning as a means of increasing intelligence at the beginning of recorded history. It was deployed not only for wisdom but also for developing paranormal powers (siddhis). Yoga has served as the basis and engine of all religions, as well as the mystical, magical, and shamanic orders. In recent times, however, the term Yoga has been appropriated by the ego and has been diluted, commercialized, and too often diverted from its original purpose. Our approach returns to the ancient tradition of offering Darshan (direct transmission from the Source of Power), Diksha (initiation), Gyana (knowledge), and Sadhana (praxis). But we have re-engineered the process to enable you to reinforce your will power and courage to transcend the known. Our focus is on activating the capacity for immediate illumination."
+        },
+        {
+          id: 2,
+          title: "A Range of Processes and Non-Practice",
+          content: "Because everyone requires an approach appropriate to their level of maturity, educational background, and conceptual intelligence, we employ a range of processes for those not ready for the ultimate non-practice of immediate Self-realization. These include not only direct encounters with our teacher (a master of dharma combat, or zen dialogue), but also individual alchemical counseling sessions with an adept mentor. The latter provide a safe space in which to uproot projections, transform emotions, and release the residue of trauma as well as attachments to obsolete thinking and behavior patterns. We also offer powerful meditation methods. Once you have tasted the ecstasy of inner silence and serenity, you will not stop short of obtaining life's grand prize. Along with that, you will know the joy of altruism, devotion, artistic expression, and embodying the paradoxical wisdom of the Avadhutas (those who live in complete freedom)."
+        }
+      ]
+    }
+  };
+  const videoHeroData = {mediaType: "image" as 'image', mediaSrc:'/sevavideo.png', tagline: 'Q&A WITH SHUNYAMURTI', title: "Karma Yoga is the Highest Practice", description : "The highest and most important practice is karma yoga, meaning that we lead an active life of service to God, community, and world while in full realization that all is consciousness, nothing is outside consciousness, and thus no one is working and nothing is happening—only the manifestation of the free Self-expression of the Supreme Intelligence."}
+
+  const standardSectionData: StandardSectionData = {tagline:"OPENINGS", title:"We’re looking for highly skilled applicants!", description:"The majority of our service opportunities are in our gardens, greenhouses, and kitchen helping to maintain the daily cycle of abundance from farm to table. Most of our sevadharis will be doing hands-on physical work that may require, in some instances, endurance and strong physical fitness. We also offer a very few select opportunities for highly skilled and professionally trained applicants in the areas of media/outreach, healthcare and animal husbandry.", ctabuttontext:"contact", ctabuttonurl:"/application?program=sevadhari"}
 return (
     <>
     <StandardHeroSection data={heroData}/>
     <TwoPaneComponent data={introData}/>
-    <IncludedSection data={shaktiIncludedData}/>
     <ImageCarouselSection data={carouselImages}/>
     <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
-    <TwoPaneComponent data={introData}/>
+    <TwoPaneComponent data={whatSeva}/>
+    <VideoHeroSection data={videoHeroData}/>
     <TwoPaneComponent data={applicationProcessData}/>
     <ScheduleSection data={scheduleData}/>
-    <TestimonialCarousel data={testimonialCarouselData}/>
+    <StandardSection data={standardSectionData}/>
     <ProductComponent data={shaktiBookingData}/>
     <ContactUsSection/>
     <RelatedProgramsSection data={relatedProgramsData}/>
