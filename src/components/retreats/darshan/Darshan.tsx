@@ -119,6 +119,7 @@ const shaktiIncludedData = {
 
 
   const shaktiBookingData = {
+    retreatType: "onsite" as const,
     tagline: "RETREAT CONTRIBUTION AND DATES",
     title: "Darshan Retreat",
     price: "$1750",
@@ -192,43 +193,7 @@ const shaktiIncludedData = {
       }
     ]
   };
-  const applicationProcessData = {
-    leftPane: {
-      tagline: "AFTER ADMISSION",
-      title: "What's the Process of Application and Admission?"
-    },
-    rightPane: {
-      type: 'timeline' as const,
-      content: [
-        {
-          number: 1,
-          tagline: "Start Your Journey to Join the Community",
-          title: "Submit Your Application",
-          description: "Fill out the application form..."
-        },
-        {
-            number: 2,
-            tagline: "Start Your Journey to Join the Community",
-            title: "Submit Your Application",
-            description: "Fill out the application form..."
-          },
-          {
-            number: 3,
-            tagline: "Start Your Journey to Join the Community",
-            title: "Submit Your Application",
-            description: "Fill out the application form..."
-          },
-          {
-            number: 4,
-            tagline: "Start Your Journey to Join the Community",
-            title: "Submit Your Application",
-            description: "Fill out the application form..."
-          },
-        
-        // ... more timeline items
-      ]
-    }
-  };
+
   
 return (
     <>
@@ -238,7 +203,6 @@ return (
     <ImageCarouselSection data={carouselImages}/>
     <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
     <TwoPaneComponent data={introData}/>
-    <TwoPaneComponent data={applicationProcessData}/>
     <ScheduleSection data={scheduleData}/>
     <TestimonialCarousel data={testimonialCarouselData}/>
     <ProductComponent data={shaktiBookingData}/>

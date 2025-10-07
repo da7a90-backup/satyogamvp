@@ -1,11 +1,10 @@
 // app/page.tsx (using App Router in Next.js 13+)
 
 import AboutAshramPage from "@/components/aboutPage/AboutAshram";
-import AboutShunyaPage from "@/components/aboutPage/AboutShunyamurti";
 
 
 // This is a server component that fetches data
-export default async function AboutShunyamurti() {
+export default async function AboutAshram() {
   try {
     console.log("Fetching homepage data from Strapi...");
   

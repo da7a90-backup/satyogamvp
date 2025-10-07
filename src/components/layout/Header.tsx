@@ -72,7 +72,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         {
           title: 'Free Teachings Library',
           description: 'Explore a curated library of foundational teachings.',
-          url: '/learn-online/teachings',
+          url: '/teachings',
         },
         {
           title: 'Courses',

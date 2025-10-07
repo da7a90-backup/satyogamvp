@@ -1,16 +1,17 @@
 // app/page.tsx (using App Router in Next.js 13+)
 
-import AshramStayPage from "@/components/retreats/StayingAtAshram";
+import OnlinePage from "@/components/retreats/online/Online";
+
 
 
 // This is a server component that fetches data
-export default async function AshramRetreat() {
+export default async function OnlineRetreat() {
   try {
     console.log("Fetching homepage data from Strapi...");
   
     
     // Pass the data to your client component
-    return <AshramStayPage
+    return <OnlinePage
      />;
   } catch (error) {
     console.error("Error loading about page data:", error);

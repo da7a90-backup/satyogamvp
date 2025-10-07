@@ -85,6 +85,7 @@ export default function SevadhariPage({ data }: any) {
 
 
   const shaktiBookingData = {
+    retreatType: "onsite" as const,
     tagline: "RETREAT CONTRIBUTION AND DATES",
     title: "Darshan Retreat",
     price: "$1750",
@@ -115,25 +116,7 @@ export default function SevadhariPage({ data }: any) {
     ]
   };
 
-  const testimonialCarouselData = {
-    tagline: "TESTIMONIAL CARROUSEL",
-    testimonials: [
-      {
-        id: 1,
-        quote: "I've received so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-        author: 'Mandy',
-        location: 'UK',
-        video: '/testimonial.png'
-      },
-      {
-        id: 2,
-        quote: "I've so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-        author: 'Mandy',
-        location: 'UK',
-        video: '/testimonial.png'
-      }
-    ]
-  };
+
   const heroData = {tagline:"Ashram Onsite Retreats", background: "/sevadhari.jpg", heading: "Staying at the Ashram", subtext: "Visit, Study, and Serve at the Sat Yoga Ashram, Costa Rica"}
   const relatedProgramsData = {
     sectionTitle: "Related onsite programs",

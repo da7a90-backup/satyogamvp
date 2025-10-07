@@ -5,7 +5,7 @@ import DarshanPage from "@/components/retreats/darshan/Darshan";
 
 
 // This is a server component that fetches data
-export default async function AboutShunyamurti() {
+export default async function Darshan() {
   try {
     console.log("Fetching homepage data from Strapi...");
   

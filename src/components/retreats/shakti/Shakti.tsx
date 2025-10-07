@@ -147,6 +147,7 @@ const shaktiIncludedData = {
 
 
   const shaktiBookingData = {
+    retreatType: "onsite" as const,
     tagline: "PROGRAM CONTRIBUTION",
     title: "Shakti Saturation Immersion",
     price: "$3950",

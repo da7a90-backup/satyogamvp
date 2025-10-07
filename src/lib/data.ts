@@ -242,3 +242,131 @@ export const whatIsSatYogaData = {
     }
   };
 
+
+// lib/data.ts
+
+export interface OnlineRetreat {
+    slug: string;
+    heroBackground: string;
+    
+    // Booking section
+    retreatType: 'online';
+    bookingTagline: string;
+    title: string;
+    price: string;
+    priceNote: string;
+    fixedDate: string;
+    location: string;
+    accessDescription: string;
+    accessOptions: Array<{ type: 'limited' | 'full'; label: string }>;
+    applicationUrl: string;
+    images: Array<{ src: string; alt: string }>;
+    
+    // Intro sections
+    intro1Title: string;
+    intro1Content: string[];
+    intro2Title: string;
+    intro2Content: string[];
+    intro3Title: string;
+    intro3Content: string[];
+    
+    // Schedule section
+    scheduleTagline: string;
+    scheduleTitle: string;
+    scheduleItems: Array<{
+      time: string;
+      activity: string;
+    }>;
+    
+    // Testimonial section
+    testimonialTagline: string;
+    testimonialHeading: string;
+    testimonials: Array<{
+      quote: string;
+      name: string;
+      location: string;
+      avatar: string;
+    }>;
+    
+    // Common fields
+    memberLabel: string;
+    memberOptions: string[];
+    buttonText: string;
+    buttonUrl: string;
+    membershipText: string;
+    membershipLink: string;
+    membershipLinkUrl: string;
+    membershipNote: string;
+  }
+  
+  export const onlineRetreatsData: OnlineRetreat[] = [
+    {
+      slug: "hopeless-yet-hilarious",
+      heroBackground: "/retreats/hopeless-hero.jpg",
+      
+      retreatType: "online",
+      bookingTagline: "ALL'S WELL THAT ENDS WELL: THE RE-MARRIAGE OF SHAKTI AND SHIVA",
+      title: "Why Our Situation is Hopeless, Yet Hilarious!",
+      price: "$195",
+      priceNote: "(inc. all taxes)",
+      fixedDate: "7-Day Retreat • December 27, 2024 - January 2, 2025",
+      location: "Online Retreat",
+      accessDescription: "(You will have access to all the retreat teachings for 12 days following the end of the retreat.)All materials will be available to access and review for the duration of the retreat, plus an additional week for a final review after the retreat ends. You are welcome to upgrade to lifetime access at any time after the retreat begins.",
+      accessOptions: [
+        { type: 'limited', label: 'Limited Time of 12-Day Access' },
+        { type: 'full', label: 'Lifetime Access' }
+      ],
+      applicationUrl: "/purchase/hopeless-yet-hilarious",
+      images: [
+        { src: '/retreat-gallery-1.jpg', alt: 'Retreat session' },
+        { src: '/retreat-gallery-2.jpg', alt: 'Meditation' }
+      ],
+      
+      intro1Title: "A Journey of Self-Discovery",
+      intro1Content: [
+        "This retreat offers a unique perspective on the human condition...",
+        "Through humor and wisdom, we explore the paradoxes of existence..."
+      ],
+      
+      intro2Title: "What You'll Experience",
+      intro2Content: [
+        "Deep meditation sessions that reveal the nature of consciousness...",
+        "Interactive teachings that challenge your assumptions..."
+      ],
+      
+      intro3Title: "Transform Your Understanding",
+      intro3Content: [
+        "Leave with a renewed sense of purpose and clarity...",
+        "Connect with a global community of seekers..."
+      ],
+      
+      scheduleTagline: "TYPICAL RETREAT DAY",
+      scheduleTitle: "Sample Daily Schedule",
+      scheduleItems: [
+        { time: "9:00 - 10:30am", activity: "Morning meditation and teaching" },
+        { time: "11:00am - 12:30pm", activity: "Interactive session" },
+        { time: "2:00 - 3:30pm", activity: "Afternoon practice" },
+        { time: "7:00 - 8:30pm", activity: "Evening satsang" }
+      ],
+      
+      testimonialTagline: "TESTIMONIAL CAROUSEL",
+      testimonialHeading: "What Participants Are Saying",
+      testimonials: [
+        {
+          quote: "This retreat completely transformed my perspective on life.",
+          name: "Sarah",
+          location: "USA",
+          avatar: "/avatars/sarah.jpg"
+        }
+      ],
+      
+      memberLabel: "Are you a member?*",
+      memberOptions: ["Select an option ..."],
+      buttonText: "Purchase now",
+      buttonUrl: "/purchase",
+      membershipText: "Discover our",
+      membershipLink: "memberships",
+      membershipLinkUrl: "/memberships",
+      membershipNote: "to receive discounts"
+    }
+  ];

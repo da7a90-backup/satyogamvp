@@ -1,6 +1,5 @@
 import React from "react";
 
-import AshramStayHeroSection from "./Hero";
 import RetreatCardsSection from "./RetreatsAvailable";
 import WhichRetreatSection from "./WhichRetreatIsRightForMe";
 import WhatWillYouEncounterSection from "./WhatWillYouEncounter";
