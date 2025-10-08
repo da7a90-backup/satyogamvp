@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 // ============================================================================
 // TYPES
@@ -13,9 +13,11 @@ interface Teaching {
   description: string;
   date: string;
   duration: string;
-  accessType: 'free' | 'membership';
+  accessType: 'free' | 'restricted';
   mediaType: 'video' | 'audio' | 'text';
   pageCount?: number;
+  slug: string;
+  categoryType: 'video_teaching' | 'guided_meditation' | 'qa' | 'essay';
 }
 
 interface TeachingLibraryData {
@@ -26,8 +28,11 @@ interface TeachingLibraryData {
     url: string;
   };
   featuredTeaching: Teaching;
-  categories: string[];
-  teachings: Teaching[];
+  categories: Array<{
+    label: string;
+    key: 'all' | 'video_teaching' | 'guided_meditation' | 'qa' | 'essay';
+  }>;
+  allTeachings: Teaching[];
   totalCount: number;
 }
 
@@ -50,6 +55,33 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
       return newSet;
     });
   };
+
+  // Filter teachings based on active category
+  const filteredTeachings = useMemo(() => {
+    const categoryKey = data.categories[activeCategory].key;
+    
+    let filtered = data.allTeachings;
+    if (categoryKey !== 'all') {
+      filtered = data.allTeachings.filter(t => t.categoryType === categoryKey);
+    }
+
+    // If not logged in, prioritize free teachings and fill up to 9
+    if (!data.isLoggedIn) {
+      const freeTeachings = filtered.filter(t => t.accessType === 'free');
+      const restrictedTeachings = filtered.filter(t => t.accessType === 'restricted');
+      
+      // Take up to 9 teachings: prioritize free, then add restricted
+      const limit = 9;
+      if (freeTeachings.length >= limit) {
+        return freeTeachings.slice(0, limit);
+      } else {
+        const remainingSlots = limit - freeTeachings.length;
+        return [...freeTeachings, ...restrictedTeachings.slice(0, remainingSlots)];
+      }
+    }
+
+    return filtered;
+  }, [activeCategory, data.allTeachings, data.isLoggedIn, data.categories]);
 
   return (
     <section 
@@ -136,7 +168,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
                   width="20" 
                   height="20" 
                   viewBox="0 0 24 24" 
-                  fill="none"
+                  fill={savedTeachings.has(data.featuredTeaching.id) ? "#7D1A13" : "none"}
                   stroke="#FFFFFF"
                   strokeWidth="1.67"
                 >
@@ -240,7 +272,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
                   color: activeCategory === index ? '#AB261B' : '#717680'
                 }}
               >
-                {category}
+                {category.label}
                 {activeCategory === index && (
                   <div
                     className="absolute bottom-0 left-0 right-0"
@@ -266,7 +298,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
               color: '#111927'
             }}
           >
-            {data.totalCount} Items
+            {filteredTeachings.length} Items
           </p>
           <div className="flex gap-3">
             <button
@@ -300,155 +332,166 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
           </div>
         </div>
 
-        {/* Teaching Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {data.teachings.map((teaching) => (
-            <TeachingCard 
-              key={teaching.id} 
-              teaching={teaching}
-              isSaved={savedTeachings.has(teaching.id)}
-              onToggleSave={() => toggleSave(teaching.id)}
-            />
-          ))}
-        </div>
-
-        {/* Login CTA Section */}
-        {!data.isLoggedIn && (
-          <div 
-            className="py-28 px-16 rounded-lg flex flex-col items-center"
-            style={{
-              background: 'linear-gradient(180deg, rgba(250, 248, 241, 0.9) 4.85%, #FAF8F1 23.88%, #FAF8F1 100%)'
-            }}
-          >
-            <div className="max-w-[832px] text-center mb-8">
-              <h2
-                className="mb-6"
-                style={{
-                  fontFamily: 'Optima, Georgia, serif',
-                  fontSize: '48px',
-                  fontWeight: 550,
-                  lineHeight: '60px',
-                  letterSpacing: '-0.02em',
-                  color: '#000000'
-                }}
-              >
-                Continue Browsing—Sign Up for Your Free Dashboard
-              </h2>
-              <p
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '18px',
-                  lineHeight: '150%',
-                  color: '#414651'
-                }}
-              >
-                Create your free account to continue browsing the library and access exclusive teachings, 500+ publications, and a complimentary meditation course—all from your personal dashboard.
-              </p>
-            </div>
-
-            <div className="w-full max-w-[480px]">
-              {/* Social Login Buttons */}
-              <div className="flex flex-col gap-3 mb-4">
-                <button
-                  className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderColor: '#D5D7DA',
-                    boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)'
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC04"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                  </svg>
-                  <span style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: '#414651'
-                  }}>
-                    Sign in with Google
-                  </span>
-                </button>
-
-                <button
-                  className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderColor: '#D5D7DA',
-                    boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)'
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="#1877F2"/>
-                  </svg>
-                  <span style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: '#414651'
-                  }}>
-                    Sign in with Facebook
-                  </span>
-                </button>
-
-                <button
-                  className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderColor: '#D5D7DA',
-                    boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)'
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" fill="#000000"/>
-                  </svg>
-                  <span style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: '#414651'
-                  }}>
-                    Sign in with Apple
-                  </span>
-                </button>
-              </div>
-
-              {/* Divider */}
-              <div className="flex items-center gap-2 my-4 px-0 py-4">
-                <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
-                <span style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '18px',
-                  color: '#898989'
-                }}>
-                  OR
-                </span>
-                <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
-              </div>
-
-              {/* Email Button */}
-              <button
-                className="w-full"
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '16px',
-                  color: '#000000'
-                }}
-              >
-                Continue with email
-              </button>
-            </div>
+        {/* Teaching Grid with Overlay */}
+        <div className="relative pb-[480px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredTeachings.map((teaching) => (
+              <TeachingCard 
+                key={teaching.id} 
+                teaching={teaching}
+                isSaved={savedTeachings.has(teaching.id)}
+                onToggleSave={() => toggleSave(teaching.id)}
+              />
+            ))}
           </div>
-        )}
+
+          {/* Login CTA Overlay - Positioned over bottom of grid */}
+          {!data.isLoggedIn && (
+            <div 
+              className="absolute left-0 right-0 flex flex-col items-center px-4 lg:px-16"
+              style={{
+                bottom: 0,
+                paddingTop: '100px',
+                paddingBottom: '100px',
+                background: 'linear-gradient(180deg, rgba(250, 248, 241, 0) 0%, rgba(250, 248, 241, 0.7) 20%, rgba(250, 248, 241, 0.9) 40%, #FAF8F1 60%, #FAF8F1 100%)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
+              }}
+            >
+              <div className="relative z-10 max-w-[832px] text-center mb-8">
+                <h2
+                  className="mb-6"
+                  style={{
+                    fontFamily: 'Optima, Georgia, serif',
+                    fontSize: 'clamp(32px, 5vw, 48px)',
+                    fontWeight: 550,
+                    lineHeight: '1.25',
+                    letterSpacing: '-0.02em',
+                    color: '#000000'
+                  }}
+                >
+                  Continue Browsing—Sign Up for Your Free Dashboard
+                </h2>
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '18px',
+                    lineHeight: '150%',
+                    color: '#414651'
+                  }}
+                >
+                  Create your free account to continue browsing the library and access exclusive teachings, 500+ publications, and a complimentary meditation course—all from your personal dashboard.
+                </p>
+              </div>
+
+              <div className="relative z-10 w-full max-w-[480px]">
+                {/* Social Login Buttons */}
+                <div className="flex flex-col gap-3 mb-4">
+                  <button
+                    className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#D5D7DA',
+                      boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)'
+                    }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC04"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      color: '#414651'
+                    }}>
+                      Sign in with Google
+                    </span>
+                  </button>
+
+                  <button
+                    className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#D5D7DA',
+                      boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)'
+                    }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="#1877F2"/>
+                    </svg>
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      color: '#414651'
+                    }}>
+                      Sign in with Facebook
+                    </span>
+                  </button>
+
+                  <button
+                    className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#D5D7DA',
+                      boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)'
+                    }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" fill="#000000"/>
+                    </svg>
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      color: '#414651'
+                    }}>
+                      Sign in with Apple
+                    </span>
+                  </button>
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-2 my-4 px-0 py-4">
+                  <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '18px',
+                    color: '#898989'
+                  }}>
+                    OR
+                  </span>
+                  <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
+                </div>
+
+                {/* Email Button */}
+                <button
+                  className="w-full underline hover:no-underline"
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: '#000000'
+                  }}
+                >
+                  Continue with email
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
 };
 
-// Teaching Card Component
+// ============================================================================
+// TEACHING CARD COMPONENT
+// ============================================================================
+
 const TeachingCard = ({ 
   teaching, 
   isSaved, 
@@ -511,7 +554,7 @@ const TeachingCard = ({
               boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)'
             }}
           >
-            {teaching.accessType === 'membership' ? (
+            {teaching.accessType === 'restricted' ? (
               <>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M3 5V4a3 3 0 016 0v1m-7 0h8a1 1 0 011 1v4a1 1 0 01-1 1H2a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="#414651" strokeWidth="1.2"/>
@@ -561,7 +604,7 @@ const TeachingCard = ({
             width="20" 
             height="20" 
             viewBox="0 0 24 24" 
-            fill="none"
+            fill={isSaved ? "#7D1A13" : "none"}
             stroke="#FFFFFF"
             strokeWidth="1.67"
           >
