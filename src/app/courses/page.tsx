@@ -1,6 +1,5 @@
 // app/(main)/teachings/page.tsx
 import { Metadata } from 'next';
-import TeachingsPage from '@/components/teachings/Teachings';
 import CoursesPage from '@/components/courses/CoursesPage';
 
 export const metadata: Metadata = {

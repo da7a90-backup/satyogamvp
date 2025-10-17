@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 
 // ============================================================================
 // TYPES
@@ -30,7 +31,7 @@ interface TeachingLibraryData {
   featuredTeaching: Teaching;
   categories: Array<{
     label: string;
-    key: 'all' | 'video_teaching' | 'guided_meditation' | 'qa' | 'essay';
+    key: 'video_teaching' | 'guided_meditation' | 'qa' | 'essay';
   }>;
   allTeachings: Teaching[];
   totalCount: number;
@@ -60,10 +61,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
   const filteredTeachings = useMemo(() => {
     const categoryKey = data.categories[activeCategory].key;
     
-    let filtered = data.allTeachings;
-    if (categoryKey !== 'all') {
-      filtered = data.allTeachings.filter(t => t.categoryType === categoryKey);
-    }
+    let filtered = data.allTeachings.filter(t => t.categoryType === categoryKey);
 
     // If not logged in, prioritize free teachings and fill up to 9
     if (!data.isLoggedIn) {
@@ -120,8 +118,10 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
           )}
         </div>
 
-        {/* Featured Teaching Card */}
-        <div className="bg-white border rounded-lg mb-8 overflow-hidden"
+        {/* Featured Teaching Card - NOW CLICKABLE */}
+        <Link 
+          href={`/teachings/${data.featuredTeaching.slug}`}
+          className="bg-white border rounded-lg mb-8 overflow-hidden block hover:shadow-lg transition-shadow"
           style={{ borderColor: '#D2D6DB' }}
         >
           <div className="flex flex-col lg:flex-row">
@@ -158,7 +158,10 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
               )}
               {/* Bookmark Button */}
               <button
-                onClick={() => toggleSave(data.featuredTeaching.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleSave(data.featuredTeaching.id);
+                }}
                 className="absolute top-4 right-4 w-[52px] h-[52px] rounded-full flex items-center justify-center hover:bg-white/50 transition-colors"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.4)'
@@ -251,7 +254,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
               </div>
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Category Tabs */}
         <div className="mb-8">
@@ -345,7 +348,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
             ))}
           </div>
 
-          {/* Login CTA Overlay - Positioned over bottom of grid */}
+          {/* Login CTA Overlay */}
           {!data.isLoggedIn && (
             <div 
               className="absolute left-0 right-0 flex flex-col items-center px-4 lg:px-16"
@@ -385,7 +388,6 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
               </div>
 
               <div className="relative z-10 w-full max-w-[480px]">
-                {/* Social Login Buttons */}
                 <div className="flex flex-col gap-3 mb-4">
                   <button
                     className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
@@ -454,7 +456,6 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
                   </button>
                 </div>
 
-                {/* Divider */}
                 <div className="flex items-center gap-2 my-4 px-0 py-4">
                   <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
                   <span style={{
@@ -467,7 +468,6 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
                   <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
                 </div>
 
-                {/* Email Button */}
                 <button
                   className="w-full underline hover:no-underline"
                   style={{
@@ -489,7 +489,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
 };
 
 // ============================================================================
-// TEACHING CARD COMPONENT
+// TEACHING CARD COMPONENT - NOW CLICKABLE
 // ============================================================================
 
 const TeachingCard = ({ 
@@ -502,7 +502,9 @@ const TeachingCard = ({
   onToggleSave: () => void;
 }) => {
   return (
-    <div className="bg-white border rounded-lg overflow-hidden relative flex flex-col"
+    <Link 
+      href={`/teachings/${teaching.slug}`}
+      className="bg-white border rounded-lg overflow-hidden relative flex flex-col hover:shadow-lg transition-shadow"
       style={{ borderColor: '#D2D6DB' }}
     >
       {/* Thumbnail */}
@@ -695,7 +697,7 @@ const TeachingCard = ({
           {teaching.description}
         </p>
       </div>
-    </div>
+    </Link>
   );
 };
 
