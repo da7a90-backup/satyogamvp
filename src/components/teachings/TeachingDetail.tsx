@@ -62,6 +62,7 @@ export default function TeachingDetailPage({
   // Get related videos - you'll need to pass all teachings from the parent
   // For now, using empty array - you should pass this as a prop
   const relatedVideos: TeachingData[] = relatedTeachings;
+  //@ts-ignore
   const previewDuration = data.preview_duration/60;
 
   // Get video/audio URLs
