@@ -1,8 +1,23 @@
 'use client';
-
 import Link from 'next/link';
 
-const DonationSection = () => {
+interface DonationSectionProps {
+  eyebrow: string;
+  heading: string;
+  description: string;
+  buttonText: string;
+  buttonLink: string;
+  backgroundDecoration: string;
+}
+
+const DonationSection = ({
+  eyebrow,
+  heading,
+  description,
+  buttonText,
+  buttonLink,
+  backgroundDecoration
+}: DonationSectionProps) => {
   return (
     <section 
       className="relative w-full flex flex-col items-center overflow-hidden py-8 px-4 -mt-20 lg:-mt-28 lg:py-24 lg:px-16"
@@ -10,7 +25,6 @@ const DonationSection = () => {
         backgroundColor: '#FAF8F1'
       }}
     >
-      {/* Donation Card */}
       <div 
         className="relative w-full max-w-7xl bg-white border border-gray-300 rounded-2xl overflow-hidden p-8 lg:p-28 min-h-[280px] lg:min-h-[400px]"
         style={{
@@ -18,7 +32,6 @@ const DonationSection = () => {
           borderRadius: '16px'
         }}
       >
-        {/* Background Decorative Element - Mobile positioning */}
         <div 
           className="absolute lg:hidden"
           style={{
@@ -26,7 +39,7 @@ const DonationSection = () => {
             top: '-280px',
             width: '611px',
             height: '611px',
-            backgroundImage: 'url(/innerlab.png)',
+            backgroundImage: `url(${backgroundDecoration})`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
@@ -35,7 +48,6 @@ const DonationSection = () => {
           }}
         />
         
-        {/* Background Decorative Element - Desktop positioning */}
         <div 
           className="absolute hidden lg:block"
           style={{
@@ -43,7 +55,7 @@ const DonationSection = () => {
             top: '-495px',
             width: '1454px',
             height: '1454px',
-            backgroundImage: 'url(/innerlab.png)',
+            backgroundImage: `url(${backgroundDecoration})`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
@@ -52,7 +64,6 @@ const DonationSection = () => {
           }}
         />
         
-        {/* Content Container */}
         <div 
           className="relative z-10 flex flex-col items-center justify-center gap-4 lg:gap-6 h-full"
           style={{
@@ -60,7 +71,6 @@ const DonationSection = () => {
             margin: '0 auto'
           }}
         >
-          {/* Section Tag */}
           <div className="flex items-center">
             <span 
               className="uppercase tracking-wide text-sm font-medium"
@@ -69,11 +79,10 @@ const DonationSection = () => {
                 color: '#B8860B'
               }}
             >
-              DONATE
+              {eyebrow}
             </span>
           </div>
 
-          {/* Main Heading */}
           <h2 
             className="text-black text-center"
             style={{
@@ -84,10 +93,9 @@ const DonationSection = () => {
               letterSpacing: '-0.02em'
             }}
           >
-            Support our sacred mission
+            {heading}
           </h2>
 
-          {/* Description */}
           <p 
             className="text-center"
             style={{
@@ -97,13 +105,12 @@ const DonationSection = () => {
               color: '#384250'
             }}
           >
-            If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.
+            {description}
           </p>
 
-          {/* Action Button */}
           <div className="flex justify-center mt-4 lg:mt-6">
             <Link
-              href="/donate"
+              href={buttonLink}
               className="inline-flex items-center px-6 py-3 lg:px-8 lg:py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
               style={{
                 backgroundColor: '#7D1A13',
@@ -112,7 +119,7 @@ const DonationSection = () => {
                 fontWeight: 600
               }}
             >
-              Donate
+              {buttonText}
             </Link>
           </div>
         </div>

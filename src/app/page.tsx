@@ -1,6 +1,7 @@
 // app/page.tsx (using App Router in Next.js 13+)
 
 import HomePage from '@/components/homepage/Homepage';
+import { homePageData } from '@/lib/hpdata';
 
 // This is a server component that fetches data
 export default async function Home() {
@@ -9,7 +10,7 @@ export default async function Home() {
   
     
     // Pass the data to your client component
-    return <HomePage />;
+    return <HomePage data={homePageData}/>;
   } catch (error) {
     console.error("Error loading homepage data:", error);
     

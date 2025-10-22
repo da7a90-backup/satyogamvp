@@ -1,548 +1,622 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-
-// Types
-export interface Event {
+import { useState } from 'react';
+import { Calendar, MapPin, Globe, Flag } from 'lucide-react';
+import StandardSection from '../shared/StandardSection';
+// Event data interface
+export interface EventData {
   id: string;
   title: string;
-  slug: string;
-  subtitle?: string;
+  subtitle: string;
   description: string;
-  startDate: string;
-  endDate?: string;
-  duration: {
-    value: number;
-    unit: 'days' | 'weeks' | 'months'
-  };
-  location: 'Onsite' | 'Online';
-  imageUrl?: string;
-  teacher?: string;
-  isSoldOut?: boolean;
+  imageUrl: string;
+  date: string;
+  duration: string;
+  locationType: 'Onsite' | 'Online';
+  location: string;
+  eventUrl: string;
 }
 
-export type EventFilterType = 'all' | 'onsite' | 'online';
+// Month grouping interface
+export interface MonthGroup {
+  month: string;
+  events: EventData[];
+}
+
+// Standard Section Component 
+interface StandardSectionData {
+  tagline?: string;
+  title?: string;
+  description?: string;
+  ctabuttontext?: string;
+  ctabuttonurl?: string;
+}
+
+
 
 // Event Card Component
-interface EventCardProps {
-  event: Event;
-}
-
-export const EventCard: React.FC<EventCardProps> = ({ event }) => {
-  // Format start date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-  
-  // Format duration for display
-  const formatDuration = (duration: Event['duration']) => {
-    if (duration.value === 1) {
-      return `${duration.value} ${duration.unit.slice(0, -1)}`;
-    }
-    return `${duration.value} ${duration.unit}`;
-  };
-  
+const EventCard = ({ event }: { event: EventData }) => {
   return (
-    <div className="flex flex-col md:flex-row gap-6 py-6 border-b border-gray-200">
-      <div className="md:w-24 h-24 relative bg-gray-200 rounded flex-shrink-0">
-        {event.imageUrl ? (
-          <Image
-            src={event.imageUrl}
-            alt={event.title}
-            fill
-            className="object-cover rounded"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg 
-              className="h-10 w-10 text-gray-400" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={1.5} 
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
-              />
-            </svg>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex-grow">
-        <h3 className="text-lg font-bold mb-1">{event.title}</h3>
-        
-        {event.subtitle && (
-          <p className="text-sm text-gray-600 mb-2">{event.subtitle}</p>
-        )}
-        
-        <p className="text-gray-700 mb-4 line-clamp-3">
-          {event.description}
-        </p>
-        
-        <Link
-          href={`/events/${event.slug}`}
-          className="inline-flex items-center text-gray-700 font-medium hover:text-purple-700"
+    <div 
+      className="flex flex-col lg:flex-row justify-center items-start lg:items-center w-full"
+      style={{ gap: '32px' }}
+    >
+      {/* Left side - Image and Content */}
+      <div 
+        className="flex flex-col lg:flex-row items-start w-full"
+        style={{ gap: '24px', flex: 1 }}
+      >
+        {/* Event Image */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '208px',
+            height: '208px',
+            borderRadius: '8px',
+            background: `linear-gradient(161.66deg, rgba(0, 0, 0, 0) 49.24%, #000000 111.29%), url(${event.imageUrl})`,
+            backgroundColor: '#D5D7DA',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            position: 'relative',
+            flexShrink: 0
+          }}
         >
-          View event
-          <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
-      
-      <div className="md:w-48 flex-shrink-0 flex flex-col md:text-right">
-        <div className="mb-2">
-          <div className="text-sm font-medium">Start: {formatDate(event.startDate)}</div>
-          
-          <div className="flex items-center mt-1 justify-start md:justify-end">
-            {event.duration && (
-              <div className="flex items-center text-sm text-gray-600 mr-3 md:ml-3 md:mr-0">
-                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{formatDuration(event.duration)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <div className="inline-flex items-center mt-2 bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 justify-start md:justify-end md:self-end">
-          {event.location}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Event Filter Component
-interface EventFilterProps {
-  activeFilter: EventFilterType;
-  onFilterChange: (filter: EventFilterType) => void;
-}
-
-export const EventFilter: React.FC<EventFilterProps> = ({
-  activeFilter,
-  onFilterChange,
-}) => {
-  return (
-    <div className="inline-flex rounded-md shadow-sm mb-8">
-      <button
-        onClick={() => onFilterChange('all')}
-        className={`px-4 py-2 text-sm font-medium rounded-l-md ${
-          activeFilter === 'all'
-            ? 'bg-gray-100 text-gray-900'
-            : 'bg-white text-gray-700 hover:bg-gray-50'
-        } border border-gray-300`}
-      >
-        View all
-      </button>
-      <button
-        onClick={() => onFilterChange('onsite')}
-        className={`px-4 py-2 text-sm font-medium ${
-          activeFilter === 'onsite'
-            ? 'bg-gray-100 text-gray-900'
-            : 'bg-white text-gray-700 hover:bg-gray-50'
-        } border-t border-b border-r border-gray-300`}
-      >
-        Onsite
-      </button>
-      <button
-        onClick={() => onFilterChange('online')}
-        className={`px-4 py-2 text-sm font-medium rounded-r-md ${
-          activeFilter === 'online'
-            ? 'bg-gray-100 text-gray-900'
-            : 'bg-white text-gray-700 hover:bg-gray-50'
-        } border-t border-b border-r border-gray-300`}
-      >
-        Online
-      </button>
-    </div>
-  );
-};
-
-// Event Controls Component
-interface EventControlsProps {
-  totalEvents: number;
-  onSortChange: (sort: string) => void;
-  onFilterClick: () => void;
-}
-
-export const EventControls: React.FC<EventControlsProps> = ({
-  totalEvents,
-  onSortChange,
-  onFilterClick,
-}) => {
-  return (
-    <div className="flex justify-between items-center mb-6">
-      <div className="text-sm text-gray-600">
-        <span className="font-medium">{totalEvents}</span> events
-      </div>
-      
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center text-sm">
-          <span className="mr-2">Sort by</span>
-          <select 
-            onChange={(e) => onSortChange(e.target.value)}
-            className="py-1 px-2 border border-gray-300 rounded-md bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          {/* Icon Badge */}
+          <div
+            style={{
+              position: 'absolute',
+              width: '48px',
+              height: '48px',
+              right: '7px',
+              bottom: '8px',
+              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.28) 100%)',
+              backdropFilter: 'blur(26.25px)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           >
-            <option value="date-asc">Date (Ascending)</option>
-            <option value="date-desc">Date (Descending)</option>
-            <option value="duration">Duration</option>
-          </select>
+            <div style={{ 
+              width: '24px', 
+              height: '24px',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #9C7E27 100%)',
+              borderRadius: '50%'
+            }} />
+          </div>
         </div>
-        
-        <button
-          onClick={onFilterClick}
-          className="flex items-center py-1 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+
+        {/* Content */}
+        <div
+          className="flex flex-col items-start w-full"
+          style={{ gap: '24px' }}
         >
-          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          Filters
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Event Month Group Component
-interface EventMonthGroupProps {
-  month: string;
-  events: Event[];
-}
-
-export const EventMonthGroup: React.FC<EventMonthGroupProps> = ({ month, events }) => {
-  if (events.length === 0) return null;
-  
-  return (
-    <div className="mb-12">
-      <h2 className="text-2xl font-bold mb-6">{month}</h2>
-      <div className="divide-y divide-gray-200">
-        {events.map((event) => (
-          <EventCard key={event.id} event={event} />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Main Calendar Page Component
-interface CalendarPageProps {
-  initialEvents?: Event[];
-  initialFilter?: EventFilterType;
-}
-
-export const CalendarPage: React.FC<CalendarPageProps> = ({
-  initialEvents = [],
-  initialFilter = 'all',
-}) => {
-  const [events, setEvents] = useState<Event[]>(initialEvents);
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>(initialEvents);
-  const [activeFilter, setActiveFilter] = useState<EventFilterType>(initialFilter);
-  const [sortBy, setSortBy] = useState('date-asc');
-  
-  // Filter events based on active filter
-  const filterEvents = (filter: EventFilterType, allEvents: Event[]) => {
-    if (filter === 'all') {
-      return allEvents;
-    } else {
-      return allEvents.filter(event => event.location.toLowerCase() === filter);
-    }
-  };
-  
-  // Sort events based on the selected sort option
-  const sortEvents = (eventsToSort: Event[], sortOption: string) => {
-    const sortedEvents = [...eventsToSort];
-    
-    switch (sortOption) {
-      case 'date-asc':
-        return sortedEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-      case 'date-desc':
-        return sortedEvents.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-      case 'duration':
-        return sortedEvents.sort((a, b) => {
-          // Convert duration to days for comparison
-          const getDaysValue = (duration: Event['duration']) => {
-            switch (duration.unit) {
-              case 'days': return duration.value;
-              case 'weeks': return duration.value * 7;
-              case 'months': return duration.value * 30;
-              default: return duration.value;
-            }
-          };
-          
-          return getDaysValue(b.duration) - getDaysValue(a.duration);
-        });
-      default:
-        return sortedEvents;
-    }
-  };
-  
-  // Apply filtering and sorting
-  useEffect(() => {
-    let result = filterEvents(activeFilter, events);
-    result = sortEvents(result, sortBy);
-    setFilteredEvents(result);
-  }, [activeFilter, events, sortBy]);
-  
-  // Group events by month
-  const groupEventsByMonth = (eventsToGroup: Event[]) => {
-    const months: Record<string, Event[]> = {};
-    
-    // Get all months from the current date forward for the next year
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    
-    for (let i = 0; i < 12; i++) {
-      const monthIndex = (currentMonth + i) % 12;
-      const year = currentYear + Math.floor((currentMonth + i) / 12);
-      const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'long' });
-      months[monthName] = [];
-    }
-    
-    // Group events by month
-    eventsToGroup.forEach(event => {
-      const date = new Date(event.startDate);
-      const monthName = date.toLocaleString('en-US', { month: 'long' });
-      
-      if (months[monthName]) {
-        months[monthName].push(event);
-      }
-    });
-    
-    // Remove empty months
-    Object.keys(months).forEach(month => {
-      if (months[month].length === 0) {
-        delete months[month];
-      }
-    });
-    
-    return months;
-  };
-  
-  // Group events by month
-  const eventsByMonth = groupEventsByMonth(filteredEvents);
-  
-  // Handle filter change
-  const handleFilterChange = (filter: EventFilterType) => {
-    setActiveFilter(filter);
-  };
-  
-  // Handle sort change
-  const handleSortChange = (sort: string) => {
-    setSortBy(sort);
-  };
-  
-  // Handle filter button click
-  const handleFilterClick = () => {
-    // This would typically open a filter modal or dropdown
-    console.log('Filter button clicked');
-  };
-  
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <div className="text-purple-600 text-sm font-medium mb-2">Calendar</div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">Upcoming retreats</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique.
-        </p>
-      </div>
-      
-      <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-        <EventFilter
-          activeFilter={activeFilter}
-          onFilterChange={handleFilterChange}
-        />
-        
-        <EventControls
-          totalEvents={filteredEvents.length}
-          onSortChange={handleSortChange}
-          onFilterClick={handleFilterClick}
-        />
-      </div>
-      
-      {Object.keys(eventsByMonth).length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No events found matching your criteria.</p>
-        </div>
-      ) : (
-        Object.entries(eventsByMonth).map(([month, monthEvents]) => (
-          <EventMonthGroup
-            key={month}
-            month={month}
-            events={monthEvents}
-          />
-        ))
-      )}
-    </div>
-  );
-};
-
-// Event Detail Page Component
-interface EventDetailPageProps {
-  event: Event;
-  relatedEvents?: Event[];
-}
-
-export const EventDetailPage: React.FC<EventDetailPageProps> = ({
-  event,
-  relatedEvents = [],
-}) => {
-  if (!event) return null;
-  
-  // Format start date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-  
-  // Format duration for display
-  const formatDuration = (duration: Event['duration']) => {
-    if (duration.value === 1) {
-      return `${duration.value} ${duration.unit.slice(0, -1)}`;
-    }
-    return `${duration.value} ${duration.unit}`;
-  };
-  
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <Link href="/calendar" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8">
-        <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Back to Calendar
-      </Link>
-      
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">{event.title}</h1>
-          
-          {event.subtitle && (
-            <p className="text-xl text-gray-600 mb-4">{event.subtitle}</p>
-          )}
-          
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{formatDate(event.startDate)}</span>
-            </div>
-            
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{formatDuration(event.duration)}</span>
-            </div>
-            
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>{event.location}</span>
-            </div>
-            
-            {event.teacher && (
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span>Guided by {event.teacher}</span>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {event.imageUrl && (
-          <div className="relative aspect-video mb-8 rounded-lg overflow-hidden">
-            <Image
-              src={event.imageUrl}
-              alt={event.title}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-        )}
-        
-        <div className="prose prose-lg max-w-none mb-12">
-          <div dangerouslySetInnerHTML={{ __html: event.description }} />
-        </div>
-        
-        <div className="bg-gray-50 rounded-lg p-6 mb-12">
-          <h2 className="text-xl font-bold mb-4">Event Details</h2>
-          
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <div className="text-sm font-medium text-gray-600 mb-1">Date</div>
-              <div>{formatDate(event.startDate)}</div>
-            </div>
-            
-            <div>
-              <div className="text-sm font-medium text-gray-600 mb-1">Duration</div>
-              <div>{formatDuration(event.duration)}</div>
-            </div>
-            
-            <div>
-              <div className="text-sm font-medium text-gray-600 mb-1">Location</div>
-              <div>{event.location}</div>
-            </div>
-            
-            {event.teacher && (
-              <div>
-                <div className="text-sm font-medium text-gray-600 mb-1">Teacher</div>
-                <div>{event.teacher}</div>
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-6">
-            <button
-              className={`w-full py-3 rounded-md font-medium text-center ${
-                event.isSoldOut
-                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                  : 'bg-gray-900 text-white hover:bg-gray-800'
-              }`}
-              disabled={event.isSoldOut}
+          {/* Title and Description */}
+          <div
+            className="flex flex-col items-start w-full"
+            style={{ gap: '8px' }}
+          >
+            {/* Title */}
+            <h3
+              style={{
+                fontFamily: 'Avenir Next',
+                fontWeight: 600,
+                fontSize: '30px',
+                lineHeight: '38px',
+                color: '#000000'
+              }}
             >
-              {event.isSoldOut ? 'Sold Out' : 'Register Now'}
-            </button>
+              {event.title}
+            </h3>
+
+            {/* Subtitle */}
+            <p
+              style={{
+                fontFamily: 'Avenir Next',
+                fontWeight: 600,
+                fontSize: '16px',
+                lineHeight: '140%',
+                color: '#942017'
+              }}
+            >
+              {event.subtitle}
+            </p>
+
+            {/* Description */}
+            <p
+              style={{
+                fontFamily: 'Avenir Next',
+                fontWeight: 400,
+                fontSize: '16px',
+                lineHeight: '24px',
+                color: '#384250',
+                maxWidth: '758px'
+              }}
+            >
+              {event.description}
+            </p>
           </div>
+
+          {/* View Event Button */}
+          <button
+            onClick={() => window.location.href = event.eventUrl}
+            style={{
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '8px 12px',
+              gap: '4px',
+              background: '#7D1A13',
+              boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'Avenir Next',
+                fontWeight: 600,
+                fontSize: '14px',
+                lineHeight: '20px',
+                color: '#FFFFFF'
+              }}
+            >
+              View event
+            </span>
+          </button>
         </div>
-        
-        {relatedEvents.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">Other Upcoming Events</h2>
-            <div className="divide-y divide-gray-200">
-              {relatedEvents.map((relatedEvent) => (
-                <EventCard key={relatedEvent.id} event={relatedEvent} />
-              ))}
-            </div>
-          </div>
-        )}
+      </div>
+
+      {/* Divider - hidden on mobile */}
+      <div
+        className="hidden lg:block"
+        style={{
+          width: '1px',
+          height: '208px',
+          background: '#D2D6DB',
+          flexShrink: 0
+        }}
+      />
+
+      {/* Right side - Event Details */}
+      <div
+        className="flex flex-col items-start"
+        style={{
+          gap: '24px',
+          width: '100%',
+          maxWidth: '194px'
+        }}
+      >
+        {/* Location Type */}
+        <div
+          className="flex flex-row items-center"
+          style={{ gap: '8px' }}
+        >
+          <Flag size={16} color="#535862" strokeWidth={1.5} />
+          <span
+            style={{
+              fontFamily: 'Avenir Next',
+              fontWeight: 600,
+              fontSize: '18px',
+              lineHeight: '28px',
+              color: '#384250'
+            }}
+          >
+            {event.locationType}
+          </span>
+        </div>
+
+        {/* Date */}
+        <div
+          className="flex flex-row items-center"
+          style={{ gap: '8px' }}
+        >
+          <Calendar size={16} color="#535862" strokeWidth={1.5} />
+          <span
+            style={{
+              fontFamily: 'Avenir Next',
+              fontWeight: 600,
+              fontSize: '18px',
+              lineHeight: '28px',
+              color: '#384250'
+            }}
+          >
+            {event.date}
+          </span>
+        </div>
+
+        {/* Duration/Location */}
+        <div
+          className="flex flex-row items-center"
+          style={{ gap: '8px' }}
+        >
+          {event.locationType === 'Online' ? (
+            <Globe size={16} color="#535862" strokeWidth={1.5} />
+          ) : (
+            <MapPin size={16} color="#535862" strokeWidth={1.5} />
+          )}
+          <span
+            style={{
+              fontFamily: 'Avenir Next',
+              fontWeight: 600,
+              fontSize: '18px',
+              lineHeight: '28px',
+              color: '#384250'
+            }}
+          >
+            {event.duration}
+          </span>
+        </div>
       </div>
     </div>
   );
 };
 
-// Export all the components
-//export { EventCard, EventFilter, EventControls, EventMonthGroup, CalendarPage, EventDetailPage };
+// Main Component
+const CalendarPage = () => {
+  const [activeFilter, setActiveFilter] = useState<'all' | 'onsite' | 'online'>('all');
+
+  // Mock data - can be replaced with API call
+  const standardSectionData: StandardSectionData = {
+    tagline: 'CALENDAR',
+    title: 'Upcoming retreats',
+    description: 'Step away from the noise of the world. Join us in sacred space—at the Ashram or online—for retreats that awaken the Soul and illuminate the path to Truth.'
+  };
+
+  // Mock events data - can be replaced with API call
+  const eventsData: MonthGroup[] = [
+    {
+      month: 'December',
+      events: [
+        {
+          id: '1',
+          title: 'Become a Sevadhari',
+          subtitle: 'Live and Study at the Ashram',
+          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
+          imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400',
+          date: 'Dec 14th, 2024',
+          duration: '6 months',
+          locationType: 'Onsite',
+          location: 'Onsite',
+          eventUrl: '/events/become-sevadhari'
+        },
+        {
+          id: '2',
+          title: 'Shakti Saturation',
+          subtitle: 'Ashram Immersion program',
+          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
+          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+          date: 'Dec 14th, 2024',
+          duration: '6 months',
+          locationType: 'Onsite',
+          location: 'Onsite',
+          eventUrl: '/events/shakti-saturation'
+        },
+        {
+          id: '3',
+          title: "All's Well That Ends Well",
+          subtitle: 'Taught by Shunyamurti',
+          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
+          imageUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400',
+          date: 'Dec 14th, 2024',
+          duration: '3 days',
+          locationType: 'Online',
+          location: 'Online',
+          eventUrl: '/events/alls-well'
+        }
+      ]
+    },
+    {
+      month: 'January',
+      events: [
+        {
+          id: '4',
+          title: 'Shakti Saturation',
+          subtitle: 'Ashram Immersion program',
+          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
+          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+          date: 'Dec 14th, 2024',
+          duration: '6 months',
+          locationType: 'Onsite',
+          location: 'Onsite',
+          eventUrl: '/events/shakti-jan'
+        }
+      ]
+    },
+    {
+      month: 'February',
+      events: [
+        {
+          id: '5',
+          title: 'Shakti Saturation',
+          subtitle: 'Ashram Immersion program',
+          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
+          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+          date: 'Dec 14th, 2024',
+          duration: '6 months',
+          locationType: 'Onsite',
+          location: 'Onsite',
+          eventUrl: '/events/shakti-feb'
+        },
+        {
+          id: '6',
+          title: 'Name retreat',
+          subtitle: 'Taught by Shunyamurti',
+          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
+          imageUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400',
+          date: 'Dec 14th, 2024',
+          duration: '3 days',
+          locationType: 'Online',
+          location: 'Online',
+          eventUrl: '/events/name-retreat'
+        }
+      ]
+    }
+  ];
+
+  const filteredEvents = eventsData.map(monthGroup => ({
+    ...monthGroup,
+    events: monthGroup.events.filter(event => {
+      if (activeFilter === 'all') return true;
+      return event.locationType.toLowerCase() === activeFilter;
+    })
+  })).filter(monthGroup => monthGroup.events.length > 0);
+
+  const totalEvents = filteredEvents.reduce((acc, month) => acc + month.events.length, 0);
+
+  return (
+    <div className="w-full" style={{ backgroundColor: '#FAF8F1' }}>
+      {/* Standard Section */}
+      <StandardSection data={standardSectionData} />
+
+      {/* Calendar Section */}
+      <section
+        className="w-full flex flex-col items-center px-4 lg:px-16 pb-16"
+        style={{ backgroundColor: '#FAF8F1' }}
+      >
+        <div
+          className="w-full flex flex-col items-start"
+          style={{
+            maxWidth: '1312px',
+            gap: '24px'
+          }}
+        >
+          {/* Filter Buttons */}
+          <div
+            className="flex flex-col justify-center items-center w-full"
+            style={{ gap: '32px' }}
+          >
+            <div
+              className="flex flex-col items-center"
+              style={{
+                gap: '8px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid #E9EAEB'
+              }}
+            >
+              <div
+                style={{
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  padding: '0px',
+                  isolation: 'isolate',
+                  width: '238px',
+                  height: '40px',
+                  border: '1px solid #D5D7DA',
+                  boxShadow: 'inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                  filter: 'drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.05))',
+                  borderRadius: '8px'
+                }}
+              >
+                {/* View all */}
+                <button
+                  onClick={() => setActiveFilter('all')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '8px 16px',
+                    gap: '8px',
+                    flex: 1,
+                    height: '40px',
+                    background: activeFilter === 'all' ? '#7D1A13' : '#FFFFFF',
+                    borderRight: '1px solid #D5D7DA',
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px',
+                    fontFamily: 'Inter',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    lineHeight: '20px',
+                    color: activeFilter === 'all' ? '#FFFFFF' : '#414651',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  View all
+                </button>
+
+                {/* Onsite */}
+                <button
+                  onClick={() => setActiveFilter('onsite')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '8px 16px',
+                    gap: '8px',
+                    flex: 1,
+                    height: '40px',
+                    background: activeFilter === 'onsite' ? '#7D1A13' : '#FFFFFF',
+                    borderRight: '1px solid #D5D7DA',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    lineHeight: '20px',
+                    color: activeFilter === 'onsite' ? '#FFFFFF' : '#414651',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Onsite
+                </button>
+
+                {/* Online */}
+                <button
+                  onClick={() => setActiveFilter('online')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '8px 16px',
+                    gap: '8px',
+                    flex: 1,
+                    height: '40px',
+                    background: activeFilter === 'online' ? '#7D1A13' : '#FFFFFF',
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderTopRightRadius: '8px',
+                    borderBottomRightRadius: '8px',
+                    fontFamily: 'Inter',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    lineHeight: '20px',
+                    color: activeFilter === 'online' ? '#FFFFFF' : '#414651',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Online
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Event Count and Filters */}
+          <div
+            className="flex flex-col items-start w-full"
+            style={{ gap: '8px' }}
+          >
+            <div
+              className="flex flex-row items-center justify-between w-full"
+            >
+              {/* Left side - count */}
+              <span
+                style={{
+                  fontFamily: 'Avenir Next',
+                  fontWeight: 600,
+                  fontSize: '18px',
+                  lineHeight: '28px',
+                  color: '#111927'
+                }}
+              >
+                {totalEvents} events
+              </span>
+
+              {/* Right side - Sort and Filters */}
+              <div
+                className="flex flex-row items-center"
+                style={{ gap: '8px' }}
+              >
+                {/* Sort by button */}
+                <button
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    gap: '4px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontFamily: 'Avenir Next',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    lineHeight: '20px',
+                    color: '#535862'
+                  }}
+                >
+                  Sort by
+                </button>
+
+                {/* Filters button */}
+                <button
+                  style={{
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    gap: '4px',
+                    background: '#FFFFFF',
+                    border: '1px solid #D5D7DA',
+                    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontFamily: 'Avenir Next',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    lineHeight: '20px',
+                    color: '#414651'
+                  }}
+                >
+                  Filters
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Events List */}
+          <div
+            className="flex flex-col items-start w-full"
+            style={{ gap: '64px', marginTop: '32px' }}
+          >
+            {filteredEvents.map((monthGroup, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-start w-full"
+                style={{ gap: '32px' }}
+              >
+                {/* Month Header */}
+                <h2
+                  style={{
+                    fontFamily: 'Inter',
+                    fontWeight: 700,
+                    fontSize: '32px',
+                    lineHeight: '150%',
+                    color: '#000000'
+                  }}
+                >
+                  {monthGroup.month}
+                </h2>
+
+                {/* Month Events */}
+                <div
+                  className="flex flex-col items-start w-full"
+                  style={{ gap: '48px' }}
+                >
+                  {monthGroup.events.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default CalendarPage;

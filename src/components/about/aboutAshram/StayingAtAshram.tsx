@@ -64,7 +64,7 @@ const AshramRetreatsSection = () => {
 
         {/* CTA Button */}
         <div className="flex justify-center mt-8">
-          <button
+        <a href="/retreats/ashram"> <button
             style={{
               boxSizing: 'border-box',
               display: 'flex',
@@ -86,7 +86,7 @@ const AshramRetreatsSection = () => {
             }}
           >
             Browse onsite retreats
-          </button>
+          </button></a>
         </div>
       </div>
     </section>

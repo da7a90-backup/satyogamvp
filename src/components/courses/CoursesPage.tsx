@@ -15,15 +15,14 @@ export default function CoursesPage({ data }: any) {
 
 const introData = {
     leftPane: {
-      title: "A Personal Encounter with Shunyamurti",
+      title: "Prepare to Ascend to the Next Level of Your Spiritual Attainment",
       titleLineHeight: "120%"
     },
     rightPane: {
       type: 'paragraphs' as const,
       content: [
-"This retreat is a precious opportunity to receive initiation from Shunyamurti directly—an encounter that can shift your vibrational frequency immediately to the Presence of divine light and love. This in turn can bring full realization of your God-Self.",
-" Designed to open your heart and mind to be filled with the Light of the Supreme Real,",
-"these compact events also feature wisdom classes, meditation training, and optional meetings with an individual counselor.",
+"Welcome to Sat Yoga’s Online Courses portal. The once-hidden, initiatory teachings of our Wisdom School—long reserved for those at the Ashram—are now accessible to seekers around the world. Through these online trainings, our global sangha can receive the liberating knowledge that lights the path to Self-realization.",
+"Wherever you are, you can now receive the full dose of supreme understanding, distilled by Shunyamurti from his own illumination and comprehensive study of the world’s wisdom teachings and then integrated with advanced science and psychology. This unrivaled curriculum will help you build a foundation of clarity and power, based on proven principles, and establish your consciousness in its true nature.",
 ]
     }
   };
@@ -32,16 +31,28 @@ const introData = {
    heading: "testimonials",
    testimonials: [
     {
-      quote: "I've received so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-      name: 'Mandy',
-      location: 'UK',
-      avatar: '/testimonial.png'
+      quote: "Like so much of the wisdom that Shunyamurti abundantly shares with so much love, this meditation ‘course’ is profoundly simple, yet simply profound… Pure gold for the soul… Thank you from the depth of my Be-ing!",
+      name: 'Timothy',
+      location: 'Canada',
+      avatar: '/illustrations.png'
     },
     {
-      quote: "I've so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-      name: 'Mandy',
+      quote: "Gratitude in overload, I appreciate the guidance and feel much clearer on the path, more in tune with the ‘Self’ and being in ‘The now.’",
+      name: 'Marié',
+      location: 'South Africa',
+      avatar: '/illustrations.png'
+    },
+    {
+      quote: "Having been meditating for over 50 years now and not having a teacher I never felt I was really understanding meditation but since listening to Shunyamurti I have found real meaning. It’s changed my perception towards reality.",
+      name: 'Gordon',
       location: 'UK',
-      avatar: '/testimonial.png'
+      avatar: '/illustrations.png'
+    },
+    {
+      quote: "Sat Yoga is truth to me. Thank you for gracing my soul with your presence post Guru purnima. Love and peace from India.",
+      name: 'Hussain',
+      location: 'India',
+      avatar: '/illustrations.png'
     }
   ]
  };

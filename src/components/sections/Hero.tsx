@@ -1,6 +1,13 @@
 'use client';
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  videoUrl: string;
+  logoUrl: string;
+  logoAlt: string;
+  subtitle: string;
+}
+
+const HeroSection = ({ videoUrl, logoUrl, logoAlt, subtitle }: HeroSectionProps) => {
   const scrollToNext = () => {
     window.scrollTo({
       top: window.innerHeight + 120 + 700,
@@ -30,7 +37,7 @@ const HeroSection = () => {
         disablePictureInPicture
         webkit-playsinline="true"
       >
-        <source src="/HOMEPAGELOOP.mp4" type="video/mp4" />
+        <source src={videoUrl} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
@@ -51,8 +58,8 @@ const HeroSection = () => {
       >
         {/* Main Title Image */}
         <img
-          src="/satyogastylized.png"
-          alt="Sat Yoga"
+          src={logoUrl}
+          alt={logoAlt}
           className="mb-4 w-full h-auto"
           style={{
             maxWidth: '547px',
@@ -72,7 +79,7 @@ const HeroSection = () => {
             maxWidth: '640px'
           }}
         >
-          The Summit of Self-Realization
+          {subtitle}
         </p>
       </div>
 

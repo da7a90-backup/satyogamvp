@@ -1,8 +1,27 @@
 'use client';
-
 import Link from 'next/link';
 
-const WhoWeAreSection = () => {
+interface WhoWeAreSectionProps {
+  eyebrow: string;
+  heading: string;
+  content: string[];
+  buttonText: string;
+  buttonLink: string;
+  image: string;
+  imageAlt: string;
+  backgroundDecoration: string;
+}
+
+const WhoWeAreSection = ({
+  eyebrow,
+  heading,
+  content,
+  buttonText,
+  buttonLink,
+  image,
+  imageAlt,
+  backgroundDecoration
+}: WhoWeAreSectionProps) => {
   return (
     <section 
       className="relative w-full flex flex-col lg:flex-row items-center justify-between overflow-hidden"
@@ -11,7 +30,7 @@ const WhoWeAreSection = () => {
         minHeight: '816px',
         padding: '64px 16px',
         gap: '32px',
-        zIndex: 10 // Added z-index to prevent overlap
+        zIndex: 10
       }}
     >
       {/* Background Decorative Element */}
@@ -22,7 +41,7 @@ const WhoWeAreSection = () => {
           top: '-104px',
           width: '389px',
           height: '389px',
-          backgroundImage: 'url(/Inner Labyrinth.png)',
+          backgroundImage: `url(${backgroundDecoration})`,
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           zIndex: 0,
@@ -33,8 +52,8 @@ const WhoWeAreSection = () => {
       {/* Mobile: Image First, Desktop: Image on Left */}
       <div className="relative px-8 z-10 w-full lg:flex-1 lg:max-w-xl order-1 lg:order-1">
         <img
-          src="/1. HOME_Who We Are.jpg"
-          alt="Sat Yoga Community"
+          src={image}
+          alt={imageAlt}
           className="w-full h-auto object-cover rounded-xl mx-auto"
           style={{
             maxWidth: '636px',
@@ -66,7 +85,7 @@ const WhoWeAreSection = () => {
                 color: '#B8860B'
               }}
             >
-              WHO WE ARE
+              {eyebrow}
             </span>
           </div>
 
@@ -81,41 +100,32 @@ const WhoWeAreSection = () => {
               letterSpacing: '-1%'
             }}
           >
-            A Pathless Path to Self-Realization and Liberation
+            {heading}
           </h2>
 
           {/* Description Paragraphs */}
           <div className="space-y-4 mb-8">
-            <p 
-              className="text-gray-700"
-              style={{
-                fontFamily: 'Avenir Next, sans-serif',
-                fontSize: '16px',
-                lineHeight: '150%',
-                color: '#4A5568'
-              }}
-            >
-              The way and the goal of Sat Yoga is to live in oneness with the eternally present Absolute Real.
-            </p>
-            
-            <p 
-              className="text-gray-700"
-              style={{
-                fontFamily: 'Avenir Next, sans-serif',
-                fontSize: '16px',
-                lineHeight: '150%',
-                color: '#4A5568'
-              }}
-            >
-              To help seekers understand what that means, Sat Yoga has elaborated a user-friendly map of the hidden treasures of reality, encompassing the entire spectrum of consciousness. We have also developed empowering practices for taking command of the mind. We offer these online and at our ashram, a self-sustaining spiritual community in the pristine rural mountains of southern Costa Rica, where those seeking a shorter or longer retreat (or a permanent refuge) from this dying world can awaken latent powers and live joyously in Total Presence.
-            </p>
+            {content.map((paragraph, index) => (
+              <p 
+                key={index}
+                className="text-gray-700"
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '16px',
+                  lineHeight: '150%',
+                  color: '#4A5568'
+                }}
+              >
+                {paragraph}
+              </p>
+            ))}
           </div>
         </div>
 
         {/* Action Button */}
         <div className="text-center lg:text-left relative z-30">
           <Link
-            href="/about"
+            href={buttonLink}
             className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
             style={{
               backgroundColor: '#7D1A13',
@@ -124,7 +134,7 @@ const WhoWeAreSection = () => {
               fontWeight: 600
             }}
           >
-            Discover Sat Yoga
+            {buttonText}
           </Link>
         </div>
       </div>

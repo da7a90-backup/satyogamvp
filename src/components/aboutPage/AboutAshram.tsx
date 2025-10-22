@@ -36,15 +36,36 @@ export default function AboutAshramPage({ data }: any) {
         }
       ];
     
-const heroData = {tagline:"", background: "/ssi.jpg", heading: "", subtext: ""}
+const heroData = {tagline:"About", background: "/ssi.jpg", heading: "Our Ashram", subtext: "The Challenge of Interbeing"}
+
+const shunyamurtiVideoData = {
+  mediaPosition: 'top' as const,
+  topMedia: {
+    type: 'video' as const,
+    src: 'https://www.youtube.com/embed/1z4ryQt0duM?feature=shared', // Replace with actual video ID
+    thumbnail: '/shunyavideo.png',
+    aspectRatio: '16/9',
+    videoType: 'youtube' as const
+  },
+  leftPane: {
+    title: "" // Empty title, we just want the description
+  },
+  rightPane: {
+    type: 'paragraphs' as const,
+    gap: '16px',
+    content: [
+      "In this short video, recorded during a recent satsang, Shunyamurti explains some of the work of the community, and the vision for a network of flourishing self-sustaining, spiritual communities."
+    ]
+  }
+};
 return (
     <>
       <StandardHeroSection data={heroData} />
       <TwoPaneComponent data={ashramEndTimeData}/>
       <ImageCarouselSection data={images}/>
-      <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
+      <QuoteSection data={"Living in a serious transformational community is a great privilege and opportunity . . . and perhaps the ultimate rite of passage."} />
       <TwoPaneComponent data={spiritualTribeData}/>
-      <ShunyamurtiVideoSection/>
+      <TwoPaneComponent data={shunyamurtiVideoData}/>
       <BlogSection/>
       <AshramRetreatsSection/>
           </>

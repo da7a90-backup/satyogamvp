@@ -277,13 +277,13 @@ const Footer = () => {
             Quick Links
           </h3>
           <div className="flex flex-col gap-2">
-            <Link href="/about" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+            <Link href="/about/satyoga" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
               About
             </Link>
-            <Link href="/retreats" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+            <Link href="/retreats/online" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
               Retreats
             </Link>
-            <Link href="/teachings/free" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+            <Link href="/teachings" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
               Free Teachings
             </Link>
             <Link href="/membership" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>

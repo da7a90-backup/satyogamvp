@@ -41,7 +41,7 @@ return (
     <StandardHeroSection data={heroData}/>
     <TwoPaneComponent data={whyParticipateData}/>
     <RetreatCardsSection/>
-    <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
+    <QuoteSection data={"An ashram is designed to provide the ideal environment for opening the mind and heart to our Infinite Nature."} />
     <WhichRetreatSection/>
     <WhatWillYouEncounterSection/>
     <TestimonialCarousel data={testimonialCarouselData}/>

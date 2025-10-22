@@ -1,8 +1,27 @@
 'use client';
-
 import Link from 'next/link';
 
-const ShunyamurtiSection = () => {
+interface ShunyamurtiSectionProps {
+  eyebrow: string;
+  quote: string;
+  content: string[];
+  buttonText: string;
+  buttonLink: string;
+  image: string;
+  imageAlt: string;
+  backgroundDecoration: string;
+}
+
+const ShunyamurtiSection = ({
+  eyebrow,
+  quote,
+  content,
+  buttonText,
+  buttonLink,
+  image,
+  imageAlt,
+  backgroundDecoration
+}: ShunyamurtiSectionProps) => {
   return (
     <section 
       className="relative w-full flex flex-col lg:flex-row items-center justify-between overflow-hidden"
@@ -13,9 +32,7 @@ const ShunyamurtiSection = () => {
         gap: '32px'
       }}
     >
-      {/* Mobile: Image First, Desktop: Image on Right */}
       <div className="relative w-full px-8 lg:flex-1 lg:max-w-xl order-1 lg:order-2">
-        {/* Background Decorative Element */}
         <div 
           className="absolute hidden lg:block"
           style={{
@@ -23,7 +40,7 @@ const ShunyamurtiSection = () => {
             top: '-150px',
             width: '389px',
             height: '389px',
-            backgroundImage: 'url(/innerlab.png)',
+            backgroundImage: `url(${backgroundDecoration})`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             zIndex: 0,
@@ -32,8 +49,8 @@ const ShunyamurtiSection = () => {
         />
         
         <img
-          src="/shunyamurti-meditation.jpg"
-          alt="Shunyamurti in meditation"
+          src={image}
+          alt={imageAlt}
           className="relative z-10 w-full h-auto object-cover rounded-xl mx-auto"
           style={{
             maxWidth: '636px',
@@ -45,7 +62,6 @@ const ShunyamurtiSection = () => {
         />
       </div>
 
-      {/* Content Container */}
       <div 
         className="w-full lg:flex-1 lg:max-w-2xl order-2 lg:order-1"
         style={{
@@ -53,7 +69,6 @@ const ShunyamurtiSection = () => {
           margin: '0 auto'
         }}
       >
-        {/* Section Tag */}
         <div className="mb-6">
           <span 
             className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
@@ -62,11 +77,10 @@ const ShunyamurtiSection = () => {
               color: '#B8860B'
             }}
           >
-            SHUNYAMURTI
+            {eyebrow}
           </span>
         </div>
 
-        {/* Quote */}
         <blockquote 
           className="text-black mb-8"
           style={{
@@ -77,52 +91,29 @@ const ShunyamurtiSection = () => {
             letterSpacing: '-1%'
           }}
         >
-          "Love is what makes the impossible, inevitable."
+          "{quote}"
         </blockquote>
 
-        {/* Description Paragraphs */}
         <div className="space-y-6 mb-8">
-          <p 
-            className="text-gray-700"
-            style={{
-              fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              lineHeight: '150%',
-              color: '#4A5568'
-            }}
-          >
-            Shunyamurti is an uncanny, profound and life-transforming teacher whose wisdom is transmitted from the source of the infinite Self.
-          </p>
-          
-          <p 
-            className="text-gray-700"
-            style={{
-              fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              lineHeight: '150%',
-              color: '#4A5568'
-            }}
-          >
-            He has a unique ability to distill the essence of Eastern and Western wisdom, history, psychoanalysis, philosophy, and science to deliver the context needed to understand the human condition and interpret the meaning of the state of the world.
-          </p>
-
-          <p 
-            className="text-gray-700"
-            style={{
-              fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              lineHeight: '150%',
-              color: '#4A5568'
-            }}
-          >
-            Shunyamurti helps seekers awaken from illusion, anxiety, and suffering of every kind. Through deep meditation, self-inquiry, and the recognition of the unreal nature of the ego seekers experience the fullness of freedom, joy, and divine love.
-          </p>
+          {content.map((paragraph, index) => (
+            <p 
+              key={index}
+              className="text-gray-700"
+              style={{
+                fontFamily: 'Avenir Next, sans-serif',
+                fontSize: '16px',
+                lineHeight: '150%',
+                color: '#4A5568'
+              }}
+            >
+              {paragraph}
+            </p>
+          ))}
         </div>
 
-        {/* Action Button */}
         <div className="text-center lg:text-left">
           <Link
-            href="/about/shunyamurti"
+            href={buttonLink}
             className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
             style={{
               backgroundColor: '#7D1A13',
@@ -131,7 +122,7 @@ const ShunyamurtiSection = () => {
               fontWeight: 600
             }}
           >
-            Learn more
+            {buttonText}
           </Link>
         </div>
       </div>

@@ -30,44 +30,44 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   const defaultNavigation: MenuItem[] = [
     {
       label: 'About',
-      url: '/about',
+      url: '#',
       children: [
         {
           title: 'Sat Yoga',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          description: 'About Sat Yoga',
           url: '/about/satyoga',
         },
         {
           title: 'Shunyamurti',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          description: 'About Shunyamurt',
           url: '/about/shunyamurti',
         },
         {
           title: 'Our Ashram',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          description: 'About the Ashram',
           url: '/about/ashram',
         },
       ],
     },
     {
       label: 'Retreats',
-      url: '/retreats',
+      url: '#',
       children: [
         {
           title: 'Ashram Retreats',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          description: 'Our Onsite Retreats',
           url: '/retreats/ashram',
         },
         {
-          title: 'Online retreats',
-          description: 'Lorem ipsum dolor sit amet consectetur elit',
+          title: 'Online Retreats',
+          description: 'Our Online Retreats',
           url: '/retreats/online',
         },
       ],
     },
     {
       label: 'Learn Online',
-      url: '/learn-online',
+      url: '#',
       children: [
         {
           title: 'Free Teachings Library',
@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         {
           title: 'Courses',
           description: 'Dive deeper with structured learning opportunities.',
-          url: '/learn-online/courses',
+          url: '/courses',
         },
       ],
     },

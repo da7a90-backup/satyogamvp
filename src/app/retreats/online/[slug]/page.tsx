@@ -10,7 +10,7 @@ interface PageProps {
 
 export default function Page({ params }: PageProps) {
   const retreatData = onlineRetreatsData.find(
-    (retreat) => retreat.slug === params.slug
+    (retreat: { slug: string; }) => retreat.slug === params.slug
   );
 
   if (!retreatData) {
@@ -29,18 +29,20 @@ export default function Page({ params }: PageProps) {
     retreatType: 'online' as const,
     tagline: retreatData.bookingTagline,
     title: retreatData.title,
-    price: retreatData.price,
-    priceNote: retreatData.priceNote,
+    basePrice: retreatData.basePrice,
+    priceOptions: retreatData.priceOptions,
+    memberDiscountPercentage: retreatData.memberDiscountPercentage,
+    scholarshipAvailable: retreatData.scholarshipAvailable,
+    scholarshipDeadline: retreatData.scholarshipDeadline,
     fixedDate: retreatData.fixedDate,
     location: retreatData.location,
-    accessDescription: retreatData.accessDescription,
-    accessOptions: retreatData.accessOptions,
-    applicationUrl: retreatData.applicationUrl,
     images: retreatData.images,
     memberLabel: retreatData.memberLabel,
     memberOptions: retreatData.memberOptions,
     buttonText: retreatData.buttonText,
     buttonUrl: retreatData.buttonUrl,
+    infoButtonText: retreatData.infoButtonText,
+    infoButtonUrl: retreatData.infoButtonUrl,
     membershipText: retreatData.membershipText,
     membershipLink: retreatData.membershipLink,
     membershipLinkUrl: retreatData.membershipLinkUrl,
@@ -70,6 +72,11 @@ export default function Page({ params }: PageProps) {
   };
 
   const introData3 = {
+    mediaPosition: "top" as const,
+    topMedia: {
+      type: 'image' as const,
+      src: "/oras.jpg",
+    },
     leftPane: {
       title: retreatData.intro3Title,
       titleLineHeight: "120%"
@@ -106,7 +113,7 @@ export default function Page({ params }: PageProps) {
 }
 
 export async function generateStaticParams() {
-  return onlineRetreatsData.map((retreat) => ({
+  return onlineRetreatsData.map((retreat: { slug: any; }) => ({
     slug: retreat.slug,
   }));
 }

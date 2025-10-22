@@ -1,8 +1,27 @@
 'use client';
-
 import Link from 'next/link';
 
-const PlatformSection = () => {
+interface PlatformSectionProps {
+  eyebrow: string;
+  heading: string;
+  content: string;
+  buttonText: string;
+  buttonLink: string;
+  image: string;
+  imageAlt: string;
+  backgroundDecoration: string;
+}
+
+const PlatformSection = ({
+  eyebrow,
+  heading,
+  content,
+  buttonText,
+  buttonLink,
+  image,
+  imageAlt,
+  backgroundDecoration
+}: PlatformSectionProps) => {
   return (
     <section 
       className="relative w-full flex flex-col lg:flex-row items-center justify-between overflow-hidden"
@@ -13,7 +32,6 @@ const PlatformSection = () => {
         gap: '32px'
       }}
     >
-      {/* Content Container */}
       <div 
         className="w-full lg:flex-1 lg:max-w-2xl order-2 lg:order-1"
         style={{
@@ -21,7 +39,6 @@ const PlatformSection = () => {
           margin: '0 auto'
         }}
       >
-        {/* Section Tag */}
         <div className="mb-6">
           <span 
             className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
@@ -30,11 +47,10 @@ const PlatformSection = () => {
               color: '#B8860B'
             }}
           >
-            SAT YOGA ONLINE - SEAMLESS ACROSS ALL DEVICES
+            {eyebrow}
           </span>
         </div>
 
-        {/* Main Heading */}
         <h2 
           className="text-black mb-8"
           style={{
@@ -45,10 +61,9 @@ const PlatformSection = () => {
             letterSpacing: '-1%'
           }}
         >
-          Stay Connected to Wisdom Anytime, Anywhere
+          {heading}
         </h2>
 
-        {/* Description Paragraphs */}
         <div className="space-y-6 mb-8">
           <p 
             className="text-gray-700"
@@ -59,14 +74,13 @@ const PlatformSection = () => {
               color: '#4A5568'
             }}
           >
-            No matter where you are or what device you use, Sat Yoga's online platform seamlessly adapts. Our dashboard allows you to engage effortlessly with online retreats, courses, wisdom teachings, guided meditations, live classes, and enriching community discussions—ensuring your virtual connection to the source of wisdom can continue without interruption.
+            {content}
           </p>
         </div>
 
-        {/* Action Button */}
         <div className="text-center lg:text-left">
           <Link
-            href="/platform"
+            href={buttonLink}
             className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
             style={{
               backgroundColor: '#7D1A13',
@@ -75,22 +89,18 @@ const PlatformSection = () => {
               fontWeight: 600
             }}
           >
-            Start the journey
+            {buttonText}
           </Link>
         </div>
       </div>
 
-      {/* Mobile: Devices Second, Desktop: Devices on Right */}
       <div className="relative w-full px-2 lg:px-8 lg:flex-1 lg:max-w-xl order-1 lg:order-2">
-        
-        {/* Devices Container */}
         <div 
           className="relative flex items-center justify-center mx-auto h-60 lg:h-[620px]"
           style={{
             maxWidth: '636px'
           }}
         >
-          {/* Traced Background Image - Desktop positioned */}
           <div 
             className="absolute hidden lg:block"
             style={{
@@ -101,7 +111,7 @@ const PlatformSection = () => {
               height: '100%',
               maxWidth: '700px',
               maxHeight: '700px',
-              backgroundImage: 'url(/imagetraced.png)',
+              backgroundImage: `url(${backgroundDecoration})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
@@ -110,11 +120,10 @@ const PlatformSection = () => {
             }}
           />
 
-          {/* Platform Image */}
           <div className="relative z-10 w-full h-full flex items-center justify-center">
             <img
-              src="/platform.png"
-              alt="Sat Yoga platform"
+              src={image}
+              alt={imageAlt}
               className="w-max h-auto object-contain max-w-[500px] lg:max-w-[680px]"
               style={{
                 paddingRight: '20%',

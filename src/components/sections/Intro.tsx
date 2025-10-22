@@ -1,6 +1,11 @@
 'use client';
 
-const IntroSection = () => {
+interface IntroSectionProps {
+  backgroundImage: string;
+  heading: string;
+}
+
+const IntroSection = ({ backgroundImage, heading }: IntroSectionProps) => {
   return (
     <section 
       className="relative w-full flex flex-col justify-center items-center px-4 md:px-16 py-28 overflow-hidden m-0 -mt-px"
@@ -9,19 +14,17 @@ const IntroSection = () => {
         minHeight: '816px'
       }}
     >
-      {/* Background Natraj Image */}
       <div 
         className="absolute inset-0 flex items-center justify-center"
         style={{ zIndex: 0 }}
       >
         <img
-          src="/nataraj.png"
+          src={backgroundImage}
           alt="Nataraja"
           className="w-64 h-64 md:w-96 md:h-96 lg:w-[514px] lg:h-[519px] object-contain opacity-40"
         />
       </div>
 
-      {/* Content */}
       <div 
         className="relative z-10 max-w-4xl text-center"
         style={{ zIndex: 1 }}
@@ -37,11 +40,7 @@ const IntroSection = () => {
             textAlign: 'center'
           }}
         >
-          Discover timeless teachings,
-          <br />
-          transformative retreats, and a community
-          <br />
-          devoted to Truth
+          {heading}
         </h2>
       </div>
     </section>

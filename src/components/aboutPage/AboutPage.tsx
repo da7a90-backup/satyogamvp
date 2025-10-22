@@ -9,7 +9,7 @@ import ContactUsSection from "../shared/ContactUsSection";
 import StandardHeroSection from "../shared/Hero";
 
 export default function AboutPage({ data }: any) {
-    const heroData = {tagline:"", background: "/aboutbanner.jpg", heading: "", subtext: ""}
+    const heroData = {tagline:"About", background: "/aboutbanner.jpg", heading: "Sat Yoga", subtext: "Wisdom School"}
 
 return (
     <>
