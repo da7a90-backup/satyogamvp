@@ -1,7 +1,11 @@
 """
 Tilopay Payment Gateway Integration for Next.js/FastAPI.
 
-Based on Tilopay's jQuery integration adapted for server-side processing.
+Supports both:
+1. Embedded payments (in-page with JavaScript SDK)
+2. Redirect payments (hosted payment page)
+
+Based on Tilopay's jQuery/JavaScript integration.
 """
 
 import httpx
@@ -35,7 +39,7 @@ class TilopayService:
         # Generate SHA256 hash
         return hashlib.sha256(signature_string.encode()).hexdigest()
 
-    async def create_payment(
+    async def create_embedded_payment(
         self,
         amount: float,
         currency: str = "USD",
@@ -46,7 +50,10 @@ class TilopayService:
         metadata: Dict[str, Any] = None,
     ) -> Dict[str, Any]:
         """
-        Create a payment order with Tilopay.
+        Create an embedded payment session for in-page payment form.
+
+        This method returns payment data for the frontend to embed
+        Tilopay's payment form directly in the page.
 
         Args:
             amount: Payment amount
@@ -58,7 +65,78 @@ class TilopayService:
             metadata: Additional metadata
 
         Returns:
-            Dict with payment URL and order details
+            Dict with payment session data for frontend embedding
+        """
+        try:
+            # Prepare payment data
+            payment_data = {
+                "key": self.api_key,
+                "amount": f"{amount:.2f}",
+                "currency": currency,
+                "description": description,
+                "orderId": order_id or f"ORD-{datetime.utcnow().timestamp()}",
+            }
+
+            if customer_email:
+                payment_data["email"] = customer_email
+
+            if customer_name:
+                payment_data["name"] = customer_name
+
+            # Generate signature
+            payment_data["signature"] = self._generate_signature(payment_data)
+
+            # For embedded payments, we return the data for frontend
+            # The frontend will use Tilopay's JavaScript SDK
+            return {
+                "success": True,
+                "payment_data": {
+                    "key": self.api_key,
+                    "amount": payment_data["amount"],
+                    "currency": currency,
+                    "description": description,
+                    "orderId": payment_data["orderId"],
+                    "email": customer_email,
+                    "name": customer_name,
+                    "signature": payment_data["signature"],
+                },
+                "order_id": payment_data["orderId"],
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to create payment session",
+            }
+
+    async def create_redirect_payment(
+        self,
+        amount: float,
+        currency: str = "USD",
+        order_id: str = None,
+        description: str = "Sat Yoga Payment",
+        customer_email: str = None,
+        customer_name: str = None,
+        metadata: Dict[str, Any] = None,
+    ) -> Dict[str, Any]:
+        """
+        Create a redirect payment (hosted payment page).
+
+        This method returns a payment URL to redirect the user to Tilopay's
+        hosted payment page.
+
+        Args:
+            amount: Payment amount
+            currency: Currency code (USD, CRC, etc.)
+            order_id: Your internal order ID
+            description: Payment description
+            customer_email: Customer email
+            customer_name: Customer name
+            metadata: Additional metadata
+
+        Returns:
+            Dict with payment URL for redirect
         """
         try:
             # Prepare payment data

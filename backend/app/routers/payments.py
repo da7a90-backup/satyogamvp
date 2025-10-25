@@ -25,7 +25,11 @@ async def create_payment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Create a payment with Tilopay."""
+    """
+    Create an embedded payment session with Tilopay.
+
+    Returns payment data for frontend to embed Tilopay form in-page.
+    """
     # Validate payment type
     try:
         payment_type_enum = PaymentType(payment_type)
@@ -45,8 +49,8 @@ async def create_payment(
     db.commit()
     db.refresh(payment)
 
-    # Create Tilopay order
-    tilopay_response = await tilopay_service.create_payment(
+    # Create Tilopay embedded payment session
+    tilopay_response = await tilopay_service.create_embedded_payment(
         amount=amount,
         order_id=str(payment.id),
         description=description or f"{payment_type} payment",
@@ -63,15 +67,14 @@ async def create_payment(
         )
 
     # Update payment with Tilopay details
-    payment.tilopay_transaction_id = tilopay_response.get("transaction_id")
     payment.tilopay_order_id = tilopay_response.get("order_id")
-    payment.tilopay_response = tilopay_response.get("data")
+    payment.tilopay_response = tilopay_response.get("payment_data")
     db.commit()
 
     return {
         "payment_id": str(payment.id),
-        "payment_url": tilopay_response.get("payment_url"),
-        "transaction_id": tilopay_response.get("transaction_id"),
+        "payment_data": tilopay_response.get("payment_data"),
+        "order_id": tilopay_response.get("order_id"),
     }
 
 
