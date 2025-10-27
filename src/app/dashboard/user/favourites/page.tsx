@@ -39,7 +39,7 @@ export default async function FavouritesPage() {
     redirect('/login?callbackUrl=/dashboard/user/favourites');
   }
 
-  const accessToken = (session as any).accessToken;
+  const accessToken = (session.user as any).accessToken;
   const favorites = await getFavorites(accessToken);
 
   return <FavouritesClient favorites={favorites} />;

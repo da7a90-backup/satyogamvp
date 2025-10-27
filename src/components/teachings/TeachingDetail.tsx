@@ -63,7 +63,7 @@ export default function TeachingDetailPage({
     }
 
     try {
-      const token = (session as any)?.accessToken;
+      const token = (session as any)?.user?.accessToken;
       const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
 
       const response = await fetch(`${API_URL}/api/teachings/${data.id}/favorite`, {
@@ -77,6 +77,8 @@ export default function TeachingDetailPage({
       if (response.ok) {
         const result = await response.json();
         setIsFavorited(result.is_favorite);
+      } else {
+        console.error('Failed to toggle favorite:', response.status);
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -121,6 +123,10 @@ export default function TeachingDetailPage({
   const isDashboard = typeof window !== 'undefined' && window.location.pathname.includes('/dashboard');
   const effectivePreviewDuration = isDashboard && isAuthenticated ? dashPreviewDuration : previewDuration;
 
+  // Back link based on context
+  const backLink = isDashboard ? '/dashboard/user/library' : '/teachings';
+  const backText = isDashboard ? 'Back to Library' : 'Back to Teachings';
+
   // Get audio URLs
   const podbeanId = hasAudio ? data.podbean_ids![0] : null;
   const podbeanUrl = podbeanId ? `https://www.podbean.com/eu/pb-${podbeanId}` : null;
@@ -158,9 +164,9 @@ export default function TeachingDetailPage({
         <div className="flex gap-8">
           {/* Main Content Area */}
           <div className="flex-1 max-w-[900px]">
-            <Link href="/teachings" className="inline-flex items-center gap-2 text-sm text-[#717680] mb-6 hover:text-[#7D1A13] transition-colors">
+            <Link href={backLink} className="inline-flex items-center gap-2 text-sm text-[#717680] mb-6 hover:text-[#7D1A13] transition-colors">
               <ArrowLeft size={16} />
-              Back to Teachings
+              {backText}
             </Link>
 
             <div className="bg-white rounded-xl p-10 shadow-sm">
