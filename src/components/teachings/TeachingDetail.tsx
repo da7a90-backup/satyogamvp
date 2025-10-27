@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Lock, Bookmark, ArrowLeft, Download } from 'lucide-react';
+import { Lock, Heart, ArrowLeft, Download, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { TeachingData } from '@/types/Teachings';
+import VideoSelector, { MediaItem } from './VideoSelector';
+import YouTubePlayer from './YouTubePlayer';
+import { useSession } from 'next-auth/react';
 
 interface TeachingDetailPageProps {
   data: TeachingData;
@@ -44,32 +47,84 @@ export default function TeachingDetailPage({
   onSignupClick
 }: TeachingDetailPageProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<'description' | 'transcription' | 'audio' | 'comments'>('description');
   const [showPreviewEndModal, setShowPreviewEndModal] = useState(false);
   const [showRelatedVideoLoginModal, setShowRelatedVideoLoginModal] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isInWatchLater, setIsInWatchLater] = useState(false);
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+
+  // Toggle favorite
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      onLoginClick();
+      return;
+    }
+
+    try {
+      const token = (session as any)?.accessToken;
+      const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
+
+      const response = await fetch(`${API_URL}/api/teachings/${data.id}/favorite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setIsFavorited(result.is_favorite);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
+
+  // Build unified video array (YouTube + Cloudflare)
+  const allVideos: MediaItem[] = [
+    ...(data.youtube_ids || []).map((id, idx) => ({
+      type: 'youtube' as const,
+      id,
+      label: data.youtube_ids!.length > 1 ? `YouTube ${idx + 1}` : undefined
+    })),
+    ...(data.cloudflare_ids || []).map((id, idx) => ({
+      type: 'cloudflare' as const,
+      id,
+      label: data.cloudflare_ids!.length > 1 ? `Video ${idx + 1}` : undefined
+    }))
+  ];
 
   // Determine what content is available
-  const hasVideo = data.cloudflare_ids && data.cloudflare_ids.length > 0;
+  const hasYouTube = data.youtube_ids && data.youtube_ids.length > 0;
+  const hasCloudflare = data.cloudflare_ids && data.cloudflare_ids.length > 0;
+  const hasVideo = allVideos.length > 0;
+  const hasMultipleVideos = allVideos.length > 1;
+  const currentVideo = allVideos[selectedVideoIndex];
   const hasAudio = data.podbean_ids && data.podbean_ids.length > 0;
   const hasTranscription = !!data.content_text || !!data.transcription;
   const isEssay = data.content_type === 'essay';
   const isGuidedMeditation = data.content_type === 'guided_meditation';
-  
+
   const isLocked = !isAuthenticated && data.accessType === 'restricted';
   const isPreviewMode = !isAuthenticated && data.accessType === 'free';
 
-  // Get related videos - you'll need to pass all teachings from the parent
-  // For now, using empty array - you should pass this as a prop
+  // Get related videos
   const relatedVideos: TeachingData[] = relatedTeachings;
-  //@ts-ignore
-  const previewDuration = data.preview_duration/60;
+  // Database stores preview_duration in MINUTES, player needs SECONDS
+  const previewDuration = (data.preview_duration || 30) * 60;
+  const dashPreviewDuration = (data.dash_preview_duration || data.preview_duration || 60) * 60;
 
-  // Get video/audio URLs
-  const videoId = hasVideo ? data.cloudflare_ids![0] : null;
+  // Check if we're on dashboard
+  const isDashboard = typeof window !== 'undefined' && window.location.pathname.includes('/dashboard');
+  const effectivePreviewDuration = isDashboard && isAuthenticated ? dashPreviewDuration : previewDuration;
+
+  // Get audio URLs
   const podbeanId = hasAudio ? data.podbean_ids![0] : null;
   const podbeanUrl = podbeanId ? `https://www.podbean.com/eu/pb-${podbeanId}` : null;
-  
+
   // Get image URL
   const imageUrl = data.featured_media?.url || data.imageUrl || '';
 
@@ -128,36 +183,78 @@ export default function TeachingDetailPage({
                     <span>{new Date(data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                   </div>
                 </div>
-                <button onClick={() => setIsBookmarked(!isBookmarked)} className="p-3 hover:bg-gray-50 rounded-full transition-colors">
-                  <Bookmark size={24} fill={isBookmarked ? '#7D1A13' : 'none'} stroke={isBookmarked ? '#7D1A13' : '#717680'} />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleToggleFavorite}
+                    className="p-3 hover:bg-gray-50 rounded-full transition-colors"
+                    title="Add to favorites"
+                  >
+                    <Heart size={24} fill={isFavorited ? '#7D1A13' : 'none'} stroke={isFavorited ? '#7D1A13' : '#717680'} />
+                  </button>
+                  <button
+                    onClick={() => isAuthenticated ? setIsInWatchLater(!isInWatchLater) : onLoginClick()}
+                    className="p-3 hover:bg-gray-50 rounded-full transition-colors"
+                    title="Watch later"
+                  >
+                    <Clock size={24} fill={isInWatchLater ? '#7D1A13' : 'none'} stroke={isInWatchLater ? '#7D1A13' : '#717680'} />
+                  </button>
+                </div>
               </div>
 
               {/* Media Player */}
               {!isEssay && (
                 <div className="mb-8">
-                  {hasVideo && (
-    <VideoPlayer
-      videoId={videoId!}
-      title={data.title}
-      imageUrl={imageUrl}
-      isLoggedIn={isAuthenticated}
-      isPreviewMode={isPreviewMode}
-      previewDuration={previewDuration}
-      onPreviewEnd={() => setShowPreviewEndModal(true)}
-    />
-  )}
-  {!hasVideo && hasAudio && (
-    <AudioPlayer
-      podbeanId={podbeanId!}
-      podbeanUrl={podbeanUrl!}
-      title={data.title}
-      isLoggedIn={isAuthenticated}
-      isPreviewMode={isPreviewMode}
-      previewDuration={previewDuration}
-      onPreviewEnd={() => setShowPreviewEndModal(true)}
-    />
-  )}
+                  {/* Video Selector (if multiple videos) */}
+                  {hasMultipleVideos && (
+                    <VideoSelector
+                      videos={allVideos}
+                      selectedIndex={selectedVideoIndex}
+                      onSelect={setSelectedVideoIndex}
+                    />
+                  )}
+
+                  {/* Video Player */}
+                  {hasVideo && currentVideo && (
+                    <>
+                      {currentVideo.type === 'youtube' ? (
+                        <YouTubePlayer
+                          videoId={currentVideo.id}
+                          title={data.title}
+                          imageUrl={imageUrl}
+                          isLoggedIn={isAuthenticated}
+                          isPreviewMode={isPreviewMode}
+                          previewDuration={effectivePreviewDuration}
+                          onPreviewEnd={() => setShowPreviewEndModal(true)}
+                          isDashboard={isDashboard}
+                        />
+                      ) : (
+                        <VideoPlayer
+                          videoId={currentVideo.id}
+                          title={data.title}
+                          imageUrl={imageUrl}
+                          isLoggedIn={isAuthenticated}
+                          isPreviewMode={isPreviewMode}
+                          previewDuration={effectivePreviewDuration}
+                          onPreviewEnd={() => setShowPreviewEndModal(true)}
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {/* Audio Player (shows alongside video or standalone) */}
+                  {hasAudio && (
+                    <div className={hasVideo ? "mt-4" : ""}>
+                      <AudioPlayer
+                        podbeanId={podbeanId!}
+                        podbeanUrl={podbeanUrl!}
+                        title={data.title}
+                        isLoggedIn={isAuthenticated}
+                        isPreviewMode={isPreviewMode}
+                        previewDuration={effectivePreviewDuration}
+                        onPreviewEnd={() => setShowPreviewEndModal(true)}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -8,7 +8,8 @@ from datetime import datetime
 from ..core.database import get_db
 from ..core.deps import get_current_user, get_optional_user
 from ..models.user import User, MembershipTierEnum
-from ..models.teaching import Teaching, TeachingAccess, TeachingFavorite, AccessLevel
+from ..models.teaching import Teaching, TeachingAccess, TeachingFavorite, TeachingComment, AccessLevel
+from ..schemas.teaching import CommentCreate, CommentUpdate, CommentResponse, CommentListResponse
 from ..services import mixpanel_service
 
 router = APIRouter()
@@ -56,6 +57,21 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
                 "preview_duration": None,
             }
 
+    # Gyani teachings - for Gyani tier and above
+    if teaching.access_level == AccessLevel.GYANI:
+        if user.membership_tier in [MembershipTierEnum.GYANI, MembershipTierEnum.PRAGYANI, MembershipTierEnum.PRAGYANI_PLUS]:
+            return {
+                "can_access": True,
+                "access_type": "full",
+                "preview_duration": None,
+            }
+        else:
+            return {
+                "can_access": False,
+                "access_type": "none",
+                "preview_duration": None,
+            }
+
     # Pragyani teachings
     if teaching.access_level == AccessLevel.PRAGYANI:
         if user.membership_tier in [MembershipTierEnum.PRAGYANI, MembershipTierEnum.PRAGYANI_PLUS]:
@@ -98,7 +114,7 @@ async def get_teachings(
     category: Optional[str] = None,
     content_type: Optional[str] = None,
     skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=1000),  # Increased max limit for teachings page
     user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
@@ -111,8 +127,8 @@ async def get_teachings(
     if content_type:
         query = query.filter(Teaching.content_type == content_type)
 
-    # Get teachings
-    teachings = query.order_by(Teaching.published_date.desc()).offset(skip).limit(limit).all()
+    # Get teachings - order by id to get variety of content types
+    teachings = query.order_by(Teaching.id.desc()).offset(skip).limit(limit).all()
 
     # Process teachings based on user access
     result = []
@@ -138,15 +154,23 @@ async def get_teachings(
             "preview_duration": access_info["preview_duration"],
         }
 
-        # Only include URLs if user can access
+        # Only include URLs and player IDs if user can access
         if access_info["can_access"]:
             teaching_data["video_url"] = teaching.video_url
             teaching_data["audio_url"] = teaching.audio_url
             teaching_data["text_content"] = teaching.text_content
+            teaching_data["cloudflare_ids"] = teaching.cloudflare_ids if teaching.cloudflare_ids else []
+            teaching_data["podbean_ids"] = teaching.podbean_ids if teaching.podbean_ids else []
+            teaching_data["youtube_ids"] = teaching.youtube_ids if teaching.youtube_ids else []
+            teaching_data["dash_preview_duration"] = teaching.dash_preview_duration
         else:
             teaching_data["video_url"] = None
             teaching_data["audio_url"] = None
             teaching_data["text_content"] = None
+            teaching_data["cloudflare_ids"] = []
+            teaching_data["podbean_ids"] = []
+            teaching_data["youtube_ids"] = []
+            teaching_data["dash_preview_duration"] = None
 
         result.append(teaching_data)
 
@@ -211,15 +235,23 @@ async def get_teaching(
         "preview_duration": access_info["preview_duration"],
     }
 
-    # Only include URLs if user can access
+    # Only include URLs and player IDs if user can access
     if access_info["can_access"]:
         teaching_data["video_url"] = teaching.video_url
         teaching_data["audio_url"] = teaching.audio_url
         teaching_data["text_content"] = teaching.text_content
+        teaching_data["cloudflare_ids"] = teaching.cloudflare_ids if teaching.cloudflare_ids else []
+        teaching_data["podbean_ids"] = teaching.podbean_ids if teaching.podbean_ids else []
+        teaching_data["youtube_ids"] = teaching.youtube_ids if teaching.youtube_ids else []
+        teaching_data["dash_preview_duration"] = teaching.dash_preview_duration
     else:
         teaching_data["video_url"] = None
         teaching_data["audio_url"] = None
         teaching_data["text_content"] = None
+        teaching_data["cloudflare_ids"] = []
+        teaching_data["podbean_ids"] = []
+        teaching_data["youtube_ids"] = []
+        teaching_data["dash_preview_duration"] = None
 
     return teaching_data
 
@@ -287,3 +319,197 @@ async def get_favorites(
         })
 
     return {"favorites": result}
+
+
+@router.get("/history/list")
+async def get_watch_history(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get user's watch history (teachings they've accessed)."""
+    # Get unique teachings from teaching_accesses, ordered by most recent access
+    history = (
+        db.query(Teaching, TeachingAccess.accessed_at)
+        .join(TeachingAccess)
+        .filter(TeachingAccess.user_id == current_user.id)
+        .order_by(TeachingAccess.accessed_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    result = []
+    seen_ids = set()
+    for teaching, accessed_at in history:
+        # Skip duplicates (same teaching accessed multiple times)
+        if teaching.id in seen_ids:
+            continue
+        seen_ids.add(teaching.id)
+
+        access_info = user_can_access_teaching(current_user, teaching)
+        result.append({
+            "id": str(teaching.id),
+            "slug": teaching.slug,
+            "title": teaching.title,
+            "description": teaching.description,
+            "thumbnail_url": teaching.thumbnail_url,
+            "content_type": teaching.content_type.value,
+            "duration": teaching.duration,
+            "published_date": teaching.published_date,
+            "accessed_at": accessed_at,
+            "access_type": access_info["access_type"],
+        })
+
+    return {"history": result, "total": len(result)}
+
+
+@router.post("/{teaching_id}/comments", response_model=CommentResponse)
+async def create_comment(
+    teaching_id: str,
+    comment_data: CommentCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create a comment on a teaching."""
+    teaching = db.query(Teaching).filter(Teaching.id == teaching_id).first()
+    if not teaching:
+        raise HTTPException(status_code=404, detail="Teaching not found")
+
+    # Create comment
+    comment = TeachingComment(
+        user_id=current_user.id,
+        teaching_id=teaching_id,
+        parent_id=comment_data.parent_id,
+        content=comment_data.content,
+    )
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+
+    # Build response with user info
+    response = CommentResponse.from_orm(comment)
+    response.user_name = current_user.name
+    response.user_avatar = current_user.profile.avatar_url if current_user.profile else None
+    response.replies = []
+
+    return response
+
+
+@router.get("/{teaching_id}/comments", response_model=CommentListResponse)
+async def get_comments(
+    teaching_id: str,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """Get all comments for a teaching."""
+    teaching = db.query(Teaching).filter(Teaching.id == teaching_id).first()
+    if not teaching:
+        raise HTTPException(status_code=404, detail="Teaching not found")
+
+    # Get top-level comments (no parent)
+    comments = (
+        db.query(TeachingComment)
+        .filter(
+            TeachingComment.teaching_id == teaching_id,
+            TeachingComment.parent_id == None
+        )
+        .order_by(TeachingComment.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    # Build response with user info and replies
+    result = []
+    for comment in comments:
+        comment_data = CommentResponse.from_orm(comment)
+        comment_data.user_name = comment.user.name
+        comment_data.user_avatar = comment.user.profile.avatar_url if comment.user.profile else None
+
+        # Get replies
+        replies = (
+            db.query(TeachingComment)
+            .filter(TeachingComment.parent_id == comment.id)
+            .order_by(TeachingComment.created_at.asc())
+            .all()
+        )
+        comment_data.replies = [
+            CommentResponse(
+                **{
+                    **reply.__dict__,
+                    "user_name": reply.user.name,
+                    "user_avatar": reply.user.profile.avatar_url if reply.user.profile else None,
+                    "replies": []
+                }
+            )
+            for reply in replies
+        ]
+
+        result.append(comment_data)
+
+    total = db.query(TeachingComment).filter(
+        TeachingComment.teaching_id == teaching_id,
+        TeachingComment.parent_id == None
+    ).count()
+
+    return CommentListResponse(comments=result, total=total)
+
+
+@router.put("/{teaching_id}/comments/{comment_id}", response_model=CommentResponse)
+async def update_comment(
+    teaching_id: str,
+    comment_id: str,
+    comment_data: CommentUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update a comment."""
+    comment = db.query(TeachingComment).filter(
+        TeachingComment.id == comment_id,
+        TeachingComment.teaching_id == teaching_id
+    ).first()
+
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    if comment.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this comment")
+
+    comment.content = comment_data.content
+    db.commit()
+    db.refresh(comment)
+
+    response = CommentResponse.from_orm(comment)
+    response.user_name = current_user.name
+    response.user_avatar = current_user.profile.avatar_url if current_user.profile else None
+    response.replies = []
+
+    return response
+
+
+@router.delete("/{teaching_id}/comments/{comment_id}")
+async def delete_comment(
+    teaching_id: str,
+    comment_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete a comment."""
+    comment = db.query(TeachingComment).filter(
+        TeachingComment.id == comment_id,
+        TeachingComment.teaching_id == teaching_id
+    ).first()
+
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    if comment.user_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
+
+    db.delete(comment)
+    db.commit()
+
+    return {"message": "Comment deleted successfully"}

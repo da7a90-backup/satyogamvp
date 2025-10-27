@@ -1,72 +1,162 @@
-import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { data } from '@/lib/data';
-import type { Metadata } from 'next';
-import TeachingDetailPageClient from './TeachingDetailPageClient';
-import { RawData, transformAllTeachings } from '@/lib/teachingTransformer';
-import { TeachingData } from '@/types/Teachings';
+import { notFound } from 'next/navigation';
+import TeachingDetailPage from '@/components/teachings/TeachingDetail';
 
-// Transform raw data to TeachingData format for detail pages
-export const teachings: TeachingData[] = transformAllTeachings(data.data as RawData);
-
-export async function generateStaticParams() {
-  return teachings.map((teaching: { slug: any; }) => ({
-    slug: teaching.slug,
-  }));
+interface PageProps {
+  params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ 
-    params 
-  }: { 
-    params: Promise<{ slug: string }> 
-  }): Promise<Metadata> {
-    const { slug } = await params;
-    const teaching = teachings.find((t) => t.slug === slug);
-  
-    if (!teaching) {
-      return { title: 'Teaching Not Found' };
-    }
-  
-    // Get image URL safely
-    const imageUrl = teaching.featured_media?.url || teaching.imageUrl || '';
-  
-    return {
-      title: `${teaching.title} | Sat Yoga Institute`,
-      description: teaching.excerpt_text || teaching.summary || teaching.description,
-      openGraph: {
-        title: teaching.title,
-        description: teaching.excerpt_text || teaching.summary || teaching.description,
-        images: imageUrl ? [imageUrl] : [],
-        type: 'video.other',
+// Backend API teaching interface
+interface APITeaching {
+  id: string;
+  slug: string;
+  title: string;
+  description?: string;
+  content_type: 'VIDEO' | 'AUDIO' | 'TEXT' | 'MEDITATION' | 'ESSAY';
+  access_level: string;
+  thumbnail_url?: string;
+  duration?: number;
+  published_date: string;
+  category?: string;
+  tags?: string[];
+  can_access: boolean;
+  access_type: 'full' | 'preview' | 'none';
+  preview_duration?: number;
+  video_url?: string;
+  audio_url?: string;
+  text_content?: string;
+  cloudflare_ids?: string[];
+  podbean_ids?: string[];
+  view_count?: number;
+}
+
+async function getTeaching(slug: string): Promise<APITeaching | null> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/teachings/${slug}`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    };
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching teaching:', error);
+    return null;
+  }
+}
+
+// Fetch related teachings - 6 most recent from same category
+async function getRelatedTeachings(category: string, currentSlug: string): Promise<APITeaching[]> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/teachings?limit=100`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+
+    // API returns {teachings: [...], total: number} not a direct array
+    const teachings = data.teachings || data;
+
+    // Ensure teachings is an array
+    if (!Array.isArray(teachings)) {
+      console.error('[getRelatedTeachings] Expected array, got:', typeof teachings);
+      return [];
+    }
+
+    // Filter by same category and exclude current teaching
+    const sameCategory = teachings
+      .filter((t: APITeaching) => t.category === category && t.slug !== currentSlug)
+      .sort((a: APITeaching, b: APITeaching) =>
+        new Date(b.published_date).getTime() - new Date(a.published_date).getTime()
+      )
+      .slice(0, 6);
+
+    return sameCategory;
+  } catch (error) {
+    console.error('Error fetching related teachings:', error);
+    return [];
+  }
+}
+
+export default async function TeachingPage({ params }: PageProps) {
+  const { slug } = await params;
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session?.user;
+
+  // Fetch teaching from backend
+  const teaching = await getTeaching(slug);
+
+  if (!teaching) {
+    notFound();
   }
 
-  export default async function TeachingPage({ 
-    params 
-  }: { 
-    params: Promise<{ slug: string }> 
-  }) {
-    const { slug } = await params;
-    const session = await getServerSession(authOptions);
-    const isAuthenticated = !!session?.user;
-    const teaching = teachings.find((t: { slug: string; }) => t.slug === slug);
-  
-    if (!teaching) {
-      notFound();
-    }
-  
-    // Get related teachings
-    const relatedTeachings = teachings
-      .filter(t => t.content_type === teaching.content_type && t.id !== teaching.id)
-      .slice(0, 10);
-  
-    return (
-      <TeachingDetailPageClient
-        data={teaching}
-        relatedTeachings={relatedTeachings}
-        isAuthenticated={isAuthenticated}
-      />
-    );
-  }
+  // Fetch related teachings (6 most recent from same category)
+  const relatedTeachingsData = await getRelatedTeachings(teaching.category || '', teaching.slug);
+
+  // Transform main teaching to match expected format
+  // accessType: 'free' = can access without restrictions (logged in with permission OR preview mode)
+  // accessType: 'restricted' = locked, need to upgrade
+  const transformedTeaching = {
+    id: teaching.id,
+    slug: teaching.slug,
+    title: teaching.title,
+    description: teaching.description || '',
+    excerpt_text: teaching.description || '',
+    date: teaching.published_date,
+    content_type: teaching.content_type?.toLowerCase() || 'video_teaching',
+    accessType: teaching.can_access || teaching.access_type === 'preview' ? 'free' : 'restricted',
+    cloudflare_ids: teaching.cloudflare_ids || [],
+    podbean_ids: teaching.podbean_ids || [],
+    youtube_ids: teaching.youtube_ids || [],
+    preview_duration: teaching.preview_duration || 300,
+    content_text: teaching.text_content || '',
+    transcription: teaching.text_content || '',
+    featured_media: teaching.thumbnail_url ? { url: teaching.thumbnail_url } : null,
+    imageUrl: teaching.thumbnail_url || '',
+  };
+
+  // Transform related teachings to match expected format
+  const relatedTeachings = relatedTeachingsData.map((t) => ({
+    id: t.id,
+    slug: t.slug,
+    title: t.title,
+    description: t.description || '',
+    excerpt_text: t.description || '',
+    date: t.published_date,
+    content_type: t.content_type?.toLowerCase() || 'video_teaching',
+    accessType: t.can_access || t.access_type === 'preview' ? 'free' : 'restricted',
+    cloudflare_ids: t.cloudflare_ids || [],
+    podbean_ids: t.podbean_ids || [],
+    youtube_ids: t.youtube_ids || [],
+    preview_duration: t.preview_duration || 300,
+    content_text: t.text_content || '',
+    transcription: t.text_content || '',
+    featured_media: t.thumbnail_url ? { url: t.thumbnail_url } : null,
+    imageUrl: t.thumbnail_url || '',
+  }));
+
+  return (
+    <TeachingDetailPage
+      data={transformedTeaching}
+      relatedTeachings={relatedTeachings}
+      isAuthenticated={isLoggedIn}
+    />
+  );
+}
