@@ -39,7 +39,7 @@ export default async function HistoryPage() {
     redirect('/login?callbackUrl=/dashboard/user/history');
   }
 
-  const accessToken = (session.user as any).accessToken;
+  const accessToken = session.user.accessToken;
   const history = await getHistory(accessToken);
 
   return <HistoryClient history={history} />;

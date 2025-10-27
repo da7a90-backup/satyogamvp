@@ -63,7 +63,7 @@ export default function TeachingDetailPage({
     }
 
     try {
-      const token = (session as any)?.user?.accessToken;
+      const token = session?.user?.accessToken;
       const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
 
       const response = await fetch(`${API_URL}/api/teachings/${data.id}/favorite`, {

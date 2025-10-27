@@ -115,8 +115,8 @@ export default async function DashboardTeachingPage({
     redirect(`/login?callbackUrl=/dashboard/user/teachings/${slug}`);
   }
 
-  // Get user's access token (you may need to adjust based on your NextAuth setup)
-  const accessToken = (session as any).accessToken;
+  // Get user's access token
+  const accessToken = session.user.accessToken;
 
   // Fetch teaching
   const teaching = await getTeaching(slug, accessToken);
