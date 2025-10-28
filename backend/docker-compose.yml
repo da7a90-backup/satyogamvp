@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: satyoga_postgres
+    environment:
+      POSTGRES_USER: satyoga
+      POSTGRES_PASSWORD: satyoga_dev_password
+      POSTGRES_DB: satyoga_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

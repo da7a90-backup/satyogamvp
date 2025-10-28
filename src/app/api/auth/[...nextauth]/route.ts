@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
-import { NextResponse } from "next/server";
 
 // Auth options configuration
 export const authOptions: NextAuthOptions = {
@@ -18,38 +17,50 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Authenticate with Strapi
-          const authRes = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/auth/local`, {
+          // Authenticate with FastAPI backend
+          const authRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              identifier: credentials.email,
+              email: credentials.email,
               password: credentials.password,
             }),
           });
 
-          const authData = await authRes.json();
-          if (!authRes.ok) return null;
+          if (!authRes.ok) {
+            console.error("Authentication failed:", authRes.status);
+            return null;
+          }
 
-          // Get the user data with the isAdmin field
-          const userRes = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/users/me`, {
-            headers: { Authorization: `Bearer ${authData.jwt}` },
+          const authData = await authRes.json();
+
+          // Get user data using the access token
+          const userRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${authData.access_token}`,
+              "Content-Type": "application/json"
+            },
           });
 
-          if (!userRes.ok) return null;
-          
+          if (!userRes.ok) {
+            console.error("Failed to fetch user data:", userRes.status);
+            return null;
+          }
+
           const userData = await userRes.json();
-          console.log("User data from Strapi:", userData);
-          
-          // Use the isAdmin boolean field to determine role
-          const role = userData.isAdmin === true ? "admin" : "authenticated";
-          console.log(`User ${userData.email} assigned role based on isAdmin field:`, role);
+          console.log("User data from FastAPI:", userData);
+
+          // Determine role based on is_admin field
+          const role = userData.is_admin === true ? "admin" : "authenticated";
+          console.log(`User ${userData.email} assigned role:`, role);
 
           return {
             id: userData.id,
-            name: userData.username,
+            name: userData.name,
             email: userData.email,
-            jwt: authData.jwt,
+            accessToken: authData.access_token,
+            refreshToken: authData.refresh_token,
+            membershipTier: userData.membership_tier,
             role: role,
           };
         } catch (error) {
@@ -60,23 +71,28 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async jwt({ token, user }: any) {
       // Initial sign in
       if (user) {
         token.id = user.id;
-        token.jwt = user.jwt;
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.membershipTier = user.membershipTier;
         token.role = user.role;
 
-        console.log("JWT token created with role:", user.role);
-
+        console.log("JWT token created with role:", user.role, "tier:", user.membershipTier);
       }
       return token;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
       // Send properties to the client
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.jwt = token.jwt as string;
+        session.user.accessToken = token.accessToken as string;
+        session.user.refreshToken = token.refreshToken as string;
+        session.user.membershipTier = token.membershipTier as string;
         session.user.role = token.role as string;
       }
       return session;

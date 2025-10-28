@@ -128,7 +128,8 @@ export interface TextNode {
     audioUrl?: string;
     
     // Preview settings
-    preview_duration?: number; // in seconds
+    preview_duration?: number; // in minutes (public preview)
+    dash_preview_duration?: number; // in minutes (logged-in dashboard preview)
     hiddenTags?: string;
   }
   

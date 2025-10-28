@@ -1,17 +1,15 @@
 import CourseOverview from "@/components/dashboard/course/user/CourseOverview";
 
 interface CourseOverviewPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default function CourseOverviewPage({
+export default async function CourseOverviewPage({
   params,
-}: {
-  params: { slug: string };
-}) {
-  const { slug } = params;
+}: CourseOverviewPageProps) {
+  const { slug } = await params;
 
   return <CourseOverview slug={slug} isAuthenticated={true} />;
 }
