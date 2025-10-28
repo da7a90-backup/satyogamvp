@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Boolean, DateTime, Text, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String
+from ..core.db_types import UUID_TYPE, JSON_TYPE
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -10,6 +11,7 @@ from ..core.database import Base
 
 class MembershipTierEnum(str, enum.Enum):
     FREE = "free"
+    GYANI = "gyani"
     PRAGYANI = "pragyani"
     PRAGYANI_PLUS = "pragyani_plus"
 
@@ -17,7 +19,7 @@ class MembershipTierEnum(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
@@ -38,6 +40,8 @@ class User(Base):
     subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
     teaching_accesses = relationship("TeachingAccess", back_populates="user", cascade="all, delete-orphan")
     teaching_favorites = relationship("TeachingFavorite", back_populates="user", cascade="all, delete-orphan")
+    teaching_watch_later = relationship("TeachingWatchLater", back_populates="user", cascade="all, delete-orphan")
+    teaching_comments = relationship("TeachingComment", back_populates="user", cascade="all, delete-orphan")
     course_enrollments = relationship("CourseEnrollment", back_populates="user", cascade="all, delete-orphan")
     course_comments = relationship("CourseComment", back_populates="user", cascade="all, delete-orphan")
     retreat_registrations = relationship("RetreatRegistration", back_populates="user", cascade="all, delete-orphan")
@@ -51,13 +55,13 @@ class User(Base):
 class UserProfile(Base):
     __tablename__ = "user_profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
     phone = Column(String(50), nullable=True)
     address = Column(Text, nullable=True)
     bio = Column(Text, nullable=True)
     avatar_url = Column(String(500), nullable=True)
-    preferences = Column(JSONB, nullable=True, default={})
+    preferences = Column(JSON_TYPE, nullable=True, default={})
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

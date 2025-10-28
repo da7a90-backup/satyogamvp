@@ -118,6 +118,10 @@ export function ApplicationForm() {
       commitmentLength: "",
       agreesToSchedule: "",
       scheduleIssuesDetails: "",
+
+      // File uploads
+      photoFileName: "",
+      resumeFileName: "",
     }
   })
 

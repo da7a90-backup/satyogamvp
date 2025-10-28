@@ -25,7 +25,7 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
         - preview_duration: int (seconds) if preview
     """
     # Free teachings - everyone can access
-    if teaching.access_level == AccessLevel.FREE:
+    if teaching.access_level == 'free':
         return {
             "can_access": True,
             "access_type": "full",
@@ -41,7 +41,7 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
         }
 
     # Preview teachings - depends on membership
-    if teaching.access_level == AccessLevel.PREVIEW:
+    if teaching.access_level == 'preview':
         if user.membership_tier == MembershipTierEnum.FREE:
             # Free users get preview only
             return {
@@ -58,7 +58,7 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
             }
 
     # Gyani teachings - for Gyani tier and above
-    if teaching.access_level == AccessLevel.GYANI:
+    if teaching.access_level == 'gyani':
         if user.membership_tier in [MembershipTierEnum.GYANI, MembershipTierEnum.PRAGYANI, MembershipTierEnum.PRAGYANI_PLUS]:
             return {
                 "can_access": True,
@@ -73,7 +73,7 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
             }
 
     # Pragyani teachings
-    if teaching.access_level == AccessLevel.PRAGYANI:
+    if teaching.access_level == 'pragyani':
         if user.membership_tier in [MembershipTierEnum.PRAGYANI, MembershipTierEnum.PRAGYANI_PLUS]:
             return {
                 "can_access": True,
@@ -88,7 +88,7 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
             }
 
     # Pragyani+ teachings
-    if teaching.access_level == AccessLevel.PRAGYANI_PLUS:
+    if teaching.access_level == 'pragyani_plus':
         if user.membership_tier == MembershipTierEnum.PRAGYANI_PLUS:
             return {
                 "can_access": True,
@@ -140,8 +140,8 @@ async def get_teachings(
             "slug": teaching.slug,
             "title": teaching.title,
             "description": teaching.description,
-            "content_type": teaching.content_type.value,
-            "access_level": teaching.access_level.value,
+            "content_type": teaching.content_type,
+            "access_level": teaching.access_level,
             "thumbnail_url": teaching.thumbnail_url,
             "duration": teaching.duration,
             "published_date": teaching.published_date,
@@ -213,7 +213,7 @@ async def get_teaching(
             str(user.id),
             str(teaching.id),
             teaching.title,
-            teaching.content_type.value,
+            teaching.content_type,
         )
 
     teaching_data = {
@@ -221,8 +221,8 @@ async def get_teaching(
         "slug": teaching.slug,
         "title": teaching.title,
         "description": teaching.description,
-        "content_type": teaching.content_type.value,
-        "access_level": teaching.access_level.value,
+        "content_type": teaching.content_type,
+        "access_level": teaching.access_level,
         "thumbnail_url": teaching.thumbnail_url,
         "duration": teaching.duration,
         "published_date": teaching.published_date,

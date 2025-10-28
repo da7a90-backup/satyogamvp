@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String
+from ..core.db_types import UUID_TYPE, JSON_TYPE
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -25,15 +26,15 @@ class Application(Base):
     """Generic application form for retreats, scholarships, etc."""
     __tablename__ = "applications"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     type = Column(Enum(ApplicationType), nullable=False, index=True)
-    form_data = Column(JSONB, nullable=False)  # flexible form data storage
+    form_data = Column(JSON_TYPE, nullable=False)  # flexible form data storage
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.PENDING, nullable=False, index=True)
     notes = Column(Text, nullable=True)  # admin notes
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reviewed_at = Column(DateTime, nullable=True)
-    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    reviewed_by = Column(UUID_TYPE, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id])
@@ -44,7 +45,7 @@ class ContactSubmission(Base):
     """Contact form submissions."""
     __tablename__ = "contact_submissions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)
     topic = Column(String(255), nullable=True)

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Numeric, Text, Boolean, DateTime, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String
+from ..core.db_types import UUID_TYPE, JSON_TYPE
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -30,7 +31,7 @@ class RegistrationStatus(str, enum.Enum):
 class Retreat(Base):
     __tablename__ = "retreats"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     slug = Column(String(255), unique=True, nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
@@ -56,11 +57,11 @@ class RetreatPortal(Base):
     """Content/portal for online retreats."""
     __tablename__ = "retreat_portals"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    retreat_id = Column(UUID(as_uuid=True), ForeignKey("retreats.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    retreat_id = Column(UUID_TYPE, ForeignKey("retreats.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
-    content = Column(JSONB, nullable=True)  # videos, materials, sessions, etc.
+    content = Column(JSON_TYPE, nullable=True)  # videos, materials, sessions, etc.
     order_index = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -71,15 +72,15 @@ class RetreatPortal(Base):
 class RetreatRegistration(Base):
     __tablename__ = "retreat_registrations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    retreat_id = Column(UUID(as_uuid=True), ForeignKey("retreats.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    retreat_id = Column(UUID_TYPE, ForeignKey("retreats.id", ondelete="CASCADE"), nullable=False, index=True)
     access_type = Column(Enum(AccessType), nullable=True)  # for online retreats
-    payment_id = Column(UUID(as_uuid=True), ForeignKey("payments.id"), nullable=True)
+    payment_id = Column(UUID_TYPE, ForeignKey("payments.id"), nullable=True)
     registered_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     access_expires_at = Column(DateTime, nullable=True)  # for 12-day access
     status = Column(Enum(RegistrationStatus), default=RegistrationStatus.PENDING, nullable=False)
-    application_data = Column(JSONB, nullable=True)  # for onsite retreat applications
+    application_data = Column(JSON_TYPE, nullable=True)  # for onsite retreat applications
 
     # Relationships
     user = relationship("User", back_populates="retreat_registrations")

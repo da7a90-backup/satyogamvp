@@ -135,6 +135,7 @@ export default async function DashboardTeachingPage({
       isLoggedIn={true}
       userEmail={session.user.email || ''}
       userName={session.user.name || 'User'}
+      accessToken={accessToken}
     />
   );
 }

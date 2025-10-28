@@ -1,21 +1,32 @@
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 const STRAPI_API_TOKEN = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000'
 
-export async function submitApplication(data: FormData) {
+export async function submitApplication(data: any) {
   try {
-    const response = await fetch(`${STRAPI_URL}/api/retreat-applications`, {
+    // Get auth token from session if available
+    const authToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch(`${FASTAPI_URL}/forms/application`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${STRAPI_API_TOKEN}`,
-      },
-      body: JSON.stringify({ data }),
+      headers,
+      body: JSON.stringify({
+        type: 'retreat_onsite',
+        form_data: data,
+      }),
     })
 
     if (!response.ok) {
       const error = await response.json()
-      console.dir(error.error.details.errors)
-      throw new Error(error || 'Failed to submit application')
+      throw new Error(error.detail || 'Failed to submit application')
     }
 
     return await response.json()

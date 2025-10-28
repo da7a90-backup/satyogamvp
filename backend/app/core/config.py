@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     # Strapi
     STRAPI_URL: str = "http://localhost:1337"
     STRAPI_API_KEY: Optional[str] = None
+    STRAPI_API_TOKEN: Optional[str] = None
 
     # Analytics
     MIXPANEL_TOKEN: Optional[str] = None
@@ -54,10 +55,16 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:8000",
     ]
+    CORS_ORIGINS: Optional[str] = None
+
+    # API
+    API_V1_PREFIX: str = "/api"
+    PROJECT_NAME: str = "Sat Yoga Platform"
 
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # Ignore extra fields from .env
 
 
 settings = Settings()

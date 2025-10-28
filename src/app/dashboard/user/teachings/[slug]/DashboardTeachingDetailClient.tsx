@@ -9,6 +9,7 @@ interface DashboardTeachingDetailClientProps {
   isLoggedIn: boolean;
   userEmail: string;
   userName: string;
+  accessToken: string;
 }
 
 export default function DashboardTeachingDetailClient({
@@ -17,6 +18,7 @@ export default function DashboardTeachingDetailClient({
   isLoggedIn,
   userEmail,
   userName,
+  accessToken,
 }: DashboardTeachingDetailClientProps) {
   const router = useRouter();
 
@@ -41,6 +43,20 @@ export default function DashboardTeachingDetailClient({
       : null,
     imageUrl: teaching.thumbnail_url || '',
   };
+
+  // Debug logging
+  console.log('[DashboardTeachingDetailClient] Raw teaching from backend:', {
+    title: teaching.title,
+    cloudflare_ids: teaching.cloudflare_ids,
+    youtube_ids: teaching.youtube_ids,
+    can_access: teaching.can_access,
+  });
+  console.log('[DashboardTeachingDetailClient] Transformed teaching:', {
+    title: transformedTeaching.title,
+    cloudflare_ids: transformedTeaching.cloudflare_ids,
+    youtube_ids: transformedTeaching.youtube_ids,
+    accessType: transformedTeaching.accessType,
+  });
 
   // Transform related teachings
   const relatedTeachings = relatedTeachingsData.map((t: any) => ({
@@ -68,6 +84,7 @@ export default function DashboardTeachingDetailClient({
         data={transformedTeaching}
         relatedTeachings={relatedTeachings}
         isAuthenticated={isLoggedIn}
+        accessToken={accessToken}
         onLoginClick={() => router.push('/login')}
         onSignupClick={() => router.push('/signup')}
       />

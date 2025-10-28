@@ -2,8 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import StandardHeroSection from '@/components/shared/Hero';
 import TeachingLibrarySection from '@/components/shared/TeachingLibrary';
-import { prepareTeachingLibraryData } from '@/lib/teachingTransformer';
-import { data } from '@/lib/data';
+import { getTeachingsData } from '@/lib/teachings-api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -24,8 +23,8 @@ export default async function TeachingsPage() {
     subtext: "Explore a curated collection of teachings—videos, guided meditations, and essays—from our public offerings, along with a small taste of the exclusive content reserved for our Members Section."
   };
 
-  // Transform and prepare the teaching library data
-  const teachingLibraryData = prepareTeachingLibraryData(data.data, isLoggedIn);
+  // Fetch teachings data from backend API
+  const teachingLibraryData = await getTeachingsData(isLoggedIn);
 
   return (
     <>

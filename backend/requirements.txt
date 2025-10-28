@@ -31,12 +31,11 @@ sendgrid==6.11.0
 python-dateutil==2.8.2
 python-dotenv==1.0.0
 
-# CORS
-python-cors==1.0.0
+# CORS - Built into FastAPI, no package needed
 
-# Background Tasks
-celery==5.3.6
-redis==5.0.1
+# Background Tasks (Optional - not required for MVP)
+# celery==5.3.6
+# redis==5.0.1
 
 # Data Validation
 email-validator==2.1.0

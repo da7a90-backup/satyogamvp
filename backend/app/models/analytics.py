@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Numeric, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String
+from ..core.db_types import UUID_TYPE, JSON_TYPE
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -11,10 +12,10 @@ class AnalyticsEvent(Base):
     """Track analytics events from Mixpanel and other sources."""
     __tablename__ = "analytics_events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     event_name = Column(String(255), nullable=False, index=True)
-    event_properties = Column(JSONB, nullable=True, default={})
+    event_properties = Column(JSON_TYPE, nullable=True, default={})
     mixpanel_event_id = Column(String(255), nullable=True)
     ip_address = Column(String(50), nullable=True)
     user_agent = Column(String(500), nullable=True)
@@ -28,8 +29,8 @@ class UserAnalytics(Base):
     """Aggregated analytics for each user."""
     __tablename__ = "user_analytics"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
 
     # Financial metrics
     total_donations = Column(Numeric(10, 2), default=0, nullable=False)

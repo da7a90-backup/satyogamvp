@@ -1,20 +1,22 @@
 import ClassPage from "@/components/dashboard/course/user/ClassPage";
 
-export default function CourseClassPage({
+export default async function CourseClassPage({
   params,
 }: {
-  params: { slug: string; id: string };
+  params: Promise<{ slug: string; id: string }>;
 }) {
-  return <ClassPage courseSlug={params.slug} classId={params.id} />;
+  const { slug, id } = await params;
+  return <ClassPage courseSlug={slug} classId={id} />;
 }
 
 // Add metadata function for SEO
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string; id: string };
+  params: Promise<{ slug: string; id: string }>;
 }) {
   try {
+    await params;
     // You could fetch the class and course data here to generate dynamic metadata
     // For simplicity, we'll use a generic title
     return {

@@ -12,19 +12,22 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   // Check if user is already authenticated
   const session = await getServerSession(authOptions);
-  
+
   // If already logged in, redirect to dashboard
   if (session) {
     redirect('/dashboard');
   }
-  
+
+  // Await searchParams (Next.js 15 pattern)
+  const resolvedSearchParams = await searchParams;
+
   // Pass any query parameters as props (like redirectTo or registered=true)
-  const redirectTo = searchParams?.callbackUrl as string || '/dashboard';
-  const registered = searchParams?.registered === 'true';
+  const redirectTo = resolvedSearchParams?.callbackUrl as string || '/dashboard';
+  const registered = resolvedSearchParams?.registered === 'true';
   
   return (
     <div className="min-h-screen flex flex-col justify-center py-12">

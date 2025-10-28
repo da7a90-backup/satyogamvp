@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Text, Boolean, DateTime, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String
+from ..core.db_types import UUID_TYPE, JSON_TYPE
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -19,7 +20,7 @@ class EventType(str, enum.Enum):
 class Event(Base):
     __tablename__ = "events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     slug = Column(String(255), unique=True, nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
@@ -28,7 +29,7 @@ class Event(Base):
     end_datetime = Column(DateTime, nullable=True)
     location = Column(String(255), nullable=True)  # physical address or "online"
     is_recurring = Column(Boolean, default=False, nullable=False)
-    recurrence_rule = Column(JSONB, nullable=True)  # iCal RRULE format
+    recurrence_rule = Column(JSON_TYPE, nullable=True)  # iCal RRULE format
     max_participants = Column(Integer, nullable=True)
     is_published = Column(Boolean, default=True, nullable=False)
     thumbnail_url = Column(String(500), nullable=True)
@@ -43,10 +44,10 @@ class UserCalendar(Base):
     """User's personal calendar with their events."""
     __tablename__ = "user_calendars"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    event_id = Column(UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), nullable=True, index=True)
-    retreat_id = Column(UUID(as_uuid=True), ForeignKey("retreats.id", ondelete="CASCADE"), nullable=True, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_id = Column(UUID_TYPE, ForeignKey("events.id", ondelete="CASCADE"), nullable=True, index=True)
+    retreat_id = Column(UUID_TYPE, ForeignKey("retreats.id", ondelete="CASCADE"), nullable=True, index=True)
     custom_title = Column(String(500), nullable=True)  # if user wants custom name
     added_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reminded_at = Column(DateTime, nullable=True)

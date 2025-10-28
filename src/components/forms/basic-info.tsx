@@ -121,6 +121,7 @@ interface SectionProps {
 
 export function BasicInfoSection({ form }: SectionProps) {
     const [programDates, setProgramDates] = useState<ProgramDate[]>([])
+    const [photoFile, setPhotoFile] = useState<File | null>(null)
     const programType = form.watch('programType')
   
     const formatDate = (isoDate: string) => {
@@ -350,6 +351,115 @@ export function BasicInfoSection({ form }: SectionProps) {
             </FormItem>
           )}
         />
+      </div>
+
+      {/* Photo Upload Section */}
+      <div className="mt-8 pt-8 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Photo</h3>
+        <div className="space-y-4">
+          <div>
+            <FormLabel>Upload a recent photo*</FormLabel>
+            <div className="mt-2">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setPhotoFile(file)
+                    // Store filename in form
+                    form.setValue('photoFileName', file.name)
+                  }
+                }}
+                className="cursor-pointer"
+              />
+              {photoFile && (
+                <p className="mt-2 text-sm text-green-600">
+                  Selected: {photoFile.name}
+                </p>
+              )}
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Please upload a clear, recent photo of yourself (JPG, PNG, max 5MB)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Emergency Contact Section */}
+      <div className="mt-8 pt-8 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Emergency Contact Information</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="emergencyContact.name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Name*</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="emergencyContact.relationship"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Relationship*</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Spouse, Parent, Sibling" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="emergencyContact.phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Phone*</FormLabel>
+                <FormControl>
+                  <Input type="tel" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="emergencyContact.email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Email*</FormLabel>
+                <FormControl>
+                  <Input type="email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="emergencyContact.address"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Contact Address*</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </div>
   )
@@ -829,6 +939,8 @@ export function CovidPolicySection({ form }: SectionProps) {
   }
   
   export function SevadhariSection({ form }: SectionProps) {
+    const [resumeFile, setResumeFile] = useState<File | null>(null)
+
     return (
       <div className="space-y-6">
         <FormField
@@ -958,15 +1070,42 @@ export function CovidPolicySection({ form }: SectionProps) {
             <FormItem>
               <FormLabel>What experience, training, or certifications do you have in the areas you chose?*</FormLabel>
               <FormControl>
-                <Textarea 
+                <Textarea
                   className="min-h-[100px]"
-                  {...field} 
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Resume/CV Upload */}
+        <div className="pt-4">
+          <FormLabel>Upload your CV/Resume*</FormLabel>
+          <div className="mt-2">
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  setResumeFile(file)
+                  form.setValue('resumeFileName', file.name)
+                }
+              }}
+              className="cursor-pointer"
+            />
+            {resumeFile && (
+              <p className="mt-2 text-sm text-green-600">
+                Selected: {resumeFile.name}
+              </p>
+            )}
+          </div>
+          <p className="mt-1 text-sm text-gray-500">
+            Please upload your resume or CV (PDF, DOC, DOCX, max 5MB)
+          </p>
+        </div>
       </div>
     )
   }

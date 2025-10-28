@@ -41,9 +41,25 @@ interface TeachingLibraryData {
 // COMPONENT
 // ============================================================================
 
-const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
+interface TeachingLibrarySectionProps {
+  data: TeachingLibraryData;
+  showAllTeachings?: boolean; // If true, show all teachings (not limited to 9)
+  listFormat?: 'pagination' | 'infinite'; // Display format
+  userTier?: string; // For tier-based access control
+  isDashboard?: boolean; // Flag for dashboard-specific features
+}
+
+const TeachingLibrarySection = ({
+  data,
+  showAllTeachings = false,
+  listFormat = 'pagination',
+  userTier,
+  isDashboard = false,
+}: TeachingLibrarySectionProps) => {
   const [activeCategory, setActiveCategory] = useState(0);
   const [savedTeachings, setSavedTeachings] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12; // Show 12 teachings per page in pagination mode
 
   const toggleSave = (teachingId: string) => {
     setSavedTeachings(prev => {
@@ -60,14 +76,14 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
   // Filter teachings based on active category
   const filteredTeachings = useMemo(() => {
     const categoryKey = data.categories[activeCategory].key;
-    
+
     let filtered = data.allTeachings.filter(t => t.categoryType === categoryKey);
 
-    // If not logged in, prioritize free teachings and fill up to 9
-    if (!data.isLoggedIn) {
+    // If not logged in and not showing all teachings, prioritize free teachings and fill up to 9
+    if (!data.isLoggedIn && !showAllTeachings) {
       const freeTeachings = filtered.filter(t => t.accessType === 'free');
       const restrictedTeachings = filtered.filter(t => t.accessType === 'restricted');
-      
+
       // Take up to 9 teachings: prioritize free, then add restricted
       const limit = 9;
       if (freeTeachings.length >= limit) {
@@ -78,8 +94,29 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
       }
     }
 
+    // Dashboard: Show all teachings
     return filtered;
-  }, [activeCategory, data.allTeachings, data.isLoggedIn, data.categories]);
+  }, [activeCategory, data.allTeachings, data.isLoggedIn, data.categories, showAllTeachings]);
+
+  // Paginate teachings if in pagination mode
+  const paginatedTeachings = useMemo(() => {
+    if (!showAllTeachings || listFormat !== 'pagination') {
+      return filteredTeachings;
+    }
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredTeachings.slice(startIndex, endIndex);
+  }, [filteredTeachings, currentPage, itemsPerPage, showAllTeachings, listFormat]);
+
+  const totalPages = Math.ceil(filteredTeachings.length / itemsPerPage);
+
+  // Handlers for pagination
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of teachings grid
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <section 
@@ -88,19 +125,20 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
     >
       <div className="max-w-[1312px] mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h2
-            style={{
-              fontFamily: 'Optima, Georgia, serif',
-              fontSize: '24px',
-              fontWeight: 700,
-              lineHeight: '32px',
-              color: '#000000'
-            }}
-          >
-            {data.sectionTitle}
-          </h2>
-          {data.viewAllLink && (
+        {data.sectionTitle && (
+          <div className="flex justify-between items-center mb-8">
+            <h2
+              style={{
+                fontFamily: 'Optima, Georgia, serif',
+                fontSize: '24px',
+                fontWeight: 700,
+                lineHeight: '32px',
+                color: '#000000'
+              }}
+            >
+              {data.sectionTitle}
+            </h2>
+            {data.viewAllLink && (
             <button
               className="px-4 py-2.5 border rounded-lg hover:bg-gray-50 transition-colors"
               style={{
@@ -117,9 +155,11 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
             </button>
           )}
         </div>
+        )}
 
         {/* Featured Teaching Card - NOW CLICKABLE */}
-        <Link 
+        {!isDashboard && (
+        <Link
           href={`/teachings/${data.featuredTeaching.slug}`}
           className="bg-white border rounded-lg mb-8 overflow-hidden block hover:shadow-lg transition-shadow"
           style={{ borderColor: '#D2D6DB' }}
@@ -255,6 +295,7 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
             </div>
           </div>
         </Link>
+        )}
 
         {/* Category Tabs */}
         <div className="mb-8">
@@ -302,6 +343,11 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
             }}
           >
             {filteredTeachings.length} Items
+            {showAllTeachings && listFormat === 'pagination' && totalPages > 1 && (
+              <span style={{ color: '#717680', fontSize: '16px', marginLeft: '8px' }}>
+                (Page {currentPage} of {totalPages})
+              </span>
+            )}
           </p>
           <div className="flex gap-3">
             <button
@@ -336,20 +382,90 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
         </div>
 
         {/* Teaching Grid with Overlay */}
-        <div className="relative pb-[480px]">
+        <div className={`relative ${!data.isLoggedIn ? 'pb-[480px]' : ''}`}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredTeachings.map((teaching) => (
-              <TeachingCard 
-                key={teaching.id} 
+            {paginatedTeachings.map((teaching) => (
+              <TeachingCard
+                key={teaching.id}
                 teaching={teaching}
                 isSaved={savedTeachings.has(teaching.id)}
                 onToggleSave={() => toggleSave(teaching.id)}
+                isDashboard={isDashboard}
               />
             ))}
           </div>
 
+          {/* Pagination Controls */}
+          {showAllTeachings && listFormat === 'pagination' && totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-12">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#D5D7DA',
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#414651'
+                }}
+              >
+                Previous
+              </button>
+
+              <div className="flex gap-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  // Show first page, last page, current page, and pages around current
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className="w-10 h-10 rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: page === currentPage ? '#7D1A13' : '#FFFFFF',
+                          color: page === currentPage ? '#FFFFFF' : '#414651',
+                          border: page === currentPage ? 'none' : '1px solid #D5D7DA',
+                          fontFamily: 'Avenir Next, sans-serif',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {page}
+                      </button>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} className="flex items-center">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#D5D7DA',
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#414651'
+                }}
+              >
+                Next
+              </button>
+            </div>
+          )}
+
           {/* Login CTA Overlay */}
-          {!data.isLoggedIn && (
+          {!data.isLoggedIn && !isDashboard && (
             <div 
               className="absolute left-0 right-0 flex flex-col items-center px-4 lg:px-16"
               style={{
@@ -492,20 +608,27 @@ const TeachingLibrarySection = ({ data }: { data: TeachingLibraryData }) => {
 // TEACHING CARD COMPONENT - NOW CLICKABLE
 // ============================================================================
 
-const TeachingCard = ({ 
-  teaching, 
-  isSaved, 
-  onToggleSave 
-}: { 
-  teaching: Teaching; 
+const TeachingCard = ({
+  teaching,
+  isSaved,
+  onToggleSave,
+  isDashboard = false
+}: {
+  teaching: Teaching;
   isSaved: boolean;
   onToggleSave: () => void;
+  isDashboard?: boolean;
 }) => {
+  const teachingUrl = isDashboard
+    ? `/dashboard/user/teachings/${teaching.slug}`
+    : `/teachings/${teaching.slug}`;
+
   return (
-    <Link 
-      href={`/teachings/${teaching.slug}`}
+    <Link
+      href={teachingUrl}
       className="bg-white border rounded-lg overflow-hidden relative flex flex-col hover:shadow-lg transition-shadow"
       style={{ borderColor: '#D2D6DB' }}
+      data-testid="teaching-card"
     >
       {/* Thumbnail */}
       <div className="relative h-[202px]">

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Numeric, Text, Boolean, DateTime, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String
+from ..core.db_types import UUID_TYPE
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -27,7 +28,7 @@ class OrderStatus(str, enum.Enum):
 class Product(Base):
     __tablename__ = "products"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     slug = Column(String(255), unique=True, nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
@@ -35,7 +36,7 @@ class Product(Base):
     price = Column(Numeric(10, 2), nullable=False)
     digital_content_url = Column(String(500), nullable=True)
     thumbnail_url = Column(String(500), nullable=True)
-    retreat_id = Column(UUID(as_uuid=True), ForeignKey("retreats.id"), nullable=True)  # for portal access
+    retreat_id = Column(UUID_TYPE, ForeignKey("retreats.id"), nullable=True)  # for portal access
     is_available = Column(Boolean, default=True, nullable=False)
     stock_quantity = Column(Integer, nullable=True)  # for physical products
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -50,12 +51,12 @@ class Product(Base):
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     order_number = Column(String(50), unique=True, nullable=False, index=True)
     total_amount = Column(Numeric(10, 2), nullable=False)
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False, index=True)
-    payment_id = Column(UUID(as_uuid=True), ForeignKey("payments.id"), nullable=True)
+    payment_id = Column(UUID_TYPE, ForeignKey("payments.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -68,9 +69,9 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_items"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True)
-    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    order_id = Column(UUID_TYPE, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(UUID_TYPE, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
     quantity = Column(Integer, default=1, nullable=False)
     price_at_purchase = Column(Numeric(10, 2), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -84,10 +85,10 @@ class UserProductAccess(Base):
     """Tracks which products/content users have access to."""
     __tablename__ = "user_product_accesses"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(UUID_TYPE, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
+    order_id = Column(UUID_TYPE, ForeignKey("orders.id", ondelete="CASCADE"), nullable=True)
     granted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=True)  # for time-limited access
 

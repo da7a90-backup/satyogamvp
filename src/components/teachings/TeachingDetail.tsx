@@ -8,12 +8,12 @@ import Image from 'next/image';
 import { TeachingData } from '@/types/Teachings';
 import VideoSelector, { MediaItem } from './VideoSelector';
 import YouTubePlayer from './YouTubePlayer';
-import { useSession } from 'next-auth/react';
 
 interface TeachingDetailPageProps {
   data: TeachingData;
   relatedTeachings: TeachingData[];
   isAuthenticated: boolean;
+  accessToken?: string; // Optional, only provided in dashboard context
   onLoginClick: () => void;
   onSignupClick: () => void;
 }
@@ -43,17 +43,53 @@ export default function TeachingDetailPage({
   data,
   relatedTeachings,
   isAuthenticated,
+  accessToken,
   onLoginClick,
   onSignupClick
 }: TeachingDetailPageProps) {
   const router = useRouter();
-  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<'description' | 'transcription' | 'audio' | 'comments'>('description');
   const [showPreviewEndModal, setShowPreviewEndModal] = useState(false);
   const [showRelatedVideoLoginModal, setShowRelatedVideoLoginModal] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isInWatchLater, setIsInWatchLater] = useState(false);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+
+  // Check if teaching is favorited on mount
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!isAuthenticated || !accessToken) {
+        console.log('[TeachingDetail] Skipping favorite check - not authenticated or no token');
+        return;
+      }
+
+      console.log('[TeachingDetail] Checking favorite status with token:', accessToken.substring(0, 20) + '...');
+
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
+
+        const response = await fetch(`${API_URL}/api/teachings/favorites/list`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[TeachingDetail] Favorites list:', result);
+          const favoriteIds = result.favorites?.map((f: any) => f.id) || [];
+          setIsFavorited(favoriteIds.includes(data.id));
+        } else {
+          console.error('[TeachingDetail] Failed to fetch favorites:', response.status, await response.text());
+        }
+      } catch (error) {
+        console.error('[TeachingDetail] Error checking favorite status:', error);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [isAuthenticated, accessToken, data.id]);
 
   // Toggle favorite
   const handleToggleFavorite = async () => {
@@ -62,26 +98,34 @@ export default function TeachingDetailPage({
       return;
     }
 
+    if (!accessToken) {
+      console.error('[TeachingDetail] No access token available for toggle favorite');
+      return;
+    }
+
+    console.log('[TeachingDetail] Toggling favorite with token:', accessToken.substring(0, 20) + '...');
+
     try {
-      const token = session?.user?.accessToken;
       const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
 
       const response = await fetch(`${API_URL}/api/teachings/${data.id}/favorite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
       if (response.ok) {
         const result = await response.json();
+        console.log('[TeachingDetail] Toggle favorite result:', result);
         setIsFavorited(result.is_favorite);
       } else {
-        console.error('Failed to toggle favorite:', response.status);
+        const errorText = await response.text();
+        console.error('[TeachingDetail] Failed to toggle favorite:', response.status, errorText);
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      console.error('[TeachingDetail] Error toggling favorite:', error);
     }
   };
 
@@ -98,6 +142,17 @@ export default function TeachingDetailPage({
       label: data.cloudflare_ids!.length > 1 ? `Video ${idx + 1}` : undefined
     }))
   ];
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[TeachingDetail] Teaching data:', {
+      title: data.title,
+      cloudflare_ids: data.cloudflare_ids,
+      youtube_ids: data.youtube_ids,
+      allVideos: allVideos,
+      canAccess: data.accessType !== 'none',
+    });
+  }, [data]);
 
   // Determine what content is available
   const hasYouTube = data.youtube_ids && data.youtube_ids.length > 0;
@@ -546,6 +601,8 @@ const VideoPlayer: React.FC<{
           src={cloudflareUrl}
           title={title}
           className="w-full h-full"
+          style={{ border: 'none' }}
+          frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
@@ -769,13 +826,18 @@ const RelatedVideos: React.FC<{
 }> = ({ teachings, isLoggedIn, onLoginPrompt }) => {
   const router = useRouter();
 
+  // Check if we're on dashboard
+  const isDashboard = typeof window !== 'undefined' && window.location.pathname.includes('/dashboard');
+
   const handleVideoClick = (e: React.MouseEvent, teaching: TeachingData) => {
     e.preventDefault();
 
     if (!isLoggedIn && teaching.accessType === 'restricted') {
       onLoginPrompt();
     } else {
-      router.push(`/teachings/${teaching.slug}`);
+      // Navigate to dashboard version if we're already in dashboard, otherwise go to marketing page
+      const targetPath = isDashboard ? `/dashboard/user/teachings/${teaching.slug}` : `/teachings/${teaching.slug}`;
+      router.push(targetPath);
     }
   };
 

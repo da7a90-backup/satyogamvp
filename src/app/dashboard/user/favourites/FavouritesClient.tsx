@@ -22,11 +22,12 @@ export default function FavouritesClient({ favorites: initialFavorites }: Favour
   const [activeTab, setActiveTab] = useState<'video' | 'audio' | 'text'>('video');
   const [favorites, setFavorites] = useState(initialFavorites);
 
-  // Filter teachings by content type
+  // Filter teachings by content type (backend returns uppercase)
   const filteredTeachings = favorites.filter(teaching => {
-    if (activeTab === 'video') return teaching.content_type === 'video';
-    if (activeTab === 'audio') return teaching.content_type === 'audio';
-    if (activeTab === 'text') return teaching.content_type === 'essay';
+    const contentType = teaching.content_type?.toUpperCase();
+    if (activeTab === 'video') return contentType === 'VIDEO';
+    if (activeTab === 'audio') return contentType === 'AUDIO' || contentType === 'MEDITATION';
+    if (activeTab === 'text') return contentType === 'TEXT' || contentType === 'ESSAY';
     return true;
   });
 

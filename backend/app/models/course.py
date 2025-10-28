@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Numeric, Text, Boolean, DateTime, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String
+from ..core.db_types import UUID_TYPE, JSON_TYPE
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -25,7 +26,7 @@ class EnrollmentStatus(str, enum.Enum):
 class Instructor(Base):
     __tablename__ = "instructors"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False)
     bio = Column(Text, nullable=True)
     photo_url = Column(String(500), nullable=True)
@@ -39,12 +40,12 @@ class Instructor(Base):
 class Course(Base):
     __tablename__ = "courses"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     slug = Column(String(255), unique=True, nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     price = Column(Numeric(10, 2), nullable=True)
-    instructor_id = Column(UUID(as_uuid=True), ForeignKey("instructors.id"), nullable=True)
+    instructor_id = Column(UUID_TYPE, ForeignKey("instructors.id"), nullable=True)
     thumbnail_url = Column(String(500), nullable=True)
     is_published = Column(Boolean, default=False, nullable=False)
     difficulty_level = Column(String(50), nullable=True)  # beginner, intermediate, advanced
@@ -61,14 +62,14 @@ class Course(Base):
 class CourseClass(Base):
     __tablename__ = "course_classes"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    course_id = Column(UUID(as_uuid=True), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    course_id = Column(UUID_TYPE, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     order_index = Column(Integer, nullable=False)
     video_url = Column(String(500), nullable=True)
     duration = Column(Integer, nullable=True)  # seconds
-    materials = Column(JSONB, nullable=True, default=[])
+    materials = Column(JSON_TYPE, nullable=True, default=[])
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
@@ -80,8 +81,8 @@ class CourseClass(Base):
 class CourseComponent(Base):
     __tablename__ = "course_components"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    class_id = Column(UUID(as_uuid=True), ForeignKey("course_classes.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    class_id = Column(UUID_TYPE, ForeignKey("course_classes.id", ondelete="CASCADE"), nullable=False, index=True)
     type = Column(Enum(ComponentType), nullable=False)
     title = Column(String(500), nullable=False)
     content = Column(Text, nullable=True)  # URL for video/audio, markdown for text, etc.
@@ -95,12 +96,12 @@ class CourseComponent(Base):
 class CourseEnrollment(Base):
     __tablename__ = "course_enrollments"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    course_id = Column(UUID(as_uuid=True), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    course_id = Column(UUID_TYPE, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
     enrolled_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)
-    payment_id = Column(UUID(as_uuid=True), ForeignKey("payments.id"), nullable=True)
+    payment_id = Column(UUID_TYPE, ForeignKey("payments.id"), nullable=True)
     status = Column(Enum(EnrollmentStatus), default=EnrollmentStatus.ACTIVE, nullable=False)
 
     # Relationships
@@ -113,10 +114,10 @@ class CourseEnrollment(Base):
 class CourseProgress(Base):
     __tablename__ = "course_progress"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    enrollment_id = Column(UUID(as_uuid=True), ForeignKey("course_enrollments.id", ondelete="CASCADE"), nullable=False, index=True)
-    class_id = Column(UUID(as_uuid=True), ForeignKey("course_classes.id", ondelete="CASCADE"), nullable=False, index=True)
-    component_id = Column(UUID(as_uuid=True), ForeignKey("course_components.id", ondelete="CASCADE"), nullable=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    enrollment_id = Column(UUID_TYPE, ForeignKey("course_enrollments.id", ondelete="CASCADE"), nullable=False, index=True)
+    class_id = Column(UUID_TYPE, ForeignKey("course_classes.id", ondelete="CASCADE"), nullable=False, index=True)
+    component_id = Column(UUID_TYPE, ForeignKey("course_components.id", ondelete="CASCADE"), nullable=True)
     completed = Column(Boolean, default=False, nullable=False)
     progress_percentage = Column(Integer, default=0, nullable=False)  # 0-100
     last_accessed = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -130,10 +131,10 @@ class CourseProgress(Base):
 class CourseComment(Base):
     __tablename__ = "course_comments"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    course_id = Column(UUID(as_uuid=True), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
-    class_id = Column(UUID(as_uuid=True), ForeignKey("course_classes.id", ondelete="SET NULL"), nullable=True)
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    course_id = Column(UUID_TYPE, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
+    class_id = Column(UUID_TYPE, ForeignKey("course_classes.id", ondelete="SET NULL"), nullable=True)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
