@@ -66,6 +66,51 @@ async def get_faqs(
     ]
 
 
+@faq_router.get("/gallery")
+async def get_faq_gallery(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get FAQ page gallery images with CDN URLs"""
+
+    media_service = MediaService(db)
+
+    return {
+        "bannerImage": media_service.resolve_url("/FAQBanner.jpg"),
+        "galleryImages": [
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 1.jpg"),
+                "alt": "Guests arriving at ashram entrance"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 2.jpg"),
+                "alt": "Ashram buildings under starlit sky"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 3.jpg"),
+                "alt": "Person meditating by waterfall"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 4.jpg"),
+                "alt": "Meditation cushions in dharma hall"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 5.jpg"),
+                "alt": "Community members gathering in forest"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 6.jpg"),
+                "alt": "Person viewing sunset from balcony"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 7.jpg"),
+                "alt": "Mountain view at sunset"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 8.jpg"),
+                "alt": "Mountain view at sunset"
+            }
+        ]
+    }
+
+
 # =============================================================================
 # CONTACT ROUTER
 # =============================================================================
@@ -207,6 +252,37 @@ async def get_tier_pricing(
     }
 
 
+@membership_router.get("/hero")
+async def get_membership_hero(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get membership hero section content with CDN URLs for images"""
+
+    media_service = MediaService(db)
+
+    return {
+        "tagline": "MEMBERSHIP",
+        "heading": "A Revolutionary Approach to Living!",
+        "description": "Attain Freedom from anxiety, confusion, and weakness of will! With the support of our global spiritual community, and our life-changing information, you can complete your journey to Ultimate Liberation!",
+        "benefits": [
+            {
+                "iconPath": media_service.resolve_url("/Vector.png"),
+                "title": "Online Community",
+                "description": "Become a true spiritual pioneer by engaging in this innovative, interactive spiritual community of free thinkers from around the world. Wherever in this dream field your body may be, welcome back to your heart's ancient home."
+            },
+            {
+                "iconPath": media_service.resolve_url("/Vector1.png"),
+                "title": "Transformational Wisdom",
+                "description": "The teachings of Shunyamurti transmit more than information—they are packed with power! These awesome transmissions will free your soul and make your heart sing! These ego-exploding discourses, guided meditations, and intimate encounters will rip away the veil between you and God."
+            },
+            {
+                "iconPath": media_service.resolve_url("/Vector2.png"),
+                "title": "Support the Mission",
+                "description": "Sat Yoga depends on the generous love offerings of our global sangha. Your membership sustains the Sat Yoga Ashram and helps us fulfill the sacred mission to bring healing and liberating Truth to our suffering world."
+            }
+        ],
+        "mockupImage": media_service.resolve_url("/FrameDevices.png")
+    }
+
+
 # =============================================================================
 # DONATIONS ROUTER
 # =============================================================================
@@ -337,3 +413,39 @@ async def get_online_retreats(
         result.append(retreat_data)
 
     return {"retreats": result, "total": len(result)}
+
+
+# =============================================================================
+# COURSES PAGE CONTENT ROUTER
+# =============================================================================
+
+courses_page_router = APIRouter(prefix="/courses-page", tags=["Courses Page"])
+
+
+@courses_page_router.get("/content")
+async def get_courses_page_content(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get courses landing page content with CDN URLs for images"""
+
+    media_service = MediaService(db)
+
+    return {
+        "backgroundImage": media_service.resolve_url("/courseslanding.jpg"),
+        "instructors": [
+            {
+                "name": "Timothy",
+                "image": media_service.resolve_url("/Illustrations.png")
+            },
+            {
+                "name": "Marié",
+                "image": media_service.resolve_url("/Illustrations.png")
+            },
+            {
+                "name": "Gordon",
+                "image": media_service.resolve_url("/Illustrations.png")
+            },
+            {
+                "name": "Hussain",
+                "image": media_service.resolve_url("/Illustrations.png")
+            }
+        ]
+    }

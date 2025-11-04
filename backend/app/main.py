@@ -55,6 +55,7 @@ app.include_router(faq.router, prefix="/api", tags=["FAQs"])
 app.include_router(static_content.contact_router, prefix="/api", tags=["Contact"])
 app.include_router(static_content.membership_router, prefix="/api", tags=["Membership"])
 app.include_router(static_content.donations_router, prefix="/api", tags=["Donations"])
+app.include_router(static_content.courses_page_router, prefix="/api", tags=["Courses Page"])
 app.include_router(online_retreats.router, prefix="/api/online-retreats", tags=["Online Retreats"])
 
 

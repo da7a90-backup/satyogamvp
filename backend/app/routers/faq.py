@@ -202,3 +202,49 @@ async def get_faqs_by_category(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching FAQs: {str(e)}")
+
+
+@router.get("/faqs/gallery")
+async def get_faq_gallery(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get FAQ page gallery images with CDN URLs"""
+    from ..services.media_service import MediaService
+
+    media_service = MediaService(db)
+
+    return {
+        "bannerImage": media_service.resolve_url("/FAQBanner.jpg"),
+        "galleryImages": [
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 1.jpg"),
+                "alt": "Guests arriving at ashram entrance"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 2.jpg"),
+                "alt": "Ashram buildings under starlit sky"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 3.jpg"),
+                "alt": "Person meditating by waterfall"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 4.jpg"),
+                "alt": "Meditation cushions in dharma hall"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 5.jpg"),
+                "alt": "Community members gathering in forest"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 6.jpg"),
+                "alt": "Person viewing sunset from balcony"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 7.jpg"),
+                "alt": "Mountain view at sunset"
+            },
+            {
+                "url": media_service.resolve_url("/FAQ GALLERY 8.jpg"),
+                "alt": "Mountain view at sunset"
+            }
+        ]
+    }
