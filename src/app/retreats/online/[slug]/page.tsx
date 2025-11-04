@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation';
 import OnlineRetreatPage from '@/components/retreats/online/retreatPage/OnlineRetreatPage';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
 interface PageProps {
