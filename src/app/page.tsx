@@ -4,6 +4,8 @@ import HomePage from '@/components/homepage/Homepage';
 import { staticContentAPI } from '@/lib/static-content-api';
 
 // This is a server component that fetches data
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 export default async function Home() {
   try {
     console.log("Fetching homepage data from backend API...");

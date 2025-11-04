@@ -29,6 +29,8 @@ async function getEvents() {
 }
 
 // This is a server component that fetches events from the API
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 export default async function CalendarPageRoute() {
   const { events } = await getEvents();
 

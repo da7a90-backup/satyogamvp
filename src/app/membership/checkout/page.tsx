@@ -8,6 +8,8 @@ export const metadata: Metadata = {
 };
 
 // Server component that renders the client component
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 export default function MembershipCheckoutPage() {
   return <MembershipCheckoutClient />;
 }
