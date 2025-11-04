@@ -4,6 +4,8 @@ import AboutPage from '@/components/aboutPage/AboutPage';
 import { staticContentAPI } from '@/lib/static-content-api';
 
 // This is a server component that fetches data
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 export default async function About() {
   try {
     console.log("Fetching about/satyoga data from backend API...");

@@ -26,6 +26,8 @@ async function getBooks() {
 }
 
 // This is a server component that fetches data
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 export default async function AboutShunyamurti() {
   try {
     console.log("Fetching about/shunyamurti data from backend API...");

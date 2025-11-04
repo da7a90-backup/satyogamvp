@@ -36,6 +36,8 @@ export function generateMetadata({ params }: DonationCategoryPageProps): Metadat
   };
 }
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 export default function DonationCategoryPage({ params }: DonationCategoryPageProps) {
   const slug = params.category.toLowerCase();
   
