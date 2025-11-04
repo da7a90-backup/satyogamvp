@@ -31,6 +31,9 @@ mixpanel==4.10.1
 # Email
 sendgrid==6.11.0
 
+# Utils
+python-slugify==8.0.1
+
 # Utilities
 python-dateutil==2.8.2
 python-dotenv==1.0.0
