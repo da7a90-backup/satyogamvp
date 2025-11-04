@@ -75,31 +75,35 @@ const StandardSection = ({data}:{data:StandardSectionData}) => {
         </p>
 
         {/* CTA Button */}
-        <div className="flex justify-center mt-8">
-         <a href={data.ctabuttonurl}> <button
-            style={{
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '12px 24px',
-              gap: '6px',
-              background: '#7D1A13',
-              boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
-              borderRadius: '8px',
-              border: 'none',
-              fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              fontWeight: 600,
-              lineHeight: '24px',
-              color: '#FFFFFF',
-              cursor: 'pointer'
-            }}
-          >
-            {data.ctabuttontext}
-          </button></a>
-        </div>
+        {data.ctabuttontext && data.ctabuttonurl && (
+          <div className="flex justify-center mt-8">
+            <a href={data.ctabuttonurl}>
+              <button
+                style={{
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '12px 24px',
+                  gap: '6px',
+                  background: '#7D1A13',
+                  boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '24px',
+                  color: '#FFFFFF',
+                  cursor: 'pointer'
+                }}
+              >
+                {data.ctabuttontext}
+              </button>
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );

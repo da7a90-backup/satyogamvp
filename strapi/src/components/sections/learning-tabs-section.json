@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_sections_learning_tabs_sections",
+  "info": {
+    "displayName": "learningTabsSection"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "tabs": {
+      "displayName": "tab",
+      "type": "component",
+      "repeatable": true,
+      "component": "sections.tab"
+    }
+  }
+}

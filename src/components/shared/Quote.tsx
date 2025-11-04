@@ -1,7 +1,9 @@
 'use client';
 
 // Quote Section Component
-const QuoteSection = ({data}:{data:string}) => {
+const QuoteSection = ({data, backgroundDecoration}:{data:string; backgroundDecoration?:string}) => {
+  const labyrinthUrl = backgroundDecoration || 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public';
+
   return (
     <section 
       className="relative w-full flex flex-col items-center overflow-hidden py-16 lg:py-16 px-4 lg:px-16"
@@ -37,7 +39,7 @@ const QuoteSection = ({data}:{data:string}) => {
               height: '399px',
               left: '-200px',
               top: '-259px',
-              backgroundImage: 'url(/innerlab.png)',
+              backgroundImage: `url(${labyrinthUrl})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               transform: 'matrix(1, 0, 0, -1, 0, 0)',
@@ -71,7 +73,7 @@ const QuoteSection = ({data}:{data:string}) => {
               height: '399px',
               right: '-200px',
               top: '0px',
-              backgroundImage: 'url(/innerlab.png)',
+              backgroundImage: `url(${labyrinthUrl})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               transform: 'matrix(1, 0, 0, -1, 0, 0)',
@@ -88,7 +90,7 @@ const QuoteSection = ({data}:{data:string}) => {
               height: '299px',
               left: '-150px', // Adjusted position
               top: '-200px',
-              backgroundImage: 'url(/innerlab.png)',
+              backgroundImage: `url(${labyrinthUrl})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               transform: 'matrix(1, 0, 0, -1, 0, 0)',

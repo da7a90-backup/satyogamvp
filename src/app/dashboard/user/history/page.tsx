@@ -11,7 +11,11 @@ export const metadata = {
 async function getHistory(token: string) {
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
-    const response = await fetch(`${API_URL}/api/teachings/history/list?limit=100`, {
+    const url = `${API_URL}/api/teachings/history/list?limit=100`;
+    console.log('[Server] Fetching history from:', url);
+    console.log('[Server] Token:', token?.substring(0, 20) + '...');
+
+    const response = await fetch(url, {
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
@@ -19,15 +23,20 @@ async function getHistory(token: string) {
       },
     });
 
+    console.log('[Server] Response status:', response.status);
+
     if (!response.ok) {
-      console.error('Failed to fetch history:', response.status);
+      const errorText = await response.text();
+      console.error('[Server] Failed to fetch history:', response.status, errorText);
       return [];
     }
 
     const data = await response.json();
+    console.log('[Server] History data:', data);
+    console.log('[Server] History count:', data.history?.length || 0);
     return data.history || [];
   } catch (error) {
-    console.error('Error fetching history:', error);
+    console.error('[Server] Error fetching history:', error);
     return [];
   }
 }

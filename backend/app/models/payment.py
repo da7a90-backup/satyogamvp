@@ -28,7 +28,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)  # Nullable for anonymous donations
     amount = Column(Numeric(10, 2), nullable=False)
     currency = Column(String(3), default="USD", nullable=False)
     payment_method = Column(String(50), nullable=True)  # card, bank_transfer, etc.

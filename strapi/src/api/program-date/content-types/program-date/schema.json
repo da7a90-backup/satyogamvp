@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "program_dates",
+  "info": {
+    "singularName": "program-date",
+    "pluralName": "program-dates",
+    "displayName": "program-date"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "start_date": {
+      "type": "datetime"
+    },
+    "end_date": {
+      "type": "datetime"
+    },
+    "program": {
+      "type": "enumeration",
+      "enum": [
+        "shakti",
+        "sevadhari",
+        "darshan"
+      ]
+    },
+    "available_spots": {
+      "type": "integer"
+    },
+    "is_active": {
+      "type": "boolean"
+    }
+  }
+}

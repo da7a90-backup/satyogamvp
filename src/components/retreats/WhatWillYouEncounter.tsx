@@ -2,50 +2,34 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-const WhatWillYouEncounterSection = () => {
+interface Gallery {
+  id: string;
+  title: string;
+  images: Array<{ image: string; alt: string }>;
+}
+
+interface WhatWillYouEncounterProps {
+  galleries: Gallery[];
+}
+
+const WhatWillYouEncounterSection = ({ galleries }: WhatWillYouEncounterProps) => {
   const [selectedTab, setSelectedTab] = useState('Kitchen');
   const [currentKitchenImage, setCurrentKitchenImage] = useState(0);
   const [currentAccommodationImage, setCurrentAccommodationImage] = useState(0);
   const [currentCommunityImage, setCurrentCommunityImage] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const [isPaused, setIsPaused] = useState(false); // Add pause state
+  const [isPaused, setIsPaused] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Kitchen carousel images
-  const kitchenImages = [
-    { image: '/kitchen1.jpg', alt: 'Vegetarian meal preparation' },
-    { image: '/kitchen2.jpg', alt: 'Kitchen staff cooking' },
-    { image: '/kitchen3.jpg', alt: 'Fresh garden ingredients' },
-    { image: '/kitchen4.jpg', alt: 'Community dining' },
-    { image: '/kitchen5.jpg', alt: 'Community dining' },
-    { image: '/kitchen6.jpg', alt: 'Community dining' },
-    { image: '/kitchen7.jpg', alt: 'Community dining' },
-    { image: '/kitchen8.jpg', alt: 'Community dining' },
-    { image: '/kitchen9.jpg', alt: 'Community dining' }
-  ];
+  // Extract images from API galleries
+  const kitchenGallery = galleries.find(g => g.id === 'Kitchen');
+  const accommodationGallery = galleries.find(g => g.id === 'Accommodation');
+  const communityGallery = galleries.find(g => g.id === 'Community');
 
-  // Accommodation carousel images
-  const accommodationImages = [
-    { image: '/accom1.jpg', alt: 'Aerial view of ashram grounds' },
-    { image: '/accom2.jpg', alt: 'Traditional ashram building' },
-    { image: '/accom3.jpg', alt: 'Comfortable bedroom interior' },
-    { image: '/accom4.jpg', alt: 'Peaceful accommodation exterior' },
-    { image: '/accom5.jpg', alt: 'Peaceful accommodation exterior' },
-    { image: '/accom6.jpg', alt: 'Peaceful accommodation exterior' },
-    { image: '/accom7.jpg', alt: 'Peaceful accommodation exterior' }
-  ];
-
-  // Community carousel images
-  const communityImages = [
-    { image: '/community1.jpg', alt: 'Community gathering activities' },
-    { image: '/community2.jpg', alt: 'Meditation and spiritual practice' },
-    { image: '/community3.jpg', alt: 'Group music and celebration' },
-    { image: '/community4.jpg', alt: 'Community sharing time' },
-    { image: '/community5.jpg', alt: 'Community sharing time' },
-    { image: '/community6.jpg', alt: 'Community sharing time' },
-    { image: '/community7.jpg', alt: 'Community sharing time' }
-  ];
+  const kitchenImages = kitchenGallery?.images || [];
+  const accommodationImages = accommodationGallery?.images || [];
+  const communityImages = communityGallery?.images || [];
 
   // Auto-slide functionality - fixed to prevent stale state
   useEffect(() => {
@@ -215,7 +199,7 @@ const WhatWillYouEncounterSection = () => {
               >
                 Our vegetarian kitchen prepares every meal as a celebration of delight and vitality, with the freshest ingredients from our gardens, food forests, and local farms. Every morning, we harvest radiant greens, ripe vegetables, and nourishing roots, which are carefully prepared to infuse your body with prana-filled sustenance. Berries flourish in abundance, and fragrant herbs enhance every dish. What we do not yet grow ourselves, we source from trusted local farmers and markets, ensuring that every meal supports your physical renewal and psychospiritual transformation.
               </p>
-              <button
+{/*               <button
                 className="px-6 py-3 text-white rounded-lg font-medium transition-colors duration-300 hover:opacity-90"
                 style={{
                   backgroundColor: '#7D1A13',
@@ -224,7 +208,7 @@ const WhatWillYouEncounterSection = () => {
                 }}
               >
                 Discover our recipes
-              </button>
+              </button> */}
             </div>
           </div>
         );
@@ -285,7 +269,7 @@ const WhatWillYouEncounterSection = () => {
               >
                 The Sat Yoga Ashram is a meeting place for souls on the path of Truth beyond the grasp of the ego mind—a vibrant confluence of seekers from all over the world. Here, you will find yourself saturated by a morphic field of love, wisdom, and deep spiritual camaraderie, nurtured by the luminous presence of Shunyamurti and a dedicated sangha living in harmonious simplicity. Whether sharing in uplifting satsangs, engaging in profound conversations, or simply being held in silent resonance, you will feel supported in every stage of your healing and transmutation.
               </p>
-              <button
+  {/*             <button
                 className="px-6 py-3 text-white rounded-lg font-medium transition-colors duration-300 hover:opacity-90"
                 style={{
                   backgroundColor: '#7D1A13',
@@ -294,7 +278,7 @@ const WhatWillYouEncounterSection = () => {
                 }}
               >
                 Learn more
-              </button>
+              </button> */}
             </div>
           </div>
         );

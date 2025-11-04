@@ -28,10 +28,12 @@ class ApplicationResponse(BaseModel):
 
 class ContactSubmissionCreate(BaseModel):
     """Schema for creating a contact submission."""
-    name: str
+    firstName: str
+    lastName: str
     email: EmailStr
     topic: Optional[str] = None
     message: str
+    subscribeNewsletter: Optional[bool] = False
 
 
 class ContactSubmissionResponse(BaseModel):
@@ -45,3 +47,15 @@ class ContactSubmissionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class NewsletterSubscribeCreate(BaseModel):
+    """Schema for newsletter subscription."""
+    name: str
+    email: EmailStr
+
+
+class NewsletterSubscribeResponse(BaseModel):
+    """Schema for newsletter subscription response."""
+    message: str
+    id: UUID4

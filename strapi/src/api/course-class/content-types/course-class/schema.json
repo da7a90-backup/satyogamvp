@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "course_classes",
+  "info": {
+    "singularName": "course-class",
+    "pluralName": "course-classes",
+    "displayName": "CourseClass",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "orderIndex": {
+      "type": "integer",
+      "min": 1
+    },
+    "duration": {
+      "type": "biginteger"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "course_classes"
+    },
+    "content": {
+      "displayName": "class_content",
+      "type": "component",
+      "repeatable": false,
+      "component": "content.class-content",
+      "required": true
+    },
+    "description": {
+      "type": "richtext"
+    }
+  }
+}

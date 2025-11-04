@@ -1,0 +1,1833 @@
+
+> satyogamvp@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.0.3
+   - Local:        http://localhost:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1271ms
+ ○ Compiling / ...
+ ✓ Compiled / in 3.1s (759 modules)
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+ ✓ Compiled in 336ms (353 modules)
+ ✓ Compiled in 35ms (339 modules)
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: '/satyogawhitelogo.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: '{"Access profound teachings, transformative practices, and live events from the comfort of your home.","Join a global community of seekers dedicated to spiritual awakening."}',
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    image: '/8. HOME_Ashram.jpg',
+    imageAlt: 'Sat Yoga Ashram',
+    secondaryImages: [
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/60661855-72c0-44de-c201-c5c16a67da00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/ea3d1ca6-1e7e-4a9a-b85c-f53fb6babf00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/48f093b3-6cb4-45ac-8d7a-8d53bc27d900/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/22c8d6bd-cf91-4fc3-ca91-2d9cc98dcb00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/59ea1429-d725-44ef-22dd-415d8750f400/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/1fa1af5c-f084-4648-64b3-b61d96c00e00/public'
+    ],
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: '/satyogawhitelogo.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: '{"Access profound teachings, transformative practices, and live events from the comfort of your home.","Join a global community of seekers dedicated to spiritual awakening."}',
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    image: '/8. HOME_Ashram.jpg',
+    imageAlt: 'Sat Yoga Ashram',
+    secondaryImages: [
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/60661855-72c0-44de-c201-c5c16a67da00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/ea3d1ca6-1e7e-4a9a-b85c-f53fb6babf00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/48f093b3-6cb4-45ac-8d7a-8d53bc27d900/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/22c8d6bd-cf91-4fc3-ca91-2d9cc98dcb00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/59ea1429-d725-44ef-22dd-415d8750f400/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/1fa1af5c-f084-4648-64b3-b61d96c00e00/public'
+    ],
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ GET / 500 in 3666ms
+ ⨯ src/components/sections/LearningTabs.tsx (125:24) @ map
+ ⨯ TypeError: description.map is not a function
+    at LearnOnlineSection (./src/components/sections/LearningTabs.tsx:122:47)
+digest: "774529421"
+  123 |
+  124 |         <div className="text-center space-y-6">
+> 125 |           {description.map((paragraph, index) => (
+      |                        ^
+  126 |             <p 
+  127 |               key={index}
+  128 |               className="text-gray-700"
+ ⨯ src/components/sections/LearningTabs.tsx (125:24) @ map
+ ⨯ TypeError: description.map is not a function
+    at LearnOnlineSection (./src/components/sections/LearningTabs.tsx:122:47)
+digest: "774529421"
+  123 |
+  124 |         <div className="text-center space-y-6">
+> 125 |           {description.map((paragraph, index) => (
+      |                        ^
+  126 |             <p 
+  127 |               key={index}
+  128 |               className="text-gray-700"
+ GET / 500 in 1073ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1909ms (739 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1976ms
+ GET /satyogawhitelogo.svg 404 in 798ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: '/satyogawhitelogo.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: [
+      'Access profound teachings, transformative practices, and live events from the comfort of your home.',
+      'Join a global community of seekers dedicated to spiritual awakening.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    image: '/8. HOME_Ashram.jpg',
+    imageAlt: 'Sat Yoga Ashram',
+    secondaryImages: [
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/60661855-72c0-44de-c201-c5c16a67da00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/ea3d1ca6-1e7e-4a9a-b85c-f53fb6babf00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/48f093b3-6cb4-45ac-8d7a-8d53bc27d900/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/22c8d6bd-cf91-4fc3-ca91-2d9cc98dcb00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/59ea1429-d725-44ef-22dd-415d8750f400/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/1fa1af5c-f084-4648-64b3-b61d96c00e00/public'
+    ],
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/Ashram.tsx (37:25) @ main
+ ⨯ TypeError: Cannot read properties of undefined (reading 'main')
+    at AshramSection (./src/components/sections/Ashram.tsx:26:41)
+digest: "935998234"
+  35 |         <div className="mb-4">
+  36 |           <img
+> 37 |             src={images.main}
+     |                         ^
+  38 |             alt="Sat Yoga Ashram in Costa Rica"
+  39 |             className="w-full h-auto object-cover rounded-xl mx-auto"
+  40 |             style={{
+ GET / 500 in 144ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: '/satyogawhitelogo.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: [
+      'Access profound teachings, transformative practices, and live events from the comfort of your home.',
+      'Join a global community of seekers dedicated to spiritual awakening.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    image: '/8. HOME_Ashram.jpg',
+    imageAlt: 'Sat Yoga Ashram',
+    secondaryImages: [
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/60661855-72c0-44de-c201-c5c16a67da00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/ea3d1ca6-1e7e-4a9a-b85c-f53fb6babf00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/48f093b3-6cb4-45ac-8d7a-8d53bc27d900/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/22c8d6bd-cf91-4fc3-ca91-2d9cc98dcb00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/59ea1429-d725-44ef-22dd-415d8750f400/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/1fa1af5c-f084-4648-64b3-b61d96c00e00/public'
+    ],
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/Ashram.tsx (37:25) @ main
+ ⨯ TypeError: Cannot read properties of undefined (reading 'main')
+    at AshramSection (./src/components/sections/Ashram.tsx:26:41)
+digest: "935998234"
+  35 |         <div className="mb-4">
+  36 |           <img
+> 37 |             src={images.main}
+     |                         ^
+  38 |             alt="Sat Yoga Ashram in Costa Rica"
+  39 |             className="w-full h-auto object-cover rounded-xl mx-auto"
+  40 |             style={{
+ GET / 500 in 108ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 39ms
+ GET /satyogawhitelogo.svg 404 in 91ms
+ GET /4.%20HOME_Learn%20Online_Courses.jpg 404 in 96ms
+ GET /6.%20HOME_Learn%20Online_Events.jpg 404 in 98ms
+ GET /5.%20HOME_Learn%20Online_Retreats.jpg 404 in 98ms
+ GET /3.%20HOME_Learn%20Online_Teachings.jpg 404 in 99ms
+ ✓ Compiled /favicon.ico in 478ms (754 modules)
+ GET /7.%20HOME_Learn%20Online_Membership.jpg 404 in 432ms
+ GET /favicon.ico 200 in 609ms
+ GET /favicon.ico 200 in 611ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: '/satyogawhitelogo.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: [
+      'Access profound teachings, transformative practices, and live events from the comfort of your home.',
+      'Join a global community of seekers dedicated to spiritual awakening.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    image: '/8. HOME_Ashram.jpg',
+    imageAlt: 'Sat Yoga Ashram',
+    secondaryImages: [
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/60661855-72c0-44de-c201-c5c16a67da00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/ea3d1ca6-1e7e-4a9a-b85c-f53fb6babf00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/48f093b3-6cb4-45ac-8d7a-8d53bc27d900/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/22c8d6bd-cf91-4fc3-ca91-2d9cc98dcb00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/59ea1429-d725-44ef-22dd-415d8750f400/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/1fa1af5c-f084-4648-64b3-b61d96c00e00/public'
+    ],
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/Ashram.tsx (37:25) @ main
+ ⨯ TypeError: Cannot read properties of undefined (reading 'main')
+    at AshramSection (./src/components/sections/Ashram.tsx:26:41)
+digest: "935998234"
+  35 |         <div className="mb-4">
+  36 |           <img
+> 37 |             src={images.main}
+     |                         ^
+  38 |             alt="Sat Yoga Ashram in Costa Rica"
+  39 |             className="w-full h-auto object-cover rounded-xl mx-auto"
+  40 |             style={{
+ GET / 500 in 151ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 30ms
+ GET /4.%20HOME_Learn%20Online_Courses.jpg 404 in 74ms
+ GET /3.%20HOME_Learn%20Online_Teachings.jpg 404 in 77ms
+ GET /satyogawhitelogo.svg 404 in 80ms
+ GET /5.%20HOME_Learn%20Online_Retreats.jpg 404 in 76ms
+ GET /7.%20HOME_Learn%20Online_Membership.jpg 404 in 30ms
+ GET /6.%20HOME_Learn%20Online_Events.jpg 404 in 31ms
+ GET /favicon.ico 200 in 37ms
+ GET /favicon.ico 200 in 39ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: '/satyogawhitelogo.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: [
+      'Access profound teachings, transformative practices, and live events from the comfort of your home.',
+      'Join a global community of seekers dedicated to spiritual awakening.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    image: '/8. HOME_Ashram.jpg',
+    imageAlt: 'Sat Yoga Ashram',
+    secondaryImages: [
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/60661855-72c0-44de-c201-c5c16a67da00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/ea3d1ca6-1e7e-4a9a-b85c-f53fb6babf00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/48f093b3-6cb4-45ac-8d7a-8d53bc27d900/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/22c8d6bd-cf91-4fc3-ca91-2d9cc98dcb00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/59ea1429-d725-44ef-22dd-415d8750f400/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/1fa1af5c-f084-4648-64b3-b61d96c00e00/public'
+    ],
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/Ashram.tsx (37:25) @ main
+ ⨯ TypeError: Cannot read properties of undefined (reading 'main')
+    at AshramSection (./src/components/sections/Ashram.tsx:26:41)
+digest: "935998234"
+  35 |         <div className="mb-4">
+  36 |           <img
+> 37 |             src={images.main}
+     |                         ^
+  38 |             alt="Sat Yoga Ashram in Costa Rica"
+  39 |             className="w-full h-auto object-cover rounded-xl mx-auto"
+  40 |             style={{
+ GET / 500 in 176ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 22ms
+ GET /satyogawhitelogo.svg 404 in 74ms
+ GET /3.%20HOME_Learn%20Online_Teachings.jpg 404 in 74ms
+ GET /7.%20HOME_Learn%20Online_Membership.jpg 404 in 55ms
+ GET /5.%20HOME_Learn%20Online_Retreats.jpg 404 in 53ms
+ GET /6.%20HOME_Learn%20Online_Events.jpg 404 in 56ms
+ GET /4.%20HOME_Learn%20Online_Courses.jpg 404 in 55ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: '/satyogawhitelogo.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: [
+      'Access profound teachings, transformative practices, and live events from the comfort of your home.',
+      'Join a global community of seekers dedicated to spiritual awakening.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    image: '/8. HOME_Ashram.jpg',
+    imageAlt: 'Sat Yoga Ashram',
+    secondaryImages: [
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/60661855-72c0-44de-c201-c5c16a67da00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/ea3d1ca6-1e7e-4a9a-b85c-f53fb6babf00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/48f093b3-6cb4-45ac-8d7a-8d53bc27d900/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/22c8d6bd-cf91-4fc3-ca91-2d9cc98dcb00/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/59ea1429-d725-44ef-22dd-415d8750f400/public',
+      'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/1fa1af5c-f084-4648-64b3-b61d96c00e00/public'
+    ],
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: '/halfflower.svg',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: '/innerlab.svg',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/Ashram.tsx (37:25) @ main
+ ⨯ TypeError: Cannot read properties of undefined (reading 'main')
+    at AshramSection (./src/components/sections/Ashram.tsx:26:41)
+digest: "935998234"
+  35 |         <div className="mb-4">
+  36 |           <img
+> 37 |             src={images.main}
+     |                         ^
+  38 |             alt="Sat Yoga Ashram in Costa Rica"
+  39 |             className="w-full h-auto object-cover rounded-xl mx-auto"
+  40 |             style={{
+ GET / 500 in 171ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 30ms
+ GET /satyogawhitelogo.svg 404 in 54ms
+ GET /7.%20HOME_Learn%20Online_Membership.jpg 404 in 52ms
+ GET /6.%20HOME_Learn%20Online_Events.jpg 404 in 53ms
+ GET /5.%20HOME_Learn%20Online_Retreats.jpg 404 in 53ms
+ GET /4.%20HOME_Learn%20Online_Courses.jpg 404 in 54ms
+ GET /3.%20HOME_Learn%20Online_Teachings.jpg 404 in 55ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/logo_white.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/83408531-c26f-44d3-4178-6d209b187800/public',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: [
+      'Access profound teachings, transformative practices, and live events from the comfort of your home.',
+      'Join a global community of seekers dedicated to spiritual awakening.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    images: { main: '/8. HOME_Ashram.jpg', secondary: [Array] },
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/83408531-c26f-44d3-4178-6d209b187800/public',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ GET / 200 in 99ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/logo_white.svg',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'Awaken to the Real'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'A Revolution in Consciousness',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/67cd2d59-f0f7-461e-bfb7-72d6acc2a900/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'Who We Are',
+    heading: 'The Original Consciousness Technology',
+    content: [
+      'Sat Yoga is a pioneering institute that offers the most ancient, powerful, and complete spiritual science for the transformation of consciousness. We provide the ultimate user-friendly map of Reality, along with empowering operations for full command of the mind, so that one can rapidly awaken latent psycho-spiritual powers and achieve the supreme goal of enlightenment.',
+      'In our self-sustaining ashram community in the rural mountains of southern Costa Rica, those seeking refuge from this collapsing world can discover the keys to joyous living in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/83408531-c26f-44d3-4178-6d209b187800/public',
+    buttonText: 'Learn More',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'Our Spiritual Guide',
+    quote: '"You are That which you are seeking."',
+    content: [
+      'Shunyamurti is a realized spiritual teacher whose mission is to awaken humanity to the imminent collapse of the current world system and to guide prepared souls to the enlightened consciousness necessary for sustainable living in the New Earth that is emerging.',
+      'Drawing from deep wells of ancient wisdom and integrating insights from quantum physics, neuroscience, psychology, and mysticism, Shunyamurti offers a revolutionary teaching that empowers sincere seekers to transcend the limitations of ego and discover their true nature as infinite consciousness.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/063e2b7a-53b8-4502-18f4-72330ad23c00/public',
+    imageAlt: 'Shunyamurti',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'About Shunyamurti',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'Learn Online',
+    heading: 'Transform Your Consciousness From Anywhere',
+    description: [
+      'Access profound teachings, transformative practices, and live events from the comfort of your home.',
+      'Join a global community of seekers dedicated to spiritual awakening.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ],
+    backgroundDecorations: {
+      innerLab: '/innerlab.svg',
+      halfFlower: '/halfflower.svg',
+      imageTraced: '/imagetraced.svg'
+    }
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'Visit the Ashram',
+    heading: 'Retreat to Paradise',
+    content: [
+      'Our ashram is nestled in 600 acres of pristine Costa Rican rainforest, offering a sanctuary for deep spiritual practice and sustainable community living.',
+      'Experience profound transformation through silent retreats, sacred ceremonies, and direct transmission in a setting designed to support your journey to enlightenment.',
+      'Join us for an onsite retreat and discover what it means to live in alignment with the Supreme Reality.'
+    ],
+    images: { main: '/8. HOME_Ashram.jpg', secondary: [Array] },
+    buttonText: 'Explore Retreats',
+    buttonLink: '/retreats/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'Our Platform',
+    heading: 'Your Gateway to Enlightenment',
+    content: 'Access thousands of hours of teachings, join live events, track your spiritual practice, and connect with a global community—all from one integrated platform designed to support your awakening.',
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/6b16f9c2-8764-4abe-5325-e0513d278300/public',
+    imageAlt: 'Sat Yoga Platform',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/83408531-c26f-44d3-4178-6d209b187800/public',
+    buttonText: 'Get Started',
+    buttonLink: '/register'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'Join the Sangha',
+    heading: 'Begin Your Journey to Enlightenment',
+    description: 'Gain unlimited access to our complete library of teachings, courses, and live events. Transform your consciousness and awaken to your true nature.',
+    backgroundImage: '/membershipbanner.jpg',
+    buttonText: 'Explore Membership',
+    buttonLink: '/membership'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'Support Our Mission',
+    heading: 'Help Us Awaken Humanity',
+    description: 'Your contribution supports our mission to preserve and share these precious teachings, maintain our ashram sanctuary, and create a refuge for spiritual seekers worldwide.',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Make a Donation',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ GET / 200 in 139ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 45ms
+ GET /8.%20HOME_Ashram.jpg 404 in 62ms
+ GET /innerlab.svg 404 in 44ms
+ GET /imagetraced.svg 404 in 37ms
+ GET /membershipbanner.jpg 404 in 41ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 635ms (968 modules)
+ ✓ Compiled /favicon.ico in 109ms (639 modules)
+ GET /favicon.ico 200 in 172ms
+ GET /api/auth/session 200 in 1364ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/98b66756-25e9-42fe-4b4a-2c51caf39b00/public',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'The Summit of Self-Realization'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'Discover timeless teachings, transformative retreats, and a community devoted to Truth',
+    backgroundImage: '/nataraj.png'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'WHO WE ARE',
+    heading: 'A Pathless Path to Self-Realization and Liberation',
+    content: [
+      'The way and the goal of Sat Yoga is to live in oneness with the eternally present Absolute Real.',
+      'To help seekers understand what that means, Sat Yoga has elaborated a user-friendly map of the hidden treasures of reality, encompassing the entire spectrum of consciousness. We have also developed empowering practices for taking command of the mind. We offer these online and at our ashram, a self-sustaining spiritual community in the pristine rural mountains of southern Costa Rica, where those seeking a shorter or longer retreat (or a permanent refuge) from this dying world can awaken latent powers and live joyously in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/Inner Labyrinth.png',
+    buttonText: 'Discover Sat Yoga',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'SHUNYAMURTI',
+    quote: 'Love is what makes the impossible, inevitable.',
+    content: [
+      'Shunyamurti is an uncanny, profound and life-transforming teacher whose wisdom is transmitted from the source of the infinite Self.',
+      'He has a unique ability to distill the essence of Eastern and Western wisdom, history, psychoanalysis, philosophy, and science to deliver the context needed to understand the human condition and interpret the meaning of the state of the world.',
+      'Shunyamurti helps seekers awaken from illusion, anxiety, and suffering of every kind. Through deep meditation, self-inquiry, and the recognition of the unreal nature of the ego seekers experience the fullness of freedom, joy, and divine love.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/53dd8bf2-0d2a-4550-c518-29bd6a81dd00/public',
+    imageAlt: 'Shunyamurti in meditation',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Learn more',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'LEARN ONLINE',
+    heading: 'Begin on Your Journey with Sat Yoga Online',
+    description: [
+      'We offer a variety of options online to support your spiritual growth and transformation. Wherever you are you can learn at your own pace.',
+      'Join livestreamed retreats; membership with access to a vast library of teachings and new content published weekly; live satsangs, classes, and meditations; and a rich collection of resources in the store.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ]
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'THE ASHRAM',
+    heading: 'Rest in the Current of Your Infinite Nature',
+    content: [
+      'Experience the transformative power of Sat Yoga at our Ashram in the serene mountains of southern Costa Rica.',
+      'With the luminous presence of Shunyamurti and the support of the sangha, our Ashram retreats offer an unparalleled opportunity to experience deep meditation, wisdom teachings, and community living, which will accelerate your journey toward Self-realization.',
+      'Whether you seek a short-term retreat, a longer stay, or a life as an ashram resident, our programs are designed to catalyze your spiritual growth and dissolve the barriers that keep you from experiencing the fullness of Being.'
+    ],
+    images: {
+      main: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/e6e91f5a-5f31-4387-df9e-45ab45dce200/public',
+      secondary: [Array]
+    },
+    buttonText: 'Learn more',
+    buttonLink: '/about/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'SAT YOGA ONLINE - SEAMLESS ACROSS ALL DEVICES',
+    heading: 'Stay Connected to Wisdom Anytime, Anywhere',
+    content: [
+      "No matter where you are or what device you use, Sat Yoga's online platform seamlessly adapts. Our dashboard allows you to engage effortlessly with online retreats, courses, wisdom teachings, guided meditations, live classes, and enriching community discussions—ensuring your virtual connection to the source of wisdom can continue without interruption."
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/bd73fa5d-5fa6-47ce-4b41-d5023c938100/public',
+    imageAlt: 'Sat Yoga platform',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/f18d3336-005e-45e8-f551-ade62a760a00/public',
+    buttonText: 'Start the journey',
+    buttonLink: '/signup'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'MEMBERSHIP',
+    heading: 'A Revolutionary Approach to Living!',
+    description: "Join our global community and transform your life with Shunyamurti's teachings. Overcome anxiety, confusion, and limitations. Access weekly teachings, guided meditations, live encounters, and exclusive content, as you deepen your connection to wisdom and growth.",
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/84154983-cefd-467e-f731-2e00be0a5f00/public',
+    buttonText: 'Browse Teachings',
+    buttonLink: '/teachings'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'DONATE',
+    heading: 'Support our sacred mission',
+    description: 'If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Donate',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/LearningTabs.tsx (68:57) @ innerLab
+ ⨯ TypeError: Cannot read properties of undefined (reading 'innerLab')
+    at LearnOnlineSection (./src/components/sections/LearningTabs.tsx:49:67)
+digest: "3772112462"
+  66 |           width: '97px',
+  67 |           height: '97px',
+> 68 |           backgroundImage: `url(${backgroundDecorations.innerLab})`,
+     |                                                         ^
+  69 |           backgroundSize: 'contain',
+  70 |           backgroundRepeat: 'no-repeat',
+  71 |           zIndex: 2
+ GET / 500 in 443ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 99ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/98b66756-25e9-42fe-4b4a-2c51caf39b00/public',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'The Summit of Self-Realization'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'Discover timeless teachings, transformative retreats, and a community devoted to Truth',
+    backgroundImage: '/nataraj.png'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'WHO WE ARE',
+    heading: 'A Pathless Path to Self-Realization and Liberation',
+    content: [
+      'The way and the goal of Sat Yoga is to live in oneness with the eternally present Absolute Real.',
+      'To help seekers understand what that means, Sat Yoga has elaborated a user-friendly map of the hidden treasures of reality, encompassing the entire spectrum of consciousness. We have also developed empowering practices for taking command of the mind. We offer these online and at our ashram, a self-sustaining spiritual community in the pristine rural mountains of southern Costa Rica, where those seeking a shorter or longer retreat (or a permanent refuge) from this dying world can awaken latent powers and live joyously in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: '/Inner Labyrinth.png',
+    buttonText: 'Discover Sat Yoga',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'SHUNYAMURTI',
+    quote: 'Love is what makes the impossible, inevitable.',
+    content: [
+      'Shunyamurti is an uncanny, profound and life-transforming teacher whose wisdom is transmitted from the source of the infinite Self.',
+      'He has a unique ability to distill the essence of Eastern and Western wisdom, history, psychoanalysis, philosophy, and science to deliver the context needed to understand the human condition and interpret the meaning of the state of the world.',
+      'Shunyamurti helps seekers awaken from illusion, anxiety, and suffering of every kind. Through deep meditation, self-inquiry, and the recognition of the unreal nature of the ego seekers experience the fullness of freedom, joy, and divine love.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/53dd8bf2-0d2a-4550-c518-29bd6a81dd00/public',
+    imageAlt: 'Shunyamurti in meditation',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Learn more',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'LEARN ONLINE',
+    heading: 'Begin on Your Journey with Sat Yoga Online',
+    description: [
+      'We offer a variety of options online to support your spiritual growth and transformation. Wherever you are you can learn at your own pace.',
+      'Join livestreamed retreats; membership with access to a vast library of teachings and new content published weekly; live satsangs, classes, and meditations; and a rich collection of resources in the store.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ]
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'THE ASHRAM',
+    heading: 'Rest in the Current of Your Infinite Nature',
+    content: [
+      'Experience the transformative power of Sat Yoga at our Ashram in the serene mountains of southern Costa Rica.',
+      'With the luminous presence of Shunyamurti and the support of the sangha, our Ashram retreats offer an unparalleled opportunity to experience deep meditation, wisdom teachings, and community living, which will accelerate your journey toward Self-realization.',
+      'Whether you seek a short-term retreat, a longer stay, or a life as an ashram resident, our programs are designed to catalyze your spiritual growth and dissolve the barriers that keep you from experiencing the fullness of Being.'
+    ],
+    images: {
+      main: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/e6e91f5a-5f31-4387-df9e-45ab45dce200/public',
+      secondary: [Array]
+    },
+    buttonText: 'Learn more',
+    buttonLink: '/about/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'SAT YOGA ONLINE - SEAMLESS ACROSS ALL DEVICES',
+    heading: 'Stay Connected to Wisdom Anytime, Anywhere',
+    content: [
+      "No matter where you are or what device you use, Sat Yoga's online platform seamlessly adapts. Our dashboard allows you to engage effortlessly with online retreats, courses, wisdom teachings, guided meditations, live classes, and enriching community discussions—ensuring your virtual connection to the source of wisdom can continue without interruption."
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/bd73fa5d-5fa6-47ce-4b41-d5023c938100/public',
+    imageAlt: 'Sat Yoga platform',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/f18d3336-005e-45e8-f551-ade62a760a00/public',
+    buttonText: 'Start the journey',
+    buttonLink: '/signup'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'MEMBERSHIP',
+    heading: 'A Revolutionary Approach to Living!',
+    description: "Join our global community and transform your life with Shunyamurti's teachings. Overcome anxiety, confusion, and limitations. Access weekly teachings, guided meditations, live encounters, and exclusive content, as you deepen your connection to wisdom and growth.",
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/84154983-cefd-467e-f731-2e00be0a5f00/public',
+    buttonText: 'Browse Teachings',
+    buttonLink: '/teachings'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'DONATE',
+    heading: 'Support our sacred mission',
+    description: 'If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Donate',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/LearningTabs.tsx (68:57) @ innerLab
+ ⨯ TypeError: Cannot read properties of undefined (reading 'innerLab')
+    at LearnOnlineSection (./src/components/sections/LearningTabs.tsx:49:67)
+digest: "3772112462"
+  66 |           width: '97px',
+  67 |           height: '97px',
+> 68 |           backgroundImage: `url(${backgroundDecorations.innerLab})`,
+     |                                                         ^
+  69 |           backgroundSize: 'contain',
+  70 |           backgroundRepeat: 'no-repeat',
+  71 |           zIndex: 2
+ GET / 500 in 97ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/98b66756-25e9-42fe-4b4a-2c51caf39b00/public',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'The Summit of Self-Realization'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'Discover timeless teachings, transformative retreats, and a community devoted to Truth',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/10feb2ea-a46c-4bb4-0e45-d17571a11600/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'WHO WE ARE',
+    heading: 'A Pathless Path to Self-Realization and Liberation',
+    content: [
+      'The way and the goal of Sat Yoga is to live in oneness with the eternally present Absolute Real.',
+      'To help seekers understand what that means, Sat Yoga has elaborated a user-friendly map of the hidden treasures of reality, encompassing the entire spectrum of consciousness. We have also developed empowering practices for taking command of the mind. We offer these online and at our ashram, a self-sustaining spiritual community in the pristine rural mountains of southern Costa Rica, where those seeking a shorter or longer retreat (or a permanent refuge) from this dying world can awaken latent powers and live joyously in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Discover Sat Yoga',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'SHUNYAMURTI',
+    quote: 'Love is what makes the impossible, inevitable.',
+    content: [
+      'Shunyamurti is an uncanny, profound and life-transforming teacher whose wisdom is transmitted from the source of the infinite Self.',
+      'He has a unique ability to distill the essence of Eastern and Western wisdom, history, psychoanalysis, philosophy, and science to deliver the context needed to understand the human condition and interpret the meaning of the state of the world.',
+      'Shunyamurti helps seekers awaken from illusion, anxiety, and suffering of every kind. Through deep meditation, self-inquiry, and the recognition of the unreal nature of the ego seekers experience the fullness of freedom, joy, and divine love.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/53dd8bf2-0d2a-4550-c518-29bd6a81dd00/public',
+    imageAlt: 'Shunyamurti in meditation',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Learn more',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'LEARN ONLINE',
+    heading: 'Begin on Your Journey with Sat Yoga Online',
+    description: [
+      'We offer a variety of options online to support your spiritual growth and transformation. Wherever you are you can learn at your own pace.',
+      'Join livestreamed retreats; membership with access to a vast library of teachings and new content published weekly; live satsangs, classes, and meditations; and a rich collection of resources in the store.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ]
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'THE ASHRAM',
+    heading: 'Rest in the Current of Your Infinite Nature',
+    content: [
+      'Experience the transformative power of Sat Yoga at our Ashram in the serene mountains of southern Costa Rica.',
+      'With the luminous presence of Shunyamurti and the support of the sangha, our Ashram retreats offer an unparalleled opportunity to experience deep meditation, wisdom teachings, and community living, which will accelerate your journey toward Self-realization.',
+      'Whether you seek a short-term retreat, a longer stay, or a life as an ashram resident, our programs are designed to catalyze your spiritual growth and dissolve the barriers that keep you from experiencing the fullness of Being.'
+    ],
+    images: {
+      main: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/e6e91f5a-5f31-4387-df9e-45ab45dce200/public',
+      secondary: [Array]
+    },
+    buttonText: 'Learn more',
+    buttonLink: '/about/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'SAT YOGA ONLINE - SEAMLESS ACROSS ALL DEVICES',
+    heading: 'Stay Connected to Wisdom Anytime, Anywhere',
+    content: [
+      "No matter where you are or what device you use, Sat Yoga's online platform seamlessly adapts. Our dashboard allows you to engage effortlessly with online retreats, courses, wisdom teachings, guided meditations, live classes, and enriching community discussions—ensuring your virtual connection to the source of wisdom can continue without interruption."
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/bd73fa5d-5fa6-47ce-4b41-d5023c938100/public',
+    imageAlt: 'Sat Yoga platform',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/f18d3336-005e-45e8-f551-ade62a760a00/public',
+    buttonText: 'Start the journey',
+    buttonLink: '/signup'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'MEMBERSHIP',
+    heading: 'A Revolutionary Approach to Living!',
+    description: "Join our global community and transform your life with Shunyamurti's teachings. Overcome anxiety, confusion, and limitations. Access weekly teachings, guided meditations, live encounters, and exclusive content, as you deepen your connection to wisdom and growth.",
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/84154983-cefd-467e-f731-2e00be0a5f00/public',
+    buttonText: 'Browse Teachings',
+    buttonLink: '/teachings'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'DONATE',
+    heading: 'Support our sacred mission',
+    description: 'If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Donate',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/LearningTabs.tsx (68:57) @ innerLab
+ ⨯ TypeError: Cannot read properties of undefined (reading 'innerLab')
+    at LearnOnlineSection (./src/components/sections/LearningTabs.tsx:49:67)
+digest: "3772112462"
+  66 |           width: '97px',
+  67 |           height: '97px',
+> 68 |           backgroundImage: `url(${backgroundDecorations.innerLab})`,
+     |                                                         ^
+  69 |           backgroundSize: 'contain',
+  70 |           backgroundRepeat: 'no-repeat',
+  71 |           zIndex: 2
+ GET / 500 in 129ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 27ms
+ GET /favicon.ico 200 in 15ms
+ GET /favicon.ico 200 in 23ms
+Fetching homepage data from backend API...
+[Static Content API] Fetching: /api/pages/homepage
+[Static Content API] Success: /api/pages/homepage {
+  hero: {
+    section_type: 'video_hero',
+    order_index: 1,
+    videoUrl: 'https://6ff5acb9f54ba5e1132b12c7a7732ab8.r2.cloudflarestorage.com/videos/HOMEPAGELOOP.mp4',
+    logoUrl: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/98b66756-25e9-42fe-4b4a-2c51caf39b00/public',
+    logoAlt: 'Sat Yoga',
+    subtitle: 'The Summit of Self-Realization'
+  },
+  intro: {
+    section_type: 'intro',
+    order_index: 2,
+    heading: 'Discover timeless teachings, transformative retreats, and a community devoted to Truth',
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/10feb2ea-a46c-4bb4-0e45-d17571a11600/public'
+  },
+  whoWeAre: {
+    section_type: 'content_with_image',
+    order_index: 3,
+    eyebrow: 'WHO WE ARE',
+    heading: 'A Pathless Path to Self-Realization and Liberation',
+    content: [
+      'The way and the goal of Sat Yoga is to live in oneness with the eternally present Absolute Real.',
+      'To help seekers understand what that means, Sat Yoga has elaborated a user-friendly map of the hidden treasures of reality, encompassing the entire spectrum of consciousness. We have also developed empowering practices for taking command of the mind. We offer these online and at our ashram, a self-sustaining spiritual community in the pristine rural mountains of southern Costa Rica, where those seeking a shorter or longer retreat (or a permanent refuge) from this dying world can awaken latent powers and live joyously in Total Presence.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/d0dece22-109a-46ac-cbaa-9057415c0b00/public',
+    imageAlt: 'Sat Yoga Community',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Discover Sat Yoga',
+    buttonLink: '/about/satyoga'
+  },
+  shunyamurti: {
+    section_type: 'content_with_image',
+    order_index: 4,
+    eyebrow: 'SHUNYAMURTI',
+    quote: 'Love is what makes the impossible, inevitable.',
+    content: [
+      'Shunyamurti is an uncanny, profound and life-transforming teacher whose wisdom is transmitted from the source of the infinite Self.',
+      'He has a unique ability to distill the essence of Eastern and Western wisdom, history, psychoanalysis, philosophy, and science to deliver the context needed to understand the human condition and interpret the meaning of the state of the world.',
+      'Shunyamurti helps seekers awaken from illusion, anxiety, and suffering of every kind. Through deep meditation, self-inquiry, and the recognition of the unreal nature of the ego seekers experience the fullness of freedom, joy, and divine love.'
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/53dd8bf2-0d2a-4550-c518-29bd6a81dd00/public',
+    imageAlt: 'Shunyamurti in meditation',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Learn more',
+    buttonLink: '/about/shunyamurti'
+  },
+  learnOnline: {
+    section_type: 'tabs',
+    order_index: 5,
+    eyebrow: 'LEARN ONLINE',
+    heading: 'Begin on Your Journey with Sat Yoga Online',
+    description: [
+      'We offer a variety of options online to support your spiritual growth and transformation. Wherever you are you can learn at your own pace.',
+      'Join livestreamed retreats; membership with access to a vast library of teachings and new content published weekly; live satsangs, classes, and meditations; and a rich collection of resources in the store.'
+    ],
+    tabs: [ [Object], [Object], [Object], [Object], [Object] ]
+  },
+  ashram: {
+    section_type: 'content_with_gallery',
+    order_index: 6,
+    eyebrow: 'THE ASHRAM',
+    heading: 'Rest in the Current of Your Infinite Nature',
+    content: [
+      'Experience the transformative power of Sat Yoga at our Ashram in the serene mountains of southern Costa Rica.',
+      'With the luminous presence of Shunyamurti and the support of the sangha, our Ashram retreats offer an unparalleled opportunity to experience deep meditation, wisdom teachings, and community living, which will accelerate your journey toward Self-realization.',
+      'Whether you seek a short-term retreat, a longer stay, or a life as an ashram resident, our programs are designed to catalyze your spiritual growth and dissolve the barriers that keep you from experiencing the fullness of Being.'
+    ],
+    images: {
+      main: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/e6e91f5a-5f31-4387-df9e-45ab45dce200/public',
+      secondary: [Array]
+    },
+    buttonText: 'Learn more',
+    buttonLink: '/about/ashram'
+  },
+  platform: {
+    section_type: 'feature',
+    order_index: 7,
+    eyebrow: 'SAT YOGA ONLINE - SEAMLESS ACROSS ALL DEVICES',
+    heading: 'Stay Connected to Wisdom Anytime, Anywhere',
+    content: [
+      "No matter where you are or what device you use, Sat Yoga's online platform seamlessly adapts. Our dashboard allows you to engage effortlessly with online retreats, courses, wisdom teachings, guided meditations, live classes, and enriching community discussions—ensuring your virtual connection to the source of wisdom can continue without interruption."
+    ],
+    image: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/bd73fa5d-5fa6-47ce-4b41-d5023c938100/public',
+    imageAlt: 'Sat Yoga platform',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/f18d3336-005e-45e8-f551-ade62a760a00/public',
+    buttonText: 'Start the journey',
+    buttonLink: '/signup'
+  },
+  membership: {
+    section_type: 'cta',
+    order_index: 8,
+    eyebrow: 'MEMBERSHIP',
+    heading: 'A Revolutionary Approach to Living!',
+    description: "Join our global community and transform your life with Shunyamurti's teachings. Overcome anxiety, confusion, and limitations. Access weekly teachings, guided meditations, live encounters, and exclusive content, as you deepen your connection to wisdom and growth.",
+    backgroundImage: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/84154983-cefd-467e-f731-2e00be0a5f00/public',
+    buttonText: 'Browse Teachings',
+    buttonLink: '/teachings'
+  },
+  donation: {
+    section_type: 'cta',
+    order_index: 9,
+    eyebrow: 'DONATE',
+    heading: 'Support our sacred mission',
+    description: 'If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.',
+    backgroundDecoration: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public',
+    buttonText: 'Donate',
+    buttonLink: '/donate'
+  }
+}
+Homepage data loaded successfully: [
+  'hero',
+  'intro',
+  'whoWeAre',
+  'shunyamurti',
+  'learnOnline',
+  'ashram',
+  'platform',
+  'membership',
+  'donation'
+]
+ ⨯ src/components/sections/LearningTabs.tsx (68:57) @ innerLab
+ ⨯ TypeError: Cannot read properties of undefined (reading 'innerLab')
+    at LearnOnlineSection (./src/components/sections/LearningTabs.tsx:49:67)
+digest: "3772112462"
+  66 |           width: '97px',
+  67 |           height: '97px',
+> 68 |           backgroundImage: `url(${backgroundDecorations.innerLab})`,
+     |                                                         ^
+  69 |           backgroundSize: 'contain',
+  70 |           backgroundRepeat: 'no-repeat',
+  71 |           zIndex: 2
+ GET / 500 in 73ms

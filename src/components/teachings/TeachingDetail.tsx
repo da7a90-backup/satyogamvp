@@ -150,7 +150,7 @@ export default function TeachingDetailPage({
       cloudflare_ids: data.cloudflare_ids,
       youtube_ids: data.youtube_ids,
       allVideos: allVideos,
-      canAccess: data.accessType !== 'none',
+      canAccess: data.accessType,
     });
   }, [data]);
 
@@ -165,13 +165,17 @@ export default function TeachingDetailPage({
   const isEssay = data.content_type === 'essay';
   const isGuidedMeditation = data.content_type === 'guided_meditation';
 
+  // Access control logic:
+  // - accessType 'free' = fully accessible (no preview limit)
+  // - accessType 'preview' = preview mode with time limit
+  // - accessType 'restricted' = locked, need to upgrade
   const isLocked = !isAuthenticated && data.accessType === 'restricted';
-  const isPreviewMode = !isAuthenticated && data.accessType === 'free';
+  const isPreviewMode = !isAuthenticated && data.accessType === 'preview';
 
   // Get related videos
   const relatedVideos: TeachingData[] = relatedTeachings;
   // Database stores preview_duration in MINUTES, player needs SECONDS
-  const previewDuration = (data.preview_duration || 30) * 60;
+  const previewDuration = (data.preview_duration || 0) * 60;
   const dashPreviewDuration = (data.dash_preview_duration || data.preview_duration || 60) * 60;
 
   // Check if we're on dashboard
@@ -179,8 +183,8 @@ export default function TeachingDetailPage({
   const effectivePreviewDuration = isDashboard && isAuthenticated ? dashPreviewDuration : previewDuration;
 
   // Back link based on context
-  const backLink = isDashboard ? '/dashboard/user/library' : '/teachings';
-  const backText = isDashboard ? 'Back to Library' : 'Back to Teachings';
+  const backLink = isDashboard ? '/dashboard/user/teachings' : '/teachings';
+  const backText = isDashboard ? 'Back to Teachings' : 'Back to Teachings';
 
   // Get audio URLs
   const podbeanId = hasAudio ? data.podbean_ids![0] : null;
@@ -201,12 +205,13 @@ export default function TeachingDetailPage({
             This teaching is available to members only. Please log in to your account or sign up to access our complete library of spiritual content.
           </p>
           <div className="flex gap-4">
-            <button onClick={onLoginClick} className="flex-1 px-6 py-3 bg-white border border-[#D5D7DA] rounded-lg font-semibold text-[#384250] hover:bg-gray-50 transition-colors">
+          {/*   <button onClick={onLoginClick} className="flex-1 px-6 py-3 bg-white border border-[#D5D7DA] rounded-lg font-semibold text-[#384250] hover:bg-gray-50 transition-colors">
               Log In
             </button>
             <button onClick={onSignupClick} className="flex-1 px-6 py-3 bg-[#7D1A13] rounded-lg font-semibold text-white hover:opacity-90 transition-opacity">
               Sign Up
-            </button>
+            </button> */}
+            Coming soon..
           </div>
         </div>
       </div>
@@ -216,7 +221,7 @@ export default function TeachingDetailPage({
   return (
     <div className="bg-[#FAF8F1] min-h-screen">
       <div className="max-w-[1400px] mx-auto px-5 py-10">
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content Area */}
           <div className="flex-1 max-w-[900px]">
             <Link href={backLink} className="inline-flex items-center gap-2 text-sm text-[#717680] mb-6 hover:text-[#7D1A13] transition-colors">
@@ -230,10 +235,10 @@ export default function TeachingDetailPage({
                 <div className="flex-1">
                   <div className="flex gap-3 items-center mb-3">
                     <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{
-                      background: data.accessType === 'free' ? '#D1FAE5' : '#FEE2E2',
-                      color: data.accessType === 'free' ? '#065F46' : '#991B1B'
+                      background: data.accessType === 'free' ? '#D1FAE5' : data.accessType === 'preview' ? '#DBEAFE' : '#FEE2E2',
+                      color: data.accessType === 'free' ? '#065F46' : data.accessType === 'preview' ? '#1E40AF' : '#991B1B'
                     }}>
-                      {data.accessType === 'free' ? 'Free Preview' : 'Membership'}
+                      {data.accessType === 'free' ? 'Free' : data.accessType === 'preview' ? 'Preview' : 'Membership'}
                     </span>
                     <span className="text-sm text-[#717680] capitalize">{data.content_type.replace('_', ' ')}</span>
                   </div>
@@ -419,11 +424,11 @@ export default function TeachingDetailPage({
             </div>
           </div>
 
-          {/* Sidebar - Related Videos */}
+          {/* Sidebar - Related Videos (Desktop) / Below content (Mobile) */}
           {!isEssay && relatedVideos.length > 0 && (
-            <div className="w-[320px] flex-shrink-0">
-              <RelatedVideos 
-                teachings={relatedVideos} 
+            <div className="w-full lg:w-[320px] lg:flex-shrink-0">
+              <RelatedVideos
+                teachings={relatedVideos}
                 isLoggedIn={isAuthenticated}
                 onLoginPrompt={() => setShowRelatedVideoLoginModal(true)}
               />
@@ -844,7 +849,7 @@ const RelatedVideos: React.FC<{
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">
       <h3 className="text-lg font-semibold mb-4">Related Videos</h3>
-      <div className="space-y-4">
+      <div className="space-y-4 lg:space-y-4 flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-4 lg:gap-0 pb-4 lg:pb-0">
         {teachings.map((teaching) => {
           const imageUrl = teaching.featured_media?.url || teaching.imageUrl || '';
           
@@ -852,9 +857,9 @@ const RelatedVideos: React.FC<{
             <div
               key={teaching.id}
               onClick={(e) => handleVideoClick(e, teaching)}
-              className="flex gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+              className="flex lg:flex-row flex-col gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors min-w-[200px] lg:min-w-0"
             >
-              <div className="relative w-32 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="relative w-full lg:w-32 h-32 lg:h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 <Image
                   src={imageUrl}
                   alt={teaching.title}

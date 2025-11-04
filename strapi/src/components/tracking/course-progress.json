@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_tracking_course_progresses",
+  "info": {
+    "displayName": "CourseProgress",
+    "icon": "chartCircle",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "classes": {
+      "type": "component",
+      "repeatable": true,
+      "component": "tracking.class-progress"
+    },
+    "started": {
+      "type": "boolean",
+      "default": false
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "startDate": {
+      "type": "datetime"
+    },
+    "lastAccessDate": {
+      "type": "datetime"
+    }
+  }
+}

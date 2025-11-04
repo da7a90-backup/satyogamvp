@@ -59,7 +59,7 @@ const AshramRetreatsSection = () => {
             maxWidth: '800px'
           }}
         >
-          The Sat Yoga Ashram offers onsite retreats for all souls who resonate with Shunyamurti's teachings, who are mature seekers of the Real and capable of making use of these offerings, and who understand the urgency of attaining the full dose of grace.
+          The Sat Yoga Ashram offers onsite retreats for all souls who resonate with Shunyamurti&apos;s teachings, who are mature seekers of the Real and capable of making use of these offerings, and who understand the urgency of attaining the full dose of grace.
         </p>
 
         {/* CTA Button */}

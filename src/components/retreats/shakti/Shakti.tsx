@@ -95,16 +95,7 @@ const shaktiIncludedData = {
     }
   };
 
-  const carouselImages : CarouselImage[] = [
-    { src: '/SSI Gallery 1.jpg', alt: 'Teaching session' },
-    { src: '/SSI Gallery 2.jpg', alt: 'Shunyamurti with student' },
-    { src: '/SSI Gallery 3.jpg', alt: 'Community gathering' },
-    { src: '/SSI Gallery 4.jpg', alt: 'Ashram activities' },
-    { src: '/SSI Gallery 5.jpg', alt: 'Group learning' },
-    { src: '/SSI Gallery 6.jpg', alt: 'Meditation practice' },
-    { src: '/SSI Gallery 7.jpg', alt: 'Meditation practice' },
-    { src: '/SSI Gallery 8.jpg', alt: 'Meditation practice' }
-  ];
+  const carouselImages: CarouselImage[] = data?.carousel?.secondaryImages || [];
 
   const scheduleData = {
     tagline: "A TYPICAL ASHRAM DAY",
@@ -150,8 +141,7 @@ const shaktiIncludedData = {
     retreatType: "onsite" as const,
     tagline: "PROGRAM CONTRIBUTION",
     title: "Shakti Saturation Immersion",
-    price: "$3950",
-    priceNote: "(inc. all taxes)",
+    basePrice: 3950,
     description: "The Shakti Saturation Immersion is a life-changing rite of passage. Over four weeks, you can restore and redirect your existence, guided by profound teachings and the support of an ascending tribal community.",
     accommodation: "Accommodation: Stay in a charming cabin with a balcony and private bath.",
     meals: "Meals: Delectable vegetarian cuisine, with vegan and gluten-free options.",
@@ -169,59 +159,22 @@ const shaktiIncludedData = {
     membershipLink: "memberships",
     membershipLinkUrl: "/memberships",
     membershipNote: "to receive discounts",
-    images: [
-      { src: '/Contribution Gallery 1.jpg', alt: 'Woman meditating by water' },
-      { src: '/Contribution Gallery 2.jpg', alt: 'Interior cabin view' },
-      { src: '/Contribution Gallery 3.jpg', alt: 'Bathroom interior' },
-      { src: '/Contribution Gallery 4.jpg', alt: 'Evening meditation' },
-      { src: '/Contribution Gallery 5.jpg', alt: 'Meditation by nature' }
-    ]
+    images: data?.productComponent?.content?.images || []
   };
 
-  const testimonialCarouselData = {
-    tagline: "TESTIMONIAL CARROUSEL",
-    testimonials: [
-      {
-        id: 1,
-        quote: "I've received so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-        author: 'Mandy',
-        location: 'UK',
-        video: '/testimonial.png'
-      },
-      {
-        id: 2,
-        quote: "I've so much in my month here; my cup overfloweth. It was like the nectar that I needed to heal. This is priceless, and I am so overjoyed that I've been here.",
-        author: 'Mandy',
-        location: 'UK',
-        video: '/testimonial.png'
-      }
-    ]
+  const testimonials = data?.testimonials?.content || [];
+
+  const heroData = {
+    tagline: data?.hero?.tagline || "",
+    background: data?.hero?.backgroundImage || "",
+    heading: data?.hero?.heading || "",
+    subtext: data?.hero?.subheading || ""
   };
-  const heroData = {tagline:"Ashram Onsite Retreats", background: "/ssi.jpg", heading: "Staying at the Ashram", subtext: "Visit, Study, and Serve at the Sat Yoga Ashram, Costa Rica"}
 // Data structure for Related Programs Section
 
  const relatedProgramsData = {
-    sectionTitle: "Related onsite programs",
-    programs: [
-      {
-        image: '/darshan.jpg',
-        icon: '/progicon.png',
-        duration: "7-Day",
-        location: "Onsite Retreat",
-        tagline: "Personal encounter with shunyamurti",
-        title: "Private Darshan Retreat",
-        link: "/retreats/darshan"
-      },
-      {
-        image: '/sevadhari.jpg',
-        icon: '/progicon.png',
-        duration: "6 months",
-        location: "Onsite Retreat",
-        tagline: "Live and Study at the Ashram!",
-        title: "Become a Sevadhari",
-        link: "/retreats/sevadhari"
-      }
-    ]
+    sectionTitle: data?.relatedPrograms?.heading || "",
+    programs: data?.relatedPrograms?.content || []
   };
 return (
     <>
@@ -231,8 +184,13 @@ return (
     <ImageCarouselSection data={carouselImages}/>
     <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
     <ScheduleSection data={scheduleData}/>
-    <ProductComponent data={shaktiBookingData}/>
-    <TestimonialCarousel data={testimonialCarouselData}/>
+    {shaktiBookingData.images && shaktiBookingData.images.length > 0 && (
+      <ProductComponent data={shaktiBookingData}/>
+    )}
+    <TestimonialCarousel
+      tagline="TESTIMONIAL CAROUSEL"
+      testimonials={testimonials}
+    />
     <ContactUsSection/>
     <RelatedProgramsSection data={relatedProgramsData}/>
     </>

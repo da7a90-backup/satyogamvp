@@ -1,0 +1,37 @@
+{
+  "collectionName": "components_sections_content_sections",
+  "info": {
+    "displayName": "contentSection"
+  },
+  "options": {},
+  "attributes": {
+    "eyebrow": {
+      "type": "string"
+    },
+    "heading": {
+      "type": "string"
+    },
+    "bulletPoints": {
+      "type": "richtext"
+    },
+    "backgroundImage": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "buttons": {
+      "displayName": "button",
+      "type": "component",
+      "repeatable": true,
+      "component": "sections.button"
+    },
+    "content": {
+      "type": "richtext"
+    }
+  }
+}

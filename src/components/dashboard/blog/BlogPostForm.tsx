@@ -1,38 +1,34 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import {
-  HashtagIcon,
-  CodeBracketIcon,
-  ListBulletIcon,
-  LinkIcon,
-  PhotoIcon,
-} from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
-import {
   ArrowLeftIcon,
-  ExclamationCircleIcon,
-  ArrowPathIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  PhotoIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { fetchAPI, blogApi } from "@/lib/strapi";
+import {
+  getBlogCategories,
+  getBlogPostById,
+  createBlogPost,
+  updateBlogPost,
+  uploadBlogImage,
+  type BlogCategory,
+  type BlogPost,
+} from "@/lib/blog-api";
 
-interface Category {
-  id: number;
-  attributes: {
-    name: string;
-    slug: string;
-  };
+interface BlogPostFormProps {
+  postId?: string;
 }
 
-interface BlogFormProps {
-  postId?: string; // Optional for editing existing posts
-}
-
-const BlogPostForm = ({ postId }: BlogFormProps) => {
+export default function BlogPostForm({ postId }: BlogPostFormProps) {
   const router = useRouter();
   const isEditMode = !!postId;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -40,112 +36,66 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
     slug: "",
     content: "",
     excerpt: "",
-    categoryId: "",
-    author: "",
-    readTime: 0,
-    isFeatured: false,
-    hiddenTag: "",
-    metaTitle: "",
-    metaDescription: "",
-    keywords: "",
-    canonicalUrl: "",
-    publishImmediately: false,
+    category_id: "",
+    author_name: "",
+    read_time: 5,
+    is_featured: false,
+    is_published: false,
+    meta_title: "",
+    meta_description: "",
+    meta_keywords: "",
+    featured_image: "",
   });
 
-  const [showPreview, setShowPreview] = useState(false);
-  const [showHeadingMenu, setShowHeadingMenu] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [urlError, setUrlError] = useState<string | null>(null);
-
-  // File upload state
-  const [featuredImage, setFeaturedImage] = useState<File | null>(null);
-  const [metaImage, setMetaImage] = useState<File | null>(null);
-  const [currentFeaturedImage, setCurrentFeaturedImage] = useState<
-    string | null
-  >(null);
-  const [currentMetaImage, setCurrentMetaImage] = useState<string | null>(null);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
   // UI state
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [categories, setCategories] = useState<Category[]>([]);
   const [successMessage, setSuccessMessage] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
   const [showSeoFields, setShowSeoFields] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Fetch categories
   useEffect(() => {
-    // In your useEffect that fetches categories
     const fetchCategories = async () => {
       try {
-        // Use the fetchAPI helper
-        const data: any = await fetchAPI("/api/blog-categories");
-        console.log("Categories API response:", data);
-        setCategories(data.data);
+        const data = await getBlogCategories();
+        setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
-        setCategories([]);
       }
     };
 
     fetchCategories();
   }, []);
 
-  // If in edit mode, fetch the existing post
+  // Fetch existing post in edit mode
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && postId) {
       const fetchPost = async () => {
         setIsLoading(true);
         try {
-          // Use blogApi helper instead of direct fetch
-          const { data }: any = await blogApi.getPost(postId!);
-
-          // Get the featured image URL if it exists
-          let featuredImageUrl = null;
-          if (data.attributes.featuredImage?.data) {
-            featuredImageUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL || ""}${
-              data.attributes.featuredImage.data.attributes.url
-            }`;
-            setCurrentFeaturedImage(featuredImageUrl);
-          }
-
-          // Get the meta image URL if it exists
-          let metaImageUrl = null;
-          if (data.attributes.seo?.metaImage?.data) {
-            metaImageUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL || ""}${
-              data.attributes.seo.metaImage.data.attributes.url
-            }`;
-            setCurrentMetaImage(metaImageUrl);
-          }
-
+          const post = await getBlogPostById(postId);
           setFormData({
-            title: data.attributes.title || "",
-            slug: data.attributes.slug || "",
-            content: data.attributes.content || "",
-            excerpt: data.attributes.excerpt || "",
-            categoryId: data.attributes.category?.data?.id.toString() || "",
-            author: data.attributes.author?.data?.attributes.name || "",
-            readTime: data.attributes.readTime || 0,
-            isFeatured: data.attributes.isFeatured || false,
-            hiddenTag: data.attributes.hiddenTag || "",
-            metaTitle: data.attributes.seo?.metaTitle || "",
-            metaDescription: data.attributes.seo?.metaDescription || "",
-            keywords: data.attributes.seo?.keywords || "",
-            canonicalUrl: data.attributes.seo?.canonicalURL || "",
-            publishImmediately: !!data.attributes.publishedAt,
+            title: post.title,
+            slug: post.slug,
+            content: post.content,
+            excerpt: post.excerpt || "",
+            category_id: post.category_id || "",
+            author_name: post.author_name || "",
+            read_time: post.read_time || 5,
+            is_featured: post.is_featured,
+            is_published: post.is_published,
+            meta_title: post.meta_title || "",
+            meta_description: post.meta_description || "",
+            meta_keywords: post.meta_keywords || "",
+            featured_image: post.featured_image || "",
           });
 
-          // Expand SEO fields if they have data
-          if (
-            data.attributes.seo?.metaTitle ||
-            data.attributes.seo?.metaDescription ||
-            data.attributes.seo?.keywords ||
-            data.attributes.seo?.canonicalURL ||
-            data.attributes.seo?.metaImage
-          ) {
+          // Show SEO fields if they have data
+          if (post.meta_title || post.meta_description || post.meta_keywords) {
             setShowSeoFields(true);
           }
         } catch (error) {
@@ -170,34 +120,22 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
 
   // Handle input changes
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
 
     // Auto-generate slug when title changes
-    if (
-      name === "title" &&
-      (!formData.slug || formData.slug === generateSlug(formData.title))
-    ) {
+    if (name === "title" && (!formData.slug || formData.slug === generateSlug(formData.title))) {
       setFormData((prev) => ({ ...prev, slug: generateSlug(value) }));
     }
 
-    // Validate canonical URL
-    if (name === "canonicalUrl") {
-      if (value && !isValidUrl(value)) {
-        setUrlError(
-          "Please enter a valid URL (e.g., https://example.com/page)"
-        );
-      } else {
-        setUrlError(null);
-      }
-    }
-
-    // Clear error when field is edited
+    // Clear error
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -207,681 +145,43 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
     }
   };
 
-  // Helper function to handle list continuation
-  const handleContentKeyDown = (
-    e: React.KeyboardEvent<HTMLTextAreaElement>
-  ) => {
-    // Allow default behavior for copy/paste shortcuts
-    if (
-      (e.metaKey || e.ctrlKey) &&
-      (e.key === "c" || e.key === "v" || e.key === "x")
-    ) {
-      return; // Let the browser handle copy/paste/cut
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setErrors({ featured_image: "Please select an image file" });
+      return;
     }
 
-    // Handle tab key for indentation
-    if (e.key === "Tab") {
-      e.preventDefault(); // Prevent moving focus to the next element
-
-      if (!textareaRef.current) return;
-
-      const textarea = textareaRef.current;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const value = textarea.value;
-
-      // If text is selected, indent each line in the selection
-      if (start !== end) {
-        const selectedText = value.substring(start, end);
-        const lines = selectedText.split("\n");
-
-        // Handle shift+tab (outdent)
-        if (e.shiftKey) {
-          const outdentedLines = lines.map((line) => {
-            if (line.startsWith("    ")) {
-              return line.substring(4); // Remove 4 spaces
-            } else if (line.startsWith("\t")) {
-              return line.substring(1); // Remove 1 tab
-            } else if (line.startsWith("  ")) {
-              return line.substring(2); // Remove 2 spaces
-            }
-            return line;
-          });
-
-          const newText = outdentedLines.join("\n");
-          const newContent =
-            value.substring(0, start) + newText + value.substring(end);
-
-          setFormData({ ...formData, content: newContent });
-
-          // Set selection to maintain the same range
-          setTimeout(() => {
-            if (textareaRef.current) {
-              textareaRef.current.selectionStart = start;
-              textareaRef.current.selectionEnd = start + newText.length;
-            }
-          }, 0);
-        }
-        // Regular tab (indent)
-        else {
-          const indentedLines = lines.map((line) => "    " + line);
-          const newText = indentedLines.join("\n");
-          const newContent =
-            value.substring(0, start) + newText + value.substring(end);
-
-          setFormData({ ...formData, content: newContent });
-
-          // Set selection to maintain the same range
-          setTimeout(() => {
-            if (textareaRef.current) {
-              textareaRef.current.selectionStart = start;
-              textareaRef.current.selectionEnd = start + newText.length;
-            }
-          }, 0);
-        }
-      }
-      // No selection, just insert indentation at cursor position
-      else {
-        const newContent =
-          value.substring(0, start) +
-          "    " + // Insert 4 spaces
-          value.substring(end);
-
-        setFormData({ ...formData, content: newContent });
-
-        // Place cursor after the inserted indentation
-        setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.selectionStart = start + 4;
-            textareaRef.current.selectionEnd = start + 4;
-          }
-        }, 0);
-      }
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors({ featured_image: "Image size must be less than 5MB" });
+      return;
     }
 
-    if (e.key === "Enter") {
-      const textarea = e.currentTarget;
-      const { value, selectionStart } = textarea;
-
-      // Get the current line
-      const currentLineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-      const currentLine = value.substring(currentLineStart, selectionStart);
-
-      // Check if it's a list item
-      const listItemMatch = currentLine.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
-
-      if (listItemMatch) {
-        // If the list item is empty (just the bullet/number), end the list
-        if (!listItemMatch[3].trim()) {
-          e.preventDefault();
-          const beforeCursor = value.substring(0, currentLineStart);
-          const afterCursor = value.substring(selectionStart);
-          setFormData({
-            ...formData,
-            content: beforeCursor + "\n" + afterCursor,
-          });
-
-          // Set cursor position after the inserted newline
-          setTimeout(() => {
-            if (textareaRef.current) {
-              textareaRef.current.selectionStart = currentLineStart + 1;
-              textareaRef.current.selectionEnd = currentLineStart + 1;
-            }
-          }, 0);
-        } else {
-          // Continue the list with a new bullet/number
-          e.preventDefault();
-          const [, indent, bullet] = listItemMatch;
-          const isNumbered = /^\d+\./.test(bullet);
-
-          let newBullet;
-          if (isNumbered) {
-            const num = parseInt(bullet, 10);
-            newBullet = `${num + 1}.`;
-          } else {
-            newBullet = bullet;
-          }
-
-          const insertion = `\n${indent}${newBullet} `;
-          const newContent =
-            value.substring(0, selectionStart) +
-            insertion +
-            value.substring(selectionStart);
-
-          setFormData({ ...formData, content: newContent });
-
-          // Set cursor position after the inserted list item
-          setTimeout(() => {
-            if (textareaRef.current) {
-              textareaRef.current.selectionStart =
-                selectionStart + insertion.length;
-              textareaRef.current.selectionEnd =
-                selectionStart + insertion.length;
-            }
-          }, 0);
-        }
-      }
-    }
-  };
-
-  // Helper function to format selected text
-  const formatSelectedText = (format: string) => {
-    if (!textareaRef.current) return;
-
-    const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    const text = textarea.value;
-    let newText = text;
-    let cursorOffset = 0;
-
-    switch (format) {
-      case "bold":
-        newText =
-          text.substring(0, start) +
-          `**${selectedText}**` +
-          text.substring(end);
-        cursorOffset = 2;
-        break;
-      case "italic":
-        newText =
-          text.substring(0, start) + `*${selectedText}*` + text.substring(end);
-        cursorOffset = 1;
-        break;
-      case "h1":
-        // For headings, ensure it starts on a new line
-        if (start === 0 || text[start - 1] === "\n") {
-          newText =
-            text.substring(0, start) +
-            `# ${selectedText}` +
-            text.substring(end);
-          cursorOffset = 2;
-        } else {
-          newText =
-            text.substring(0, start) +
-            `\n# ${selectedText}` +
-            text.substring(end);
-          cursorOffset = 3;
-        }
-        break;
-      case "h2":
-        if (start === 0 || text[start - 1] === "\n") {
-          newText =
-            text.substring(0, start) +
-            `## ${selectedText}` +
-            text.substring(end);
-          cursorOffset = 3;
-        } else {
-          newText =
-            text.substring(0, start) +
-            `\n## ${selectedText}` +
-            text.substring(end);
-          cursorOffset = 4;
-        }
-        break;
-      case "h3":
-        if (start === 0 || text[start - 1] === "\n") {
-          newText =
-            text.substring(0, start) +
-            `### ${selectedText}` +
-            text.substring(end);
-          cursorOffset = 4;
-        } else {
-          newText =
-            text.substring(0, start) +
-            `\n### ${selectedText}` +
-            text.substring(end);
-          cursorOffset = 5;
-        }
-        break;
-      case "link":
-        newText =
-          text.substring(0, start) +
-          `[${selectedText || "Link text"}](https://example.com)` +
-          text.substring(end);
-        cursorOffset = selectedText ? 1 : 10;
-        break;
-      case "list":
-        // If selected text spans multiple lines, format each line as a list item
-        if (selectedText.includes("\n")) {
-          const lines = selectedText.split("\n");
-          const formattedLines = lines.map((line) => `- ${line}`).join("\n");
-          newText =
-            text.substring(0, start) + formattedLines + text.substring(end);
-        } else {
-          newText =
-            text.substring(0, start) +
-            `- ${selectedText}` +
-            text.substring(end);
-        }
-        cursorOffset = 2;
-        break;
-      case "code":
-        // Format code block properly ensuring it's on its own lines
-        if (selectedText.includes("\n")) {
-          // For multiline selection, wrap in code fence
-          if (start === 0 || text[start - 1] === "\n") {
-            newText =
-              text.substring(0, start) +
-              "```\n" +
-              selectedText +
-              "\n```" +
-              text.substring(end);
-          } else {
-            newText =
-              text.substring(0, start) +
-              "\n```\n" +
-              selectedText +
-              "\n```" +
-              text.substring(end);
-          }
-          cursorOffset = 4;
-        } else {
-          // For single line, use inline code
-          newText =
-            text.substring(0, start) +
-            "`" +
-            selectedText +
-            "`" +
-            text.substring(end);
-          cursorOffset = 1;
-        }
-        break;
-      case "codeblock":
-        // Always insert a code fence block
-        if (start === 0 || text[start - 1] === "\n") {
-          newText =
-            text.substring(0, start) +
-            "```\n" +
-            selectedText +
-            "\n```" +
-            text.substring(end);
-        } else {
-          newText =
-            text.substring(0, start) +
-            "\n```\n" +
-            selectedText +
-            "\n```" +
-            text.substring(end);
-        }
-        cursorOffset = 4;
-        break;
-      case "image":
-        // For images, insert the markdown image syntax
-        newText =
-          text.substring(0, start) +
-          `![${selectedText || "Image"}](image_url)` +
-          text.substring(end);
-        cursorOffset = selectedText ? 2 : 7;
-        break;
-    }
-
-    setFormData({ ...formData, content: newText });
-
-    // Set cursor position after formatting
-    setTimeout(() => {
-      if (textareaRef.current) {
-        if (start === end) {
-          // If no text was selected, place cursor in the meaningful position
-          const cursorPos = start + cursorOffset;
-          textareaRef.current.selectionStart = cursorPos;
-          textareaRef.current.selectionEnd = cursorPos;
-        } else {
-          // If text was selected, place cursor at the end of the formatted block
-          let cursorPos;
-          if (format === "code" && selectedText.includes("\n")) {
-            // For code blocks with multiple lines, place cursor after the closing ```
-            cursorPos = start + selectedText.length + 8; // Account for ```\n and \n```
-          } else if (format === "codeblock") {
-            cursorPos = start + selectedText.length + 8; // Account for ```\n and \n```
-          } else if (
-            format.startsWith("h") &&
-            (start === 0 || text[start - 1] !== "\n")
-          ) {
-            // For headings that needed a newline added
-            cursorPos = end + cursorOffset + 1;
-          } else {
-            cursorPos = end + cursorOffset * 2;
-          }
-          textareaRef.current.selectionStart = cursorPos;
-          textareaRef.current.selectionEnd = cursorPos;
-        }
-        textareaRef.current.focus();
-      }
-    }, 0);
-  };
-
-  // Insert image markdown at cursor position
-  const insertImageMarkdown = (imageUrl: string, altText = "Image") => {
-    if (!textareaRef.current) return;
-
-    const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-
-    // Create image markdown
-    const imageMarkdown = `![${altText}](${imageUrl})`;
-
-    // Insert at cursor position
-    const newContent =
-      text.substring(0, start) + imageMarkdown + text.substring(end);
-
-    setFormData({ ...formData, content: newContent });
-
-    // Set cursor position after the inserted image markdown
-    setTimeout(() => {
-      if (textareaRef.current) {
-        const newCursorPos = start + imageMarkdown.length;
-        textareaRef.current.selectionStart = newCursorPos;
-        textareaRef.current.selectionEnd = newCursorPos;
-        textareaRef.current.focus();
-      }
-    }, 0);
-  };
-
-  // Upload image to Strapi and get the URL
-  const uploadImageToStrapi = async (file: File): Promise<string> => {
-    setIsUploadingImage(true);
-    setUploadProgress(0);
-
+    setUploadingImage(true);
     try {
-      const formData = new FormData();
-      formData.append("files", file);
-
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => Math.min(prev + 10, 90));
-      }, 200);
-
-      // Get API URL from environment variable
-      const apiUrl =
-        process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
-
-      // Get the token - try multiple sources
-      const token =
-        process.env.NEXT_PUBLIC_STRAPI_TOKEN ||
-        process.env.NEXT_PUBLIC_STRAPI_API_TOKEN ||
-        localStorage.getItem("jwt");
-
-      if (!token) {
-        throw new Error("Authentication token not found");
-      }
-
-      // Direct fetch instead of using fetchAPI helper
-      const response = await fetch(`${apiUrl}/api/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Don't set Content-Type header as it's automatically set by FormData
-        },
-        body: formData,
+      const result = await uploadBlogImage(file);
+      setFormData((prev) => ({ ...prev, featured_image: result.url }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.featured_image;
+        return newErrors;
       });
-
-      clearInterval(progressInterval);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error("Strapi upload response:", response.status, errorData);
-        throw new Error(
-          errorData?.error?.message ||
-            `Upload failed with status: ${response.status}`
-        );
-      }
-
-      const uploadResult = await response.json();
-      console.log("Upload result:", uploadResult);
-
-      // Get the URL of the uploaded image
-      if (
-        uploadResult &&
-        Array.isArray(uploadResult) &&
-        uploadResult[0] &&
-        uploadResult[0].url
-      ) {
-        let imageUrl = uploadResult[0].url;
-
-        // Check if the URL is already absolute (starts with http or https)
-        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-          // For Cloudinary or other external providers, use the URL as is
-          setUploadProgress(100);
-          return imageUrl;
-        } else {
-          // For local storage, prepend the API URL
-          imageUrl = `${apiUrl}${imageUrl}`;
-          setUploadProgress(100);
-          return imageUrl;
-        }
-      } else {
-        console.error("Unexpected upload response format:", uploadResult);
-        throw new Error("Failed to get image URL from upload response");
-      }
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert(
-        `Failed to upload image: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-      throw error;
+      setErrors({ featured_image: "Failed to upload image" });
     } finally {
-      // Reset upload state after a short delay to show complete progress
-      setTimeout(() => {
-        setIsUploadingImage(false);
-        setUploadProgress(0);
-      }, 500);
+      setUploadingImage(false);
     }
   };
 
-  // Handle file drop
-  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(false);
-
-    const files = e.dataTransfer.files;
-    if (files.length === 0) return;
-
-    // Process each dropped file
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      // Check if it's an image
-      if (!file.type.startsWith("image/")) {
-        alert(`File "${file.name}" is not an image`);
-        continue;
-      }
-
-      try {
-        // Upload the image and get its URL
-        const imageUrl = await uploadImageToStrapi(file);
-
-        // Insert image markdown at cursor position
-        insertImageMarkdown(imageUrl, file.name.split(".")[0]);
-      } catch (error) {
-        console.error(`Error processing image "${file.name}":`, error);
-        alert(`Failed to upload image "${file.name}". Please try again.`);
-      }
-    }
-  };
-
-  // Handle drag events
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(false);
-  };
-
-  // Handle pasting images
-  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = e.clipboardData.items;
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-
-      // Check if the pasted content is an image
-      if (item.type.indexOf("image") !== -1) {
-        e.preventDefault(); // Prevent the default paste behavior
-
-        const file = item.getAsFile();
-        if (!file) continue;
-
-        try {
-          // Upload the image and get its URL
-          const imageUrl = await uploadImageToStrapi(file);
-
-          // Insert image markdown at cursor position
-          insertImageMarkdown(imageUrl, "Pasted image");
-        } catch (error) {
-          console.error("Error processing pasted image:", error);
-          alert("Failed to upload pasted image. Please try again.");
-        }
-
-        // Only process the first image in the clipboard
-        break;
-      }
-    }
-  };
-
-  // Handle manual image upload via button
-  const handleImageUploadClick = async () => {
-    // Create an input element
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-
-    // Handle file selection
-    input.onchange = async (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (!files || files.length === 0) return;
-
-      const file = files[0];
-
-      try {
-        console.log("Selected file:", file.name, file.type, file.size);
-
-        // Upload the image and get its URL
-        const imageUrl = await uploadImageToStrapi(file);
-
-        // Insert image markdown at cursor position
-        insertImageMarkdown(imageUrl, file.name.split(".")[0]);
-
-        console.log("Successfully uploaded and inserted image:", file.name);
-      } catch (error) {
-        // Error is already logged and alerted in uploadImageToStrapi
-        console.error("Failed to process selected image");
-        // Don't show another alert as the upload function already shows one
-      }
-    };
-
-    // Trigger file browser
-    input.click();
-  };
-
-  // Function to detect and apply markdown syntax on selection and shortcut keys
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Check if user has typed markdown syntax and selected text
-    if (textareaRef.current) {
-      const textarea = textareaRef.current;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const text = textarea.value;
-
-      // Only process if there's selected text
-      if (start !== end) {
-        const selectedText = text.substring(start, end);
-
-        // Get the current line start
-        const currentLineStart = text.lastIndexOf("\n", start - 1) + 1;
-
-        // If user types ** at the beginning and end of selection, apply bold
-        if (
-          text.substring(start - 2, start) === "**" &&
-          text.substring(end, end + 2) === "**"
-        ) {
-          // Remove the markdown syntax and apply formatting
-          const newText =
-            text.substring(0, start - 2) +
-            selectedText +
-            text.substring(end + 2);
-
-          setFormData({ ...formData, content: newText });
-
-          // Apply bold formatting programmatically
-          formatSelectedText("bold");
-        }
-
-        // If user types * at the beginning and end of selection, apply italic
-        else if (
-          text.substring(start - 1, start) === "*" &&
-          text.substring(end, end + 1) === "*" &&
-          text.substring(start - 2, start) !== "**" &&
-          text.substring(end, end + 2) !== "**"
-        ) {
-          // Remove the markdown syntax and apply formatting
-          const newText =
-            text.substring(0, start - 1) +
-            selectedText +
-            text.substring(end + 1);
-
-          setFormData({ ...formData, content: newText });
-
-          // Apply italic formatting programmatically
-          formatSelectedText("italic");
-        }
-
-        // If user types # at the beginning of a line with selected text
-        else if (text.substring(currentLineStart, start) === "# ") {
-          // Apply heading formatting
-          formatSelectedText("h1");
-        } else if (text.substring(currentLineStart, start) === "## ") {
-          // Apply heading formatting
-          formatSelectedText("h2");
-        } else if (text.substring(currentLineStart, start) === "### ") {
-          // Apply heading formatting
-          formatSelectedText("h3");
-        }
-      }
-    }
-  };
-
-  // Handle checkbox changes
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: checked }));
-  };
-
-  // Handle file changes
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "featuredImage" | "metaImage"
-  ) => {
-    const file = e.target.files?.[0] || null;
-    if (type === "featuredImage") {
-      setFeaturedImage(file);
-    } else {
-      setMetaImage(file);
-    }
-  };
-
-  // Handle URL changes
-  const isValidUrl = (url: string): boolean => {
-    if (!url.trim()) return true; // Empty URL is considered valid (just not filled)
-
-    try {
-      // Try to create a URL object - this will throw an error for invalid URLs
-      new URL(url);
-      return true;
-    } catch (error) {
-      return false;
-    }
+  // Remove featured image
+  const removeFeaturedImage = () => {
+    setFormData((prev) => ({ ...prev, featured_image: "" }));
   };
 
   // Validate form
@@ -894,83 +194,14 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
 
     if (!formData.slug.trim()) {
       newErrors.slug = "Slug is required";
-    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
-      newErrors.slug =
-        "Slug can only contain lowercase letters, numbers, and hyphens";
     }
 
     if (!formData.content.trim()) {
       newErrors.content = "Content is required";
     }
 
-    if (!formData.excerpt.trim()) {
-      newErrors.excerpt = "Excerpt is required";
-    }
-
-    if (!formData.categoryId) {
-      newErrors.categoryId = "Category is required";
-    }
-
-    // Check canonical URL
-    if (formData.canonicalUrl && !isValidUrl(formData.canonicalUrl)) {
-      newErrors.canonicalUrl = "Please enter a valid URL";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Upload a file to Strapi
-  const uploadFile = async (file: File): Promise<number> => {
-    try {
-      console.log("Starting file upload:", file.name);
-      const formData = new FormData();
-      formData.append("files", file);
-
-      // Get API URL from environment variable
-      const apiUrl =
-        process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
-
-      // Get the token
-      const token =
-        process.env.NEXT_PUBLIC_STRAPI_API_TOKEN ||
-        process.env.NEXT_PUBLIC_STRAPI_TOKEN;
-
-      if (!token) {
-        throw new Error("Authentication token not found");
-      }
-
-      // Direct fetch for file upload
-      const response = await fetch(`${apiUrl}/api/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error("Strapi upload response:", response.status, errorData);
-        throw new Error(
-          errorData?.error?.message ||
-            `Upload failed with status: ${response.status}`
-        );
-      }
-
-      const uploadResult = await response.json();
-      console.log("Upload result:", uploadResult);
-
-      // Return just the ID of the first uploaded file
-      if (Array.isArray(uploadResult) && uploadResult.length > 0) {
-        return uploadResult[0].id;
-      } else {
-        throw new Error("Invalid upload response format");
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      throw error;
-    }
   };
 
   // Handle form submission
@@ -981,88 +212,33 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
 
     setIsSaving(true);
     setSuccessMessage("");
+    setErrors({});
 
     try {
-      // First upload any images
-      let featuredImageId = null;
-      let metaImageId = null;
-
-      if (featuredImage) {
-        try {
-          console.log("Attempting to upload featured image...");
-          featuredImageId = await uploadFile(featuredImage);
-          console.log(
-            "Featured image uploaded successfully, ID:",
-            featuredImageId
-          );
-        } catch (uploadError) {
-          console.error("Featured image upload failed:", uploadError);
-          setErrors({
-            form: "Failed to upload featured image. Please try again or skip adding an image.",
-          });
-          setIsSaving(false);
-          return;
-        }
-      }
-
-      if (metaImage) {
-        try {
-          metaImageId = await uploadFile(metaImage);
-          console.log("Meta image uploaded successfully, ID:", metaImageId);
-        } catch (uploadError) {
-          console.error("Meta image upload failed:", uploadError);
-          // Continue with form submission even if meta image fails
-        }
-      }
-
-      // Prepare request body with all the fields
       const postData = {
         title: formData.title,
         slug: formData.slug,
         content: formData.content,
-        excerpt: formData.excerpt,
-        category: formData.categoryId
-          ? { connect: [parseInt(formData.categoryId)] }
-          : undefined,
-        readTime: formData.readTime || undefined,
-        isFeatured: formData.isFeatured,
-        hiddenTag: formData.hiddenTag || undefined,
-
-        // Handle SEO fields
-        seo: {
-          metaTitle: formData.metaTitle || undefined,
-          metaDescription: formData.metaDescription || undefined,
-          keywords: formData.keywords || undefined,
-          canonicalURL: formData.canonicalUrl || undefined,
-          ...(metaImageId ? { metaImage: metaImageId } : {}),
-        },
-
-        // Handle featured image - use direct ID as per Strapi docs
-        ...(featuredImageId ? { featuredImage: featuredImageId } : {}),
-
-        // Handle published state
-        publishedAt: formData.publishImmediately
-          ? new Date().toISOString()
-          : null,
+        excerpt: formData.excerpt || undefined,
+        category_id: formData.category_id || undefined,
+        author_name: formData.author_name || undefined,
+        read_time: formData.read_time || undefined,
+        is_featured: formData.is_featured,
+        is_published: formData.is_published,
+        meta_title: formData.meta_title || undefined,
+        meta_description: formData.meta_description || undefined,
+        meta_keywords: formData.meta_keywords || undefined,
+        featured_image: formData.featured_image || undefined,
       };
 
-      console.log("Submitting blog post data:", postData);
-
-      // Use blogApi helpers
-      if (isEditMode) {
-        await blogApi.updatePost(postId!, postData);
+      if (isEditMode && postId) {
+        await updateBlogPost(postId, postData);
+        setSuccessMessage("Blog post updated successfully!");
       } else {
-        await blogApi.createPost(postData);
-      }
+        await createBlogPost(postData);
+        setSuccessMessage("Blog post created successfully!");
 
-      setSuccessMessage(
-        isEditMode
-          ? "Blog post updated successfully!"
-          : "Blog post created successfully!"
-      );
-
-      // If creating a new post, redirect after a brief delay
-      if (!isEditMode) {
+        // Redirect after brief delay
         setTimeout(() => {
           router.push("/dashboard/admin/blog");
         }, 1500);
@@ -1070,455 +246,440 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
     } catch (error) {
       console.error("Error saving post:", error);
       setErrors({
-        form:
-          error instanceof Error ? error.message : "An unknown error occurred",
+        form: error instanceof Error ? error.message : "Failed to save post",
       });
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Insert markdown syntax
+  const insertMarkdown = (syntax: string, placeholder: string = "") => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    const text = selectedText || placeholder;
+
+    let newText = "";
+    let cursorOffset = 0;
+
+    switch (syntax) {
+      case "bold":
+        newText = `**${text}**`;
+        cursorOffset = text === placeholder ? 2 : newText.length;
+        break;
+      case "italic":
+        newText = `*${text}*`;
+        cursorOffset = text === placeholder ? 1 : newText.length;
+        break;
+      case "code":
+        newText = `\`${text}\``;
+        cursorOffset = text === placeholder ? 1 : newText.length;
+        break;
+      case "link":
+        newText = `[${text}](url)`;
+        cursorOffset = text === placeholder ? 1 : newText.length - 4;
+        break;
+      case "image":
+        newText = `![${text}](image-url)`;
+        cursorOffset = newText.length - 1;
+        break;
+      case "h1":
+        newText = `# ${text}`;
+        cursorOffset = text === placeholder ? 2 : newText.length;
+        break;
+      case "h2":
+        newText = `## ${text}`;
+        cursorOffset = text === placeholder ? 3 : newText.length;
+        break;
+      case "h3":
+        newText = `### ${text}`;
+        cursorOffset = text === placeholder ? 4 : newText.length;
+        break;
+      case "ul":
+        newText = `- ${text}`;
+        cursorOffset = text === placeholder ? 2 : newText.length;
+        break;
+      case "ol":
+        newText = `1. ${text}`;
+        cursorOffset = text === placeholder ? 3 : newText.length;
+        break;
+    }
+
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    const newValue = before + newText + after;
+
+    setFormData((prev) => ({ ...prev, content: newValue }));
+
+    // Set cursor position
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+    }, 0);
+  };
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <ArrowPathIcon className="h-8 w-8 text-purple-600 animate-spin" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
 
-  // Return statement for BlogPostForm component
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center">
-        <Link
-          href="/dashboard/admin/blog"
-          className="mr-4 text-gray-600 hover:text-gray-900"
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Link
+            href="/dashboard/admin/blog"
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeftIcon className="h-6 w-6" />
+          </Link>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isEditMode ? "Edit Blog Post" : "Create Blog Post"}
+          </h1>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowPreview(!showPreview)}
+          className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
         >
-          <ArrowLeftIcon className="h-5 w-5" />
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {isEditMode ? "Edit Blog Post" : "Create New Blog Post"}
-        </h1>
+          {showPreview ? (
+            <>
+              <EyeSlashIcon className="h-5 w-5 mr-2" />
+              Hide Preview
+            </>
+          ) : (
+            <>
+              <EyeIcon className="h-5 w-5 mr-2" />
+              Show Preview
+            </>
+          )}
+        </button>
       </div>
 
-      {/* Success message */}
+      {/* Success Message */}
       {successMessage && (
         <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-md">
           {successMessage}
         </div>
       )}
 
-      {/* Error message */}
+      {/* Error Message */}
       {errors.form && (
         <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
           {errors.form}
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-lg p-6"
-      >
-        {/* Title */}
-        <div className="mb-6">
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-              errors.title
-                ? "border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:ring-purple-500"
-            }`}
-            placeholder="Enter post title"
-          />
-          {errors.title && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
-              <ExclamationCircleIcon className="h-4 w-4 mr-1" />
-              {errors.title}
-            </p>
-          )}
-        </div>
-
-        {/* Slug */}
-        <div className="mb-6">
-          <label
-            htmlFor="slug"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Slug <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="slug"
-            name="slug"
-            value={formData.slug}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-              errors.slug
-                ? "border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:ring-purple-500"
-            }`}
-            placeholder="enter-post-slug"
-          />
-          {errors.slug && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
-              <ExclamationCircleIcon className="h-4 w-4 mr-1" />
-              {errors.slug}
-            </p>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            The URL-friendly version of the title. Will be automatically
-            generated from the title.
-          </p>
-        </div>
-
-        {/* Category */}
-        <div className="mb-6">
-          <label
-            htmlFor="categoryId"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Category <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="categoryId"
-            name="categoryId"
-            value={formData.categoryId}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-              errors.categoryId
-                ? "border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:ring-purple-500"
-            }`}
-          >
-            <option value="">Select a category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.attributes.name}
-              </option>
-            ))}
-          </select>
-          {errors.categoryId && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
-              <ExclamationCircleIcon className="h-4 w-4 mr-1" />
-              {errors.categoryId}
-            </p>
-          )}
-        </div>
-
-        {/* Excerpt */}
-        <div className="mb-6">
-          <label
-            htmlFor="excerpt"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Excerpt <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="excerpt"
-            name="excerpt"
-            value={formData.excerpt}
-            onChange={handleChange}
-            rows={3}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-              errors.excerpt
-                ? "border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:ring-purple-500"
-            }`}
-            placeholder="Brief summary of the post"
-          />
-          {errors.excerpt && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
-              <ExclamationCircleIcon className="h-4 w-4 mr-1" />
-              {errors.excerpt}
-            </p>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            A short summary that will appear in blog listings and search
-            results.
-          </p>
-        </div>
-
-        {/* Content - Enhanced Rich Text Editor with Drag & Drop Image Support */}
-        <div className="mb-6">
-          <label
-            htmlFor="content"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Content <span className="text-red-500">*</span>
-          </label>
-          <div
-            className={`border ${
-              isDraggingOver
-                ? "border-purple-500 bg-purple-50"
-                : "border-gray-300"
-            } rounded-md overflow-hidden`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            <div className="bg-gray-50 px-3 py-2 border-b border-gray-300 flex justify-between items-center">
-              <span className="text-xs text-gray-500">Markdown Editor</span>
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => formatSelectedText("bold")}
-                  title="Bold"
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  <strong className="text-xs">B</strong>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => formatSelectedText("italic")}
-                  title="Italic"
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  <em className="text-xs">I</em>
-                </button>
-
-                {/* Heading dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowHeadingMenu(!showHeadingMenu)}
-                    title="Headings"
-                    className="p-1 rounded hover:bg-gray-200 flex items-center"
-                  >
-                    <HashtagIcon className="h-4 w-4" />
-                  </button>
-
-                  {showHeadingMenu && (
-                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          formatSelectedText("h1");
-                          setShowHeadingMenu(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                      >
-                        <span className="font-bold text-lg">Heading 1</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          formatSelectedText("h2");
-                          setShowHeadingMenu(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                      >
-                        <span className="font-bold text-base">Heading 2</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          formatSelectedText("h3");
-                          setShowHeadingMenu(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                      >
-                        <span className="font-bold text-sm">Heading 3</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => formatSelectedText("link")}
-                  title="Link"
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  <LinkIcon className="h-4 w-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => formatSelectedText("list")}
-                  title="List"
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  <ListBulletIcon className="h-4 w-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => formatSelectedText("codeblock")}
-                  title="Code Block"
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  <CodeBracketIcon className="h-4 w-4" />
-                </button>
-
-                {/* Add Image button */}
-                <button
-                  type="button"
-                  onClick={handleImageUploadClick}
-                  title="Insert Image"
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  <PhotoIcon className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="relative">
-              {/* Editor */}
-              {!showPreview && (
-                <>
-                  <textarea
-                    ref={textareaRef}
-                    id="content"
-                    name="content"
-                    value={formData.content}
-                    onChange={handleChange}
-                    onKeyDown={handleContentKeyDown}
-                    onKeyUp={handleKeyUp}
-                    onPaste={handlePaste}
-                    rows={15}
-                    className={`w-full px-4 py-2 border-0 focus:outline-none focus:ring-0 ${
-                      errors.content ? "bg-red-50" : "bg-white"
-                    }`}
-                    placeholder="Write your blog post content here using Markdown... Drag and drop images to upload."
-                  />
-                  {isDraggingOver && (
-                    <div className="absolute inset-0 bg-purple-100 bg-opacity-70 flex items-center justify-center">
-                      <div className="p-4 bg-white rounded-lg shadow-md">
-                        <p className="text-purple-700 font-semibold">
-                          Drop images here to upload
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {isUploadingImage && (
-                    <div className="absolute bottom-4 right-4 bg-white p-2 rounded-md shadow-md">
-                      <div className="flex items-center">
-                        <ArrowPathIcon className="h-4 w-4 text-purple-600 animate-spin mr-2" />
-                        <span className="text-sm text-gray-700">
-                          Uploading image: {uploadProgress}%
-                        </span>
-                      </div>
-                      <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className="bg-purple-600 h-1.5 rounded-full"
-                          style={{ width: `${uploadProgress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-              {/* Preview */}
-              {showPreview && (
-                <div className="prose max-w-none p-4 min-h-[300px] bg-white overflow-y-auto markdown-preview">
-                  <ReactMarkdown>
-                    {formData.content || "Nothing to preview yet"}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {errors.content && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
-              <ExclamationCircleIcon className="h-4 w-4 mr-1" />
-              {errors.content}
-            </p>
-          )}
-
-          <div className="mt-2 flex items-center justify-between">
-            <p className="text-xs text-gray-500">
-              Supports Markdown: **bold**, *italic*, headings, lists, code
-              blocks, and drag & drop images
-            </p>
-            <div className="flex items-center space-x-2">
-              <p className="text-xs text-gray-500">
-                {formData.content.length} characters
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700 hover:bg-purple-200"
-              >
-                {showPreview ? "Edit" : "Preview"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Featured Image */}
-        <div className="mb-6">
-          <label
-            htmlFor="featuredImage"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Featured Image
-          </label>
-          <div className="mt-1 flex items-center">
-            <input
-              type="file"
-              id="featuredImage"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, "featuredImage")}
-              className="sr-only"
-            />
-            <label
-              htmlFor="featuredImage"
-              className="relative cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-            >
-              <span>Choose file</span>
-            </label>
-            <p className="ml-3 text-sm text-gray-500">
-              {featuredImage ? featuredImage.name : "No file chosen"}
-            </p>
-          </div>
-          {currentFeaturedImage && !featuredImage && (
-            <div className="mt-2">
-              <p className="text-sm text-gray-500 mb-2">Current image:</p>
-              <div className="w-40 h-auto overflow-hidden rounded-md">
-                <img
-                  src={currentFeaturedImage}
-                  alt="Current featured image"
-                  className="w-full h-auto"
-                />
-              </div>
-            </div>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            Recommended size: 1200x630 pixels.
-          </p>
-        </div>
-
-        {/* Additional Blog Details Section */}
-        <div className="mb-6 border-t border-gray-200 pt-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Additional Details
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Author */}
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Title */}
             <div>
-              <label
-                htmlFor="author"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Author
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                Title *
               </label>
               <input
                 type="text"
-                id="author"
-                name="author"
-                value={formData.author}
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  errors.title ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Enter post title"
+              />
+              {errors.title && (
+                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+              )}
+            </div>
+
+            {/* Slug */}
+            <div>
+              <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
+                Slug *
+              </label>
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                value={formData.slug}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  errors.slug ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="post-url-slug"
+              />
+              {errors.slug && (
+                <p className="mt-1 text-sm text-red-600">{errors.slug}</p>
+              )}
+            </div>
+
+            {/* Excerpt */}
+            <div>
+              <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700 mb-2">
+                Excerpt
+              </label>
+              <textarea
+                id="excerpt"
+                name="excerpt"
+                value={formData.excerpt}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Brief description of the post"
+              />
+            </div>
+
+            {/* Content Editor */}
+            <div>
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+                Content * {showPreview && "(Markdown)"}
+              </label>
+
+              {/* Markdown Toolbar */}
+              <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-50 rounded-t-md border border-b-0 border-gray-300">
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("bold", "bold text")}
+                  className="p-2 hover:bg-gray-200 rounded"
+                  title="Bold"
+                >
+                  <strong>B</strong>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("italic", "italic text")}
+                  className="p-2 hover:bg-gray-200 rounded"
+                  title="Italic"
+                >
+                  <em>I</em>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("h1", "Heading 1")}
+                  className="p-2 hover:bg-gray-200 rounded text-sm"
+                  title="Heading 1"
+                >
+                  H1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("h2", "Heading 2")}
+                  className="p-2 hover:bg-gray-200 rounded text-sm"
+                  title="Heading 2"
+                >
+                  H2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("h3", "Heading 3")}
+                  className="p-2 hover:bg-gray-200 rounded text-sm"
+                  title="Heading 3"
+                >
+                  H3
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("ul", "list item")}
+                  className="p-2 hover:bg-gray-200 rounded"
+                  title="Bullet List"
+                >
+                  • List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("ol", "list item")}
+                  className="p-2 hover:bg-gray-200 rounded"
+                  title="Numbered List"
+                >
+                  1. List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("link", "link text")}
+                  className="p-2 hover:bg-gray-200 rounded"
+                  title="Link"
+                >
+                  🔗
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("code", "code")}
+                  className="p-2 hover:bg-gray-200 rounded font-mono text-sm"
+                  title="Code"
+                >
+                  &lt;/&gt;
+                </button>
+              </div>
+
+              {showPreview ? (
+                <div className="w-full min-h-[400px] px-4 py-2 border border-gray-300 rounded-b-md bg-white prose max-w-none">
+                  <ReactMarkdown>{formData.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <textarea
+                  ref={textareaRef}
+                  id="content"
+                  name="content"
+                  value={formData.content}
+                  onChange={handleChange}
+                  rows={20}
+                  className={`w-full px-4 py-2 border rounded-b-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm ${
+                    errors.content ? "border-red-500" : "border-gray-300"
+                  }`}
+                  placeholder="Write your post content in Markdown..."
+                />
+              )}
+              {errors.content && (
+                <p className="mt-1 text-sm text-red-600">{errors.content}</p>
+              )}
+            </div>
+
+            {/* SEO Fields (Expandable) */}
+            <div className="border-t pt-6">
+              <button
+                type="button"
+                onClick={() => setShowSeoFields(!showSeoFields)}
+                className="text-purple-600 hover:text-purple-700 font-medium"
+              >
+                {showSeoFields ? "− Hide" : "+ Show"} SEO Fields
+              </button>
+
+              {showSeoFields && (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label htmlFor="meta_title" className="block text-sm font-medium text-gray-700 mb-2">
+                      Meta Title
+                    </label>
+                    <input
+                      type="text"
+                      id="meta_title"
+                      name="meta_title"
+                      value={formData.meta_title}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="SEO title for search engines"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700 mb-2">
+                      Meta Description
+                    </label>
+                    <textarea
+                      id="meta_description"
+                      name="meta_description"
+                      value={formData.meta_description}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="SEO description for search engines"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="meta_keywords" className="block text-sm font-medium text-gray-700 mb-2">
+                      Keywords (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      id="meta_keywords"
+                      name="meta_keywords"
+                      value={formData.meta_keywords}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="keyword1, keyword2, keyword3"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Publish Options */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Publish</h3>
+
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_published"
+                    name="is_published"
+                    checked={formData.is_published}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is_published" className="ml-2 block text-sm text-gray-700">
+                    Publish immediately
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_featured"
+                    name="is_featured"
+                    checked={formData.is_featured}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-700">
+                    Featured post
+                  </label>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {isSaving ? "Saving..." : isEditMode ? "Update Post" : "Create Post"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Category */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Category</h3>
+              <select
+                id="category_id"
+                name="category_id"
+                value={formData.category_id}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Author */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Author</h3>
+              <input
+                type="text"
+                id="author_name"
+                name="author_name"
+                value={formData.author_name}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Author name"
@@ -1526,280 +687,71 @@ const BlogPostForm = ({ postId }: BlogFormProps) => {
             </div>
 
             {/* Read Time */}
-            <div>
-              <label
-                htmlFor="readTime"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Read Time (minutes)
-              </label>
-              <input
-                type="number"
-                id="readTime"
-                name="readTime"
-                value={formData.readTime}
-                onChange={handleChange}
-                min="0"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Read Time</h3>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  id="read_time"
+                  name="read_time"
+                  value={formData.read_time}
+                  onChange={handleChange}
+                  min="1"
+                  className="w-20 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <span className="text-sm text-gray-600">minutes</span>
+              </div>
             </div>
 
-            {/* Hidden Tag */}
-            <div>
-              <label
-                htmlFor="hiddenTag"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Hidden Tag
-              </label>
-              <input
-                type="text"
-                id="hiddenTag"
-                name="hiddenTag"
-                value={formData.hiddenTag}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Internal tag (not visible to readers)"
-              />
-            </div>
-          </div>
+            {/* Featured Image */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Featured Image</h3>
 
-          {/* Featured post */}
-          <div className="mt-4 flex items-center">
-            <input
-              type="checkbox"
-              id="isFeatured"
-              name="isFeatured"
-              checked={formData.isFeatured}
-              onChange={handleCheckboxChange}
-              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-            />
-            <label
-              htmlFor="isFeatured"
-              className="ml-2 block text-sm text-gray-700"
-            >
-              Feature this post (display prominently on the blog homepage)
-            </label>
-          </div>
-        </div>
-
-        {/* SEO Section - Toggle */}
-        <div className="mb-6 border-t border-gray-200 pt-4">
-          <button
-            type="button"
-            onClick={() => setShowSeoFields(!showSeoFields)}
-            className="text-lg font-medium text-gray-900 mb-4 flex items-center"
-          >
-            SEO Settings
-            <svg
-              className={`ml-2 h-5 w-5 transition-transform ${
-                showSeoFields ? "transform rotate-180" : ""
-              }`}
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-
-          {showSeoFields && (
-            <div className="bg-gray-50 p-4 rounded-md">
-              {/* Meta Title */}
-              <div className="mb-4">
-                <label
-                  htmlFor="metaTitle"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Meta Title
-                </label>
-                <input
-                  type="text"
-                  id="metaTitle"
-                  name="metaTitle"
-                  value={formData.metaTitle}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="SEO title (defaults to post title if empty)"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended length: 50-60 characters
-                </p>
-              </div>
-
-              {/* Meta Description */}
-              <div className="mb-4">
-                <label
-                  htmlFor="metaDescription"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Meta Description
-                </label>
-                <textarea
-                  id="metaDescription"
-                  name="metaDescription"
-                  value={formData.metaDescription}
-                  onChange={handleChange}
-                  rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Brief description for search engines"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended length: 150-160 characters
-                </p>
-              </div>
-
-              {/* Keywords */}
-              <div className="mb-4">
-                <label
-                  htmlFor="keywords"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Keywords
-                </label>
-                <input
-                  type="text"
-                  id="keywords"
-                  name="keywords"
-                  value={formData.keywords}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="keyword1, keyword2, keyword3"
-                />
-              </div>
-
-              {/* Canonical URL */}
-              <div className="mb-4">
-                <label
-                  htmlFor="canonicalUrl"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Canonical URL
-                </label>
-                <input
-                  type="text"
-                  id="canonicalUrl"
-                  name="canonicalUrl"
-                  value={formData.canonicalUrl}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                    urlError || errors.canonicalUrl
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-purple-500"
-                  }`}
-                  placeholder="https://example.com/canonical-path"
-                />
-                {(urlError || errors.canonicalUrl) && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center">
-                    <ExclamationCircleIcon className="h-4 w-4 mr-1" />
-                    {urlError || errors.canonicalUrl}
-                  </p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Use this when content appears on multiple URLs to specify the
-                  preferred version
-                </p>
-              </div>
-
-              {/* Meta Image */}
-              <div className="mb-4">
-                <label
-                  htmlFor="metaImage"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Social Media Image
-                </label>
-                <div className="mt-1 flex items-center">
-                  <input
-                    type="file"
-                    id="metaImage"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, "metaImage")}
-                    className="sr-only"
+              {formData.featured_image ? (
+                <div className="relative">
+                  <img
+                    src={formData.featured_image}
+                    alt="Featured"
+                    className="w-full h-48 object-cover rounded-md"
                   />
-                  <label
-                    htmlFor="metaImage"
-                    className="relative cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  <button
+                    type="button"
+                    onClick={removeFeaturedImage}
+                    className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
                   >
-                    <span>Choose file</span>
-                  </label>
-                  <p className="ml-3 text-sm text-gray-500">
-                    {metaImage ? metaImage.name : "No file chosen"}
-                  </p>
+                    <XMarkIcon className="h-5 w-5" />
+                  </button>
                 </div>
-                {currentMetaImage && !metaImage && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500 mb-2">Current image:</p>
-                    <div className="w-40 h-auto overflow-hidden rounded-md">
-                      <img
-                        src={currentMetaImage}
-                        alt="Current meta image"
-                        className="w-full h-auto"
-                      />
+              ) : (
+                <div>
+                  <label
+                    htmlFor="featured_image"
+                    className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-purple-500"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <PhotoIcon className="h-12 w-12 text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-600">
+                        {uploadingImage ? "Uploading..." : "Click to upload image"}
+                      </p>
                     </div>
-                  </div>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Image that appears when shared on social media. Recommended
-                  size: 1200x630 pixels.
-                </p>
-              </div>
+                    <input
+                      id="featured_image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                  {errors.featured_image && (
+                    <p className="mt-1 text-sm text-red-600">{errors.featured_image}</p>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Publish immediately checkbox */}
-        <div className="mb-6 flex items-center">
-          <input
-            type="checkbox"
-            id="publishImmediately"
-            name="publishImmediately"
-            checked={formData.publishImmediately}
-            onChange={handleCheckboxChange}
-            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          />
-          <label
-            htmlFor="publishImmediately"
-            className="ml-2 block text-sm text-gray-700"
-          >
-            {isEditMode
-              ? formData.publishImmediately
-                ? "Published"
-                : "Save as draft"
-              : "Publish immediately"}
-          </label>
-        </div>
-
-        {/* Submit buttons */}
-        <div className="flex justify-end space-x-3">
-          <Link
-            href="/dashboard/admin/blog"
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-          >
-            Cancel
-          </Link>
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <ArrowPathIcon className="inline h-4 w-4 mr-2 animate-spin" />
-                {isEditMode ? "Updating..." : "Creating..."}
-              </>
-            ) : (
-              <>{isEditMode ? "Update Post" : "Create Post"}</>
-            )}
-          </button>
+          </div>
         </div>
       </form>
     </div>
   );
-};
-
-export default BlogPostForm;
+}

@@ -46,6 +46,7 @@ class User(Base):
     course_comments = relationship("CourseComment", back_populates="user", cascade="all, delete-orphan")
     retreat_registrations = relationship("RetreatRegistration", back_populates="user", cascade="all, delete-orphan")
     calendar_events = relationship("UserCalendar", back_populates="user", cascade="all, delete-orphan")
+    cart = relationship("Cart", back_populates="user", uselist=False, cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
     product_accesses = relationship("UserProductAccess", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")

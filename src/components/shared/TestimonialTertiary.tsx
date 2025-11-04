@@ -39,9 +39,12 @@ const TestimonialCarouselTertiary = ({ data }: { data: TestimonialCarouselTertia
     return data.testimonials.length;
   };
 
-  const [totalPages, setTotalPages] = useState(getTotalPages());
+  const [totalPages, setTotalPages] = useState(1); // Initialize with server-safe value
 
   useEffect(() => {
+    // Set correct value on client mount
+    setTotalPages(getTotalPages());
+
     const handleResize = () => {
       setTotalPages(getTotalPages());
       setCurrentIndex(0);

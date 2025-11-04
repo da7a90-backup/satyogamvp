@@ -21,33 +21,25 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
 
     Returns dict with:
         - can_access: bool
-        - access_type: "full" | "preview" | "none"
-        - preview_duration: int (seconds) if preview
+        - access_type: "free" | "preview" | "restricted" | "full"
+        - preview_duration: int (minutes) if preview
     """
-    # Free teachings - everyone can access
+    # Free teachings - everyone can access fully
     if teaching.access_level == 'free':
         return {
             "can_access": True,
-            "access_type": "full",
-            "preview_duration": None,
+            "access_type": "free",
+            "preview_duration": teaching.preview_duration,
         }
 
-    # No user - only free content
-    if not user:
-        return {
-            "can_access": False,
-            "access_type": "none",
-            "preview_duration": None,
-        }
-
-    # Preview teachings - depends on membership
+    # Preview teachings - available as preview for non-logged-in users
     if teaching.access_level == 'preview':
-        if user.membership_tier == MembershipTierEnum.FREE:
-            # Free users get preview only
+        if not user or user.membership_tier == MembershipTierEnum.FREE:
+            # Non-logged in or free users get preview
             return {
                 "can_access": True,
                 "access_type": "preview",
-                "preview_duration": teaching.preview_duration or 300,  # 5 min default
+                "preview_duration": teaching.preview_duration or 30,
             }
         else:
             # Paid members get full access
@@ -56,6 +48,14 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
                 "access_type": "full",
                 "preview_duration": None,
             }
+
+    # No user and not free/preview - restricted
+    if not user:
+        return {
+            "can_access": False,
+            "access_type": "restricted",
+            "preview_duration": None,
+        }
 
     # Gyani teachings - for Gyani tier and above
     if teaching.access_level == 'gyani':
@@ -68,7 +68,7 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
         else:
             return {
                 "can_access": False,
-                "access_type": "none",
+                "access_type": "restricted",
                 "preview_duration": None,
             }
 
@@ -83,7 +83,7 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
         else:
             return {
                 "can_access": False,
-                "access_type": "none",
+                "access_type": "restricted",
                 "preview_duration": None,
             }
 
@@ -98,13 +98,13 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
         else:
             return {
                 "can_access": False,
-                "access_type": "none",
+                "access_type": "restricted",
                 "preview_duration": None,
             }
 
     return {
         "can_access": False,
-        "access_type": "none",
+        "access_type": "restricted",
         "preview_duration": None,
     }
 
@@ -113,6 +113,11 @@ def user_can_access_teaching(user: Optional[User], teaching: Teaching) -> dict:
 async def get_teachings(
     category: Optional[str] = None,
     content_type: Optional[str] = None,
+    access_level: Optional[str] = None,
+    search: Optional[str] = None,
+    featured: Optional[str] = None,
+    of_the_month: Optional[str] = None,
+    pinned: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=1000),  # Increased max limit for teachings page
     user: Optional[User] = Depends(get_optional_user),
@@ -126,9 +131,23 @@ async def get_teachings(
         query = query.filter(Teaching.category == category)
     if content_type:
         query = query.filter(Teaching.content_type == content_type)
+    if access_level:
+        query = query.filter(Teaching.access_level == access_level)
+    if search:
+        # Search in title and description
+        search_filter = f"%{search}%"
+        query = query.filter(
+            (Teaching.title.ilike(search_filter)) | (Teaching.description.ilike(search_filter))
+        )
+    if featured is not None:
+        query = query.filter(Teaching.featured == featured)
+    if of_the_month is not None:
+        query = query.filter(Teaching.of_the_month == of_the_month)
+    if pinned is not None:
+        query = query.filter(Teaching.pinned == pinned)
 
-    # Get teachings - order by id to get variety of content types
-    teachings = query.order_by(Teaching.id.desc()).offset(skip).limit(limit).all()
+    # Get teachings - order by published_date desc to get most recent first
+    teachings = query.order_by(Teaching.published_date.desc()).offset(skip).limit(limit).all()
 
     # Process teachings based on user access
     result = []
@@ -147,7 +166,12 @@ async def get_teachings(
             "published_date": teaching.published_date,
             "category": teaching.category,
             "tags": teaching.tags,
+            "topic": teaching.topic,
+            "filter_tags": teaching.filter_tags if teaching.filter_tags else [],
             "view_count": teaching.view_count,
+            "featured": teaching.featured,
+            "of_the_month": teaching.of_the_month,
+            "pinned": teaching.pinned,
             # Access info
             "can_access": access_info["can_access"],
             "access_type": access_info["access_type"],
@@ -228,7 +252,12 @@ async def get_teaching(
         "published_date": teaching.published_date,
         "category": teaching.category,
         "tags": teaching.tags,
+        "topic": teaching.topic,
+        "filter_tags": teaching.filter_tags if teaching.filter_tags else [],
         "view_count": teaching.view_count,
+        "featured": teaching.featured,
+        "of_the_month": teaching.of_the_month,
+        "pinned": teaching.pinned,
         # Access info
         "can_access": access_info["can_access"],
         "access_type": access_info["access_type"],
@@ -301,7 +330,7 @@ async def get_favorites(
     """Get user's favorite teachings."""
     favorites = (
         db.query(Teaching)
-        .join(TeachingFavorite)
+        .join(TeachingFavorite, Teaching.id == TeachingFavorite.teaching_id)
         .filter(TeachingFavorite.user_id == current_user.id)
         .all()
     )
@@ -313,8 +342,15 @@ async def get_favorites(
             "id": str(teaching.id),
             "slug": teaching.slug,
             "title": teaching.title,
+            "description": teaching.description,
             "thumbnail_url": teaching.thumbnail_url,
-            "content_type": teaching.content_type.value,
+            "content_type": teaching.content_type if isinstance(teaching.content_type, str) else teaching.content_type.value,
+            "category": teaching.category,
+            "tags": teaching.tags,
+            "topic": teaching.topic,
+            "filter_tags": teaching.filter_tags if teaching.filter_tags else [],
+            "duration": teaching.duration,
+            "published_date": str(teaching.published_date) if teaching.published_date else None,
             "access_type": access_info["access_type"],
         })
 
@@ -332,7 +368,7 @@ async def get_watch_history(
     # Get unique teachings from teaching_accesses, ordered by most recent access
     history = (
         db.query(Teaching, TeachingAccess.accessed_at)
-        .join(TeachingAccess)
+        .join(TeachingAccess, Teaching.id == TeachingAccess.teaching_id)
         .filter(TeachingAccess.user_id == current_user.id)
         .order_by(TeachingAccess.accessed_at.desc())
         .offset(skip)
@@ -355,9 +391,13 @@ async def get_watch_history(
             "title": teaching.title,
             "description": teaching.description,
             "thumbnail_url": teaching.thumbnail_url,
-            "content_type": teaching.content_type.value,
+            "content_type": teaching.content_type if isinstance(teaching.content_type, str) else teaching.content_type.value,
+            "category": teaching.category,
+            "tags": teaching.tags,
+            "topic": teaching.topic,
+            "filter_tags": teaching.filter_tags if teaching.filter_tags else [],
             "duration": teaching.duration,
-            "published_date": teaching.published_date,
+            "published_date": str(teaching.published_date) if teaching.published_date else None,
             "accessed_at": accessed_at,
             "access_type": access_info["access_type"],
         })

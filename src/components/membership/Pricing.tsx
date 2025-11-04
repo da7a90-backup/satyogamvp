@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
 
 // TypeScript interfaces for data structure
 interface DiscountItem {
@@ -141,6 +143,46 @@ interface PricingComparisonProps {
 
 export default function PricingComparison({ data = pricingPageData }: PricingComparisonProps) {
   const [isYearly, setIsYearly] = useState<boolean>(true);
+  const [currentSlide, setCurrentSlide] = useState<number>(1); // Start at pragyani (most recommended)
+  const [touchStart, setTouchStart] = useState<number>(0);
+  const [touchEnd, setTouchEnd] = useState<number>(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const tiers = [
+    { key: 'gyani', data: data.tiers.gyani },
+    { key: 'pragyani', data: data.tiers.pragyani },
+    { key: 'pragyaniPlus', data: data.tiers.pragyaniPlus }
+  ];
+
+  // Auto-slide effect for mobile
+  useEffect(() => {
+    const autoSlide = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % tiers.length);
+    }, 5000); // 5 seconds
+
+    return () => clearInterval(autoSlide);
+  }, [tiers.length]);
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 75) {
+      // Swipe left
+      setCurrentSlide((prev) => (prev + 1) % tiers.length);
+    }
+
+    if (touchStart - touchEnd < -75) {
+      // Swipe right
+      setCurrentSlide((prev) => (prev - 1 + tiers.length) % tiers.length);
+    }
+  };
 
   const renderFeatures = (features: FeatureItem[]): JSX.Element[] => {
     return features.map((feature, index) => {
@@ -386,9 +428,10 @@ export default function PricingComparison({ data = pricingPageData }: PricingCom
           {/* Buttons - anchored at bottom */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: 'auto' }}>
             <button
+              disabled
               style={{
-                background: '#7D1A13',
-                color: '#FFFFFF',
+                background: '#9CA3AF',
+                color: '#D1D5DB',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '10px 16px',
@@ -399,12 +442,14 @@ export default function PricingComparison({ data = pricingPageData }: PricingCom
                 height: '44px',
                 boxShadow:
                   '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
-                cursor: 'pointer'
+                cursor: 'not-allowed',
+                opacity: 0.6
               }}
             >
               {tier === 'gyani' ? data.startTrialButton : data.signUpButton}
             </button>
-            <button
+            <a
+              href="/contact?queryType=membership"
               style={{
                 background: '#FFFFFF',
                 color: '#414651',
@@ -418,11 +463,15 @@ export default function PricingComparison({ data = pricingPageData }: PricingCom
                 height: '44px',
                 boxShadow:
                   '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               {data.moreDetailsButton}
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -485,10 +534,10 @@ export default function PricingComparison({ data = pricingPageData }: PricingCom
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px', alignItems: 'stretch' }}>
+        {/* Desktop: Grid Layout */}
+        <div className="hidden lg:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px', alignItems: 'stretch' }}>
           <PricingCard tier="gyani" tierData={data.tiers.gyani} />
-          
+
           <div style={{ position: 'relative' }}>
             {/* Most Recommended Label with Curved Arrow */}
             <div
@@ -537,6 +586,116 @@ export default function PricingComparison({ data = pricingPageData }: PricingCom
           </div>
 
           <PricingCard tier="pragyaniPlus" tierData={data.tiers.pragyaniPlus} />
+        </div>
+
+        {/* Mobile: Carousel */}
+        <div className="lg:hidden" style={{ position: 'relative' }}>
+          {/* Most Recommended Arrow - shown only on pragyani slide */}
+          {currentSlide === 1 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '-30px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: '4px',
+                zIndex: 100
+              }}
+            >
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                <path
+                  d="M52 8 Q45 5, 38 8 T25 25 Q20 35, 18 50"
+                  stroke="#7D1A13"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <path
+                  d="M18 50 L14 44 M18 50 L23 46"
+                  stroke="#7D1A13"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#7D1A13',
+                  whiteSpace: 'nowrap',
+                  marginTop: '0px'
+                }}
+              >
+                {data.recommendedText}
+              </span>
+            </div>
+          )}
+
+          {/* Carousel Container */}
+          <div
+            ref={carouselRef}
+            style={{
+              overflow: 'hidden',
+              width: '100%'
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div
+              style={{
+                display: 'flex',
+                transform: `translateX(-${currentSlide * 100}%)`,
+                transition: 'transform 0.5s ease-in-out'
+              }}
+            >
+              {tiers.map((tier, index) => (
+                <div
+                  key={tier.key}
+                  style={{
+                    minWidth: '100%',
+                    width: '100%',
+                    flexShrink: 0,
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <PricingCard tier={tier.key} tierData={tier.data} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pagination Dots */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '8px',
+              marginTop: '24px'
+            }}
+          >
+            {tiers.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: currentSlide === index ? '#7D1A13' : '#D5D7DA',
+                  cursor: 'pointer',
+                  padding: 0
+                }}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

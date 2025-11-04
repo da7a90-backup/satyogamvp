@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, X } from 'lucide-react';
 
 interface MenuItem {
   label: string;
@@ -19,11 +19,66 @@ interface HeaderProps {
   navigation?: MenuItem[];
 }
 
+// Feature Under Development Modal Component
+function FeatureModal({ isOpen, onClose, message, icon }: {
+  isOpen: boolean;
+  onClose: () => void;
+  message: string;
+  icon: 'search' | 'cart';
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-[#942017]/10 rounded-full flex items-center justify-center mx-auto">
+              {icon === 'cart' ? (
+                <ShoppingCart className="w-8 h-8 text-[#942017]" />
+              ) : (
+                <svg className="w-8 h-8 text-[#942017]" viewBox="0 0 24 24" fill="none">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              )}
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Feature Under Development</h3>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <button
+            onClick={onClose}
+            className="w-full bg-[#942017] hover:bg-[#942017]/90 text-white px-4 py-2.5 rounded-lg font-semibold transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const Header: React.FC<HeaderProps> = ({ navigation }) => {
   const [showBanner, setShowBanner] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [showSearch, setShowSearch] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalIcon, setModalIcon] = useState<'search' | 'cart'>('search');
   const pathname = usePathname();
 
   // Default navigation
@@ -196,7 +251,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
             <p className="text-white text-base font-normal leading-6 m-0 text-center">
               Free Meditation Course{' '}
               <Link 
-                href="/enroll" 
+                href="/courses" 
                 className="text-white underline font-semibold hover:no-underline"
               >
                 Enroll Now
@@ -267,16 +322,25 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           {/* Right Side Actions */}
           <div className="flex items-center gap-4">
             {/* Search Button */}
-            <button 
-              onClick={() => setShowSearch(!showSearch)}
+            <button
+              onClick={() => {
+                setModalIcon('search');
+                setModalMessage('Search functionality is under active development. Try again in a couple of days!');
+                setModalOpen(true);
+              }}
               className="bg-transparent border-none cursor-pointer px-3 py-2 flex items-center text-black hover:opacity-70 transition-opacity"
               aria-label="Search"
             >
               <SearchIcon />
             </button>
-            
+
             {/* Cart Button */}
-            <button 
+            <button
+              onClick={() => {
+                setModalIcon('cart');
+                setModalMessage('Shopping cart functionality is under active development. Try again in a couple of days!');
+                setModalOpen(true);
+              }}
               className="bg-transparent border-none cursor-pointer px-3 py-2 flex items-center text-black hover:opacity-70 transition-opacity"
               aria-label="Cart"
             >
@@ -319,22 +383,6 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         </div>
       </nav>
 
-      {/* Search Bar */}
-      {showSearch && (
-        <div className="absolute left-0 right-0 bg-white border-b border-black px-3 py-6 z-10" style={{ top: '100%' }}>
-          <div className="max-w-screen-2xl mx-auto relative">
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <SearchIcon />
-            </div>
-            <input
-              type="text"
-              placeholder="Search courses"
-              className="w-full pl-12 pr-3 py-3 text-base border-none outline-none bg-transparent text-black focus:ring-0"
-            />
-          </div>
-        </div>
-      )}
-
       {/* Dropdown Menu */}
       {activeDropdown && (
         <div className="absolute left-0 right-0 bg-white z-10 dropdown-container" style={{ top: '100%' }}>
@@ -367,7 +415,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           </div>
           
           {/* Newsletter Banner in Dropdown */}
-          <div 
+          {/* <div 
             className="border-b border-black py-4 text-center w-full"
             style={{ backgroundColor: '#323030' }}
           >
@@ -380,7 +428,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                 Subscribe
               </Link>
             </p>
-          </div>
+          </div> */}
         </div>
       )}
         
@@ -486,6 +534,14 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           </div>
         </div>
       )}
+
+      {/* Feature Under Development Modal */}
+      <FeatureModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        message={modalMessage}
+        icon={modalIcon}
+      />
     </header>
   );
 };

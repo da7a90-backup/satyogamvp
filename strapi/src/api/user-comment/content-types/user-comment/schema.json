@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "user_comments",
+  "info": {
+    "singularName": "user-comment",
+    "pluralName": "user-comments",
+    "displayName": "UserComment",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "content": {
+      "type": "text"
+    },
+    "author": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "admin::user"
+    },
+    "timestamp": {
+      "type": "datetime"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_sections_featured_quotes",
+  "info": {
+    "displayName": "featured_quote",
+    "icon": "discuss"
+  },
+  "options": {},
+  "attributes": {
+    "authorName": {
+      "type": "string",
+      "required": true
+    },
+    "authorImage": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "quoteText": {
+      "type": "text",
+      "required": true,
+      "maxLength": 300
+    }
+  }
+}

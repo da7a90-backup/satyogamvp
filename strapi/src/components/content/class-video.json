@@ -1,0 +1,35 @@
+{
+  "collectionName": "components_content_class_videos",
+  "info": {
+    "displayName": "class-video",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "videoFile": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "videos"
+      ]
+    },
+    "videoDescription": {
+      "type": "text"
+    },
+    "videoTranscript": {
+      "type": "text"
+    },
+    "AudioFile": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "duration": {
+      "type": "integer"
+    }
+  }
+}

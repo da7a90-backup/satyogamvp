@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Info } from 'lucide-react';
+import { Info, X } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -58,6 +58,46 @@ interface ProductComponentData {
 }
 
 // ============================================================================
+// MODAL COMPONENT
+// ============================================================================
+
+function ActionModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: () => void; message: string }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <div className="text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-[#942017]/10 rounded-full flex items-center justify-center mx-auto">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[#942017]">
+                <path d="M9 2L9 6M15 2L15 6M3 10L21 10M5 4L19 4C20.1046 4 21 4.89543 21 6L21 20C21 21.1046 20.1046 22 19 22L5 22C3.89543 22 3 21.1046 3 20L3 6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Feature Under Development</h3>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-[#7D1A13] hover:bg-[#7D1A13]/90 text-white font-semibold rounded-lg transition-colors"
+            style={{ fontFamily: 'Avenir Next, sans-serif' }}
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // COMPONENT
 // ============================================================================
 
@@ -66,6 +106,8 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
   const [selectedAccessType, setSelectedAccessType] = useState(0);
   const [isMember, setIsMember] = useState(false);
   const [showScholarship, setShowScholarship] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
   // Calculate current price based on selections
   const getCurrentPrice = () => {
@@ -85,11 +127,18 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
   };
 
   const currentPrice = getCurrentPrice();
-  const originalPrice = data.priceOptions && data.priceOptions.length > 0 
-    ? data.priceOptions[selectedAccessType].price 
+  const originalPrice = data.priceOptions && data.priceOptions.length > 0
+    ? data.priceOptions[selectedAccessType].price
     : data.basePrice;
 
+  const handleAction = (message: string) => {
+    setModalMessage(message);
+    setModalOpen(true);
+  };
+
   return (
+    <>
+      <ActionModal isOpen={modalOpen} onClose={() => setModalOpen(false)} message={modalMessage} />
     <section 
       className="w-full flex flex-col items-center px-4 lg:px-16 py-16 lg:py-20"
       style={{ backgroundColor: '#FAF8F1' }}
@@ -502,8 +551,8 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
             {/* Action Buttons */}
             {!showScholarship && (
               <>
-                <a
-                  href={data.buttonUrl}
+                <button
+                  onClick={() => handleAction('Online retreat booking functionality is under active development. Please check back in a couple of days or contact us for more information.')}
                   className="w-full py-4 rounded-lg font-semibold text-white transition-opacity hover:opacity-90 mb-3 block text-center"
                   style={{
                     backgroundColor: '#7D1A13',
@@ -512,11 +561,11 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
                   }}
                 >
                   {data.buttonText}
-                </a>
+                </button>
 
-                {data.infoButtonText && data.infoButtonUrl && (
+                {data.infoButtonText && (
                   <a
-                    href={data.infoButtonUrl}
+                    href="/contact?queryType=online_retreat"
                     className="w-full py-4 rounded-lg font-semibold transition-all border-2 mb-4 block text-center"
                     style={{
                       borderColor: '#7D1A13',
@@ -555,6 +604,7 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
         </div>
       </div>
     </section>
+    </>
   );
 };
 

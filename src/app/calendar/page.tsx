@@ -7,16 +7,30 @@ export const metadata: Metadata = {
   description: 'Explore upcoming retreats, events, and activities at Sat Yoga Ashram.',
 };
 
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+
+async function getEvents() {
+  try {
+    const response = await fetch(`${FASTAPI_URL}/api/events`, {
+      cache: 'no-store', // Always fetch fresh data
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch events:', response.statusText);
+      return { events: [], total: 0 };
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return { events: [], total: 0 };
+  }
+}
+
 // This is a server component that fetches events from the API
 export default async function CalendarPageRoute() {
-  // In a real implementation, you would fetch events from your Strapi API
-  // For this example, we'll use mock data
-  
-  // Example of how you would fetch from Strapi:
-  // const data = await fetchAPI('/events?populate=*&sort=startDate:asc');
-  
-  // Mock data for demonstration with correct type assertions
+  const { events } = await getEvents();
 
-  
-  return <CalendarPage/>;
+  return <CalendarPage events={events} />;
 }

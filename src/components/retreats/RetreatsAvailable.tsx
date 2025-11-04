@@ -2,42 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-const RetreatCardsSection = () => {
+const RetreatCardsSection = ({ data }: any) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Retreat options data - ready for CMS migration
-  const retreats = [
-    {
-      id: 'shakti',
-      image: '/ssi.jpg',
-      icon: '/progicon.png',
-      duration: '1 month',
-      type: 'Onsite Retreat',
-      category: 'Ashram Immersion program',
-      title: 'Shakti Saturation Intensive'
-    },
-    {
-      id: 'darshan',
-      image: '/darshan.jpg',
-      icon: '/progicon.png',
-      duration: '7-Day',
-      type: 'Onsite Retreat',
-      category: 'Personal encounter with shunyamurti',
-      title: 'Private Darshan'
-    },
-    {
-      id: 'sevadhari',
-      image: '/sevadhari.jpg',
-      icon: '/progicon.png',
-      duration: '6 months', 
-      type: 'Onsite Retreat',
-      category: 'Live and Study at the Ashram!',
-      title: 'Become a Sevadhari'
-    }
-  ];
+  // Get retreat data from API
+  const retreats = data?.retreatCards?.content?.retreats || [];
 
   // Auto-slide functionality for mobile
   useEffect(() => {

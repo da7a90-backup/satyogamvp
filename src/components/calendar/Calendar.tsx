@@ -11,6 +11,8 @@ export interface EventData {
   description: string;
   imageUrl: string;
   date: string;
+  startDate?: string;
+  endDate?: string;
   duration: string;
   locationType: 'Onsite' | 'Online';
   location: string;
@@ -256,106 +258,50 @@ const EventCard = ({ event }: { event: EventData }) => {
 };
 
 // Main Component
-const CalendarPage = () => {
+interface CalendarPageProps {
+  events?: EventData[];
+}
+
+const CalendarPage = ({ events = [] }: CalendarPageProps) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'onsite' | 'online'>('all');
 
-  // Mock data - can be replaced with API call
+  // Standard section data
   const standardSectionData: StandardSectionData = {
     tagline: 'CALENDAR',
     title: 'Upcoming retreats',
     description: 'Step away from the noise of the world. Join us in sacred space—at the Ashram or online—for retreats that awaken the Soul and illuminate the path to Truth.'
   };
 
-  // Mock events data - can be replaced with API call
-  const eventsData: MonthGroup[] = [
-    {
-      month: 'December',
-      events: [
-        {
-          id: '1',
-          title: 'Become a Sevadhari',
-          subtitle: 'Live and Study at the Ashram',
-          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
-          imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400',
-          date: 'Dec 14th, 2024',
-          duration: '6 months',
-          locationType: 'Onsite',
-          location: 'Onsite',
-          eventUrl: '/events/become-sevadhari'
-        },
-        {
-          id: '2',
-          title: 'Shakti Saturation',
-          subtitle: 'Ashram Immersion program',
-          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
-          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-          date: 'Dec 14th, 2024',
-          duration: '6 months',
-          locationType: 'Onsite',
-          location: 'Onsite',
-          eventUrl: '/events/shakti-saturation'
-        },
-        {
-          id: '3',
-          title: "All's Well That Ends Well",
-          subtitle: 'Taught by Shunyamurti',
-          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
-          imageUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400',
-          date: 'Dec 14th, 2024',
-          duration: '3 days',
-          locationType: 'Online',
-          location: 'Online',
-          eventUrl: '/events/alls-well'
-        }
-      ]
-    },
-    {
-      month: 'January',
-      events: [
-        {
-          id: '4',
-          title: 'Shakti Saturation',
-          subtitle: 'Ashram Immersion program',
-          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
-          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-          date: 'Dec 14th, 2024',
-          duration: '6 months',
-          locationType: 'Onsite',
-          location: 'Onsite',
-          eventUrl: '/events/shakti-jan'
-        }
-      ]
-    },
-    {
-      month: 'February',
-      events: [
-        {
-          id: '5',
-          title: 'Shakti Saturation',
-          subtitle: 'Ashram Immersion program',
-          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
-          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-          date: 'Dec 14th, 2024',
-          duration: '6 months',
-          locationType: 'Onsite',
-          location: 'Onsite',
-          eventUrl: '/events/shakti-feb'
-        },
-        {
-          id: '6',
-          title: 'Name retreat',
-          subtitle: 'Taught by Shunyamurti',
-          description: 'Lorem ipsum dolor sit amet consectetur. Sit cras viverra vivamus aliquot pharetra enim. Condimentum pellentesque suspendisse tellus vel.',
-          imageUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400',
-          date: 'Dec 14th, 2024',
-          duration: '3 days',
-          locationType: 'Online',
-          location: 'Online',
-          eventUrl: '/events/name-retreat'
-        }
-      ]
-    }
-  ];
+  // Group events by month
+  const groupEventsByMonth = (events: EventData[]): MonthGroup[] => {
+    const monthGroups: { [key: string]: EventData[] } = {};
+
+    events.forEach(event => {
+      // Extract month from date string (e.g., "Dec 14, 2024" -> "December")
+      const date = new Date(event.startDate || event.date);
+      const monthName = date.toLocaleDateString('en-US', { month: 'long' });
+
+      if (!monthGroups[monthName]) {
+        monthGroups[monthName] = [];
+      }
+      monthGroups[monthName].push(event);
+    });
+
+    // Convert to array and sort by month
+    const monthOrder = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    return Object.keys(monthGroups)
+      .sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b))
+      .map(month => ({
+        month,
+        events: monthGroups[month]
+      }));
+  };
+
+  const eventsData: MonthGroup[] = groupEventsByMonth(events);
 
   const filteredEvents = eventsData.map(monthGroup => ({
     ...monthGroup,
@@ -500,81 +446,22 @@ const CalendarPage = () => {
             </div>
           </div>
 
-          {/* Event Count and Filters */}
+          {/* Event Count */}
           <div
             className="flex flex-col items-start w-full"
             style={{ gap: '8px' }}
           >
-            <div
-              className="flex flex-row items-center justify-between w-full"
+            <span
+              style={{
+                fontFamily: 'Avenir Next',
+                fontWeight: 600,
+                fontSize: '18px',
+                lineHeight: '28px',
+                color: '#111927'
+              }}
             >
-              {/* Left side - count */}
-              <span
-                style={{
-                  fontFamily: 'Avenir Next',
-                  fontWeight: 600,
-                  fontSize: '18px',
-                  lineHeight: '28px',
-                  color: '#111927'
-                }}
-              >
-                {totalEvents} events
-              </span>
-
-              {/* Right side - Sort and Filters */}
-              <div
-                className="flex flex-row items-center"
-                style={{ gap: '8px' }}
-              >
-                {/* Sort by button */}
-                <button
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: '8px 12px',
-                    gap: '4px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    fontFamily: 'Avenir Next',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    lineHeight: '20px',
-                    color: '#535862'
-                  }}
-                >
-                  Sort by
-                </button>
-
-                {/* Filters button */}
-                <button
-                  style={{
-                    boxSizing: 'border-box',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: '8px 12px',
-                    gap: '4px',
-                    background: '#FFFFFF',
-                    border: '1px solid #D5D7DA',
-                    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontFamily: 'Avenir Next',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    lineHeight: '20px',
-                    color: '#414651'
-                  }}
-                >
-                  Filters
-                </button>
-              </div>
-            </div>
+              {totalEvents} events
+            </span>
           </div>
 
           {/* Events List */}

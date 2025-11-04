@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_content_class_contents",
+  "info": {
+    "displayName": "class-content",
+    "icon": "briefcase",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "additionalMaterials": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.additional-materials"
+    },
+    "video": {
+      "type": "component",
+      "repeatable": false,
+      "component": "content.class-video"
+    },
+    "writingPrompts": {
+      "displayName": "class-section",
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.class-section"
+    },
+    "keyConcepts": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.class-section"
+    }
+  }
+}

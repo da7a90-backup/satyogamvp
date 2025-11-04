@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 
@@ -38,7 +40,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
 
   // Get FAQs based on active category
   let faqs: FAQItem[] = [];
-  
+
   if (activeCategory === 'all') {
     // Combine all FAQs from all categories (except 'all' itself)
     faqs = data.categories
@@ -52,11 +54,11 @@ export default function FAQSection({ data }: FAQSectionProps) {
   // Filter FAQs based on search query
   const filteredFaqs = faqs.filter(faq => {
     if (!searchQuery.trim()) return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
     const questionMatch = faq.question.toLowerCase().includes(searchLower);
     const answerMatch = faq.answer.toLowerCase().includes(searchLower);
-    
+
     return questionMatch || answerMatch;
   });
 
@@ -66,30 +68,84 @@ export default function FAQSection({ data }: FAQSectionProps) {
   }, [searchQuery, activeCategory]);
 
   return (
-    <div
-      style={{
-        background: '#FAF8F1',
-        padding: '112px 64px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '40px'
-      }}
-    >
+    <>
+      <style>{`
+        .faq-section-container {
+          background: #FAF8F1;
+          padding: 112px 64px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 40px;
+        }
+
+        .faq-search-wrapper {
+          width: 100%;
+          max-width: 732px;
+        }
+
+        .faq-search-bar {
+          display: flex;
+          align-items: center;
+          padding: 8px 12px;
+          gap: 12px;
+          background: #FFFFFF;
+          border: 1px solid #E5E7EB;
+          border-radius: 8px;
+          height: 36px;
+        }
+
+        .faq-tabs-container {
+          border-bottom: 1px solid #E9EAEB;
+          width: 100%;
+          max-width: 732px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .faq-tabs-container::-webkit-scrollbar {
+          height: 4px;
+        }
+
+        .faq-tabs-container::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .faq-tabs-container::-webkit-scrollbar-thumb {
+          background: #D4D4D4;
+          border-radius: 2px;
+        }
+
+        .faq-tabs-wrapper {
+          display: flex;
+          gap: 12px;
+          min-width: max-content;
+        }
+
+        .faq-accordion-wrapper {
+          width: 100%;
+          max-width: 732px;
+        }
+
+        @media (max-width: 768px) {
+          .faq-section-container {
+            padding: 16px;
+            gap: 24px;
+          }
+
+          .faq-search-wrapper,
+          .faq-tabs-container,
+          .faq-accordion-wrapper {
+            width: 100%;
+            max-width: 100%;
+          }
+        }
+      `}</style>
+      <div className="faq-section-container">
+
       {/* Search Bar */}
-      <div style={{ width: '373px' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '8px 12px',
-            gap: '12px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            height: '36px'
-          }}
-        >
+      <div className="faq-search-wrapper">
+        <div className="faq-search-bar">
           <Search size={20} color="#1F2937" strokeWidth={1.5} />
           <input
             type="text"
@@ -112,18 +168,8 @@ export default function FAQSection({ data }: FAQSectionProps) {
       </div>
 
       {/* Category Tabs */}
-      <div
-        style={{
-          borderBottom: '1px solid #E9EAEB',
-          width: '604px'
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            gap: '12px'
-          }}
-        >
+      <div className="faq-tabs-container">
+        <div className="faq-tabs-wrapper">
           {data.categories.map((category) => (
             <button
               key={category.id}
@@ -149,7 +195,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
       </div>
 
       {/* FAQ Accordion */}
-      <div style={{ width: '732px' }}>
+      <div className="faq-accordion-wrapper">
         {filteredFaqs.length === 0 ? (
           <div
             style={{
@@ -206,6 +252,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    flexShrink: 0,
                     transform: openItemIndex === index ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.3s ease'
                   }}
@@ -229,7 +276,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
                     paddingBottom: '24px'
                   }}
                 >
-                  <p
+                  <div
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
                       fontSize: '16px',
@@ -239,9 +286,8 @@ export default function FAQSection({ data }: FAQSectionProps) {
                       margin: 0,
                       whiteSpace: 'pre-line'
                     }}
-                  >
-                    {faq.answer}
-                  </p>
+                    dangerouslySetInnerHTML={{ __html: faq.answer }}
+                  />
                 </div>
               )}
             </div>
@@ -249,6 +295,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
         </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

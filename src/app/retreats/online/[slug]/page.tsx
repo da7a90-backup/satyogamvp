@@ -1,17 +1,34 @@
 import { notFound } from 'next/navigation';
-import { onlineRetreatsData } from '@/lib/data';
 import OnlineRetreatPage from '@/components/retreats/online/retreatPage/OnlineRetreatPage';
 
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default function Page({ params }: PageProps) {
-  const retreatData = onlineRetreatsData.find(
-    (retreat: { slug: string; }) => retreat.slug === params.slug
-  );
+async function getRetreatData(slug: string) {
+  try {
+    const res = await fetch(`${FASTAPI_URL}/api/online-retreats/${slug}`, {
+      cache: 'no-store'
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching retreat:', error);
+    return null;
+  }
+}
+
+export default async function Page({ params }: PageProps) {
+  const { slug } = await params;
+  const retreatData = await getRetreatData(slug);
 
   if (!retreatData) {
     notFound();
@@ -22,52 +39,65 @@ export default function Page({ params }: PageProps) {
       text: "View all Online retreats",
       url: "/retreats/online"
     },
-    background: retreatData.heroBackground
+    background: retreatData.hero_background || "/orbanner.png"
   };
 
   const bookingData = {
     retreatType: 'online' as const,
-    tagline: retreatData.bookingTagline,
+    tagline: retreatData.booking_tagline || "ONLINE RETREAT",
     title: retreatData.title,
-    basePrice: retreatData.basePrice,
-    priceOptions: retreatData.priceOptions,
-    memberDiscountPercentage: retreatData.memberDiscountPercentage,
-    scholarshipAvailable: retreatData.scholarshipAvailable,
-    scholarshipDeadline: retreatData.scholarshipDeadline,
-    fixedDate: retreatData.fixedDate,
-    location: retreatData.location,
-    images: retreatData.images,
-    memberLabel: retreatData.memberLabel,
-    memberOptions: retreatData.memberOptions,
-    buttonText: retreatData.buttonText,
-    buttonUrl: retreatData.buttonUrl,
-    infoButtonText: retreatData.infoButtonText,
-    infoButtonUrl: retreatData.infoButtonUrl,
-    membershipText: retreatData.membershipText,
-    membershipLink: retreatData.membershipLink,
-    membershipLinkUrl: retreatData.membershipLinkUrl,
-    membershipNote: retreatData.membershipNote
+    basePrice: retreatData.price || 195,
+    priceOptions: [
+      {
+        type: 'limited',
+        label: 'Limited Access (12 days)',
+        price: retreatData.price || 195,
+        description: 'You will have access to all the retreat teachings for 12 days following the end of the retreat.'
+      },
+      {
+        type: 'lifetime',
+        label: 'Lifetime Access',
+        price: (retreatData.price || 195) * 1.5,
+        description: 'The online portal will remain open for you to return to it as often as you wish!'
+      }
+    ],
+    memberDiscountPercentage: 10,
+    scholarshipAvailable: true,
+    scholarshipDeadline: "Contact us for scholarship information",
+    fixedDate: retreatData.fixed_date,
+    location: retreatData.location || "Online Retreat",
+    images: retreatData.images || [],
+    memberLabel: "Are you a member?*",
+    memberOptions: ["Select an option ...", "Yes", "No"],
+    buttonText: "Purchase Now",
+    buttonUrl: `/purchase/${slug}`,
+    infoButtonText: "More Info",
+    infoButtonUrl: "#",
+    membershipText: "Discover our",
+    membershipLink: "memberships",
+    membershipLinkUrl: "/memberships",
+    membershipNote: "to receive discounts"
   };
 
   const introData1 = {
     leftPane: {
-      title: retreatData.intro1Title,
+      title: retreatData.intro1_title || "About This Retreat",
       titleLineHeight: "120%"
     },
     rightPane: {
       type: 'paragraphs' as const,
-      content: retreatData.intro1Content
+      content: retreatData.intro1_content || []
     }
   };
 
   const introData2 = {
     leftPane: {
-      title: retreatData.intro2Title,
+      title: retreatData.intro2_title || "This Retreat Includes:",
       titleLineHeight: "120%"
     },
     rightPane: {
       type: 'paragraphs' as const,
-      content: retreatData.intro2Content
+      content: retreatData.intro2_content || []
     }
   };
 
@@ -75,32 +105,35 @@ export default function Page({ params }: PageProps) {
     mediaPosition: "top" as const,
     topMedia: {
       type: 'image' as const,
-      src: "/oras.jpg",
+      src: retreatData.intro3_media,
     },
     leftPane: {
-      title: retreatData.intro3Title,
+      title: "About Shunyamurti",
       titleLineHeight: "120%"
     },
     rightPane: {
       type: 'paragraphs' as const,
-      content: retreatData.intro3Content
+      content: [
+        "Shunyamurti's own search for a way to live in this world without self-betrayal and in constant process of growth and individuation, transcendence of the ego, and attunement to the Source of creative intelligence and love, has led to the unfoldment of this non-ordinary social-psycho-spiritual project.",
+        "He is always learning, changing, deepening his understanding and empathy, and humbly correcting his course–guided by his connection to the One Supreme Being Whom he serves."
+      ]
     }
   };
 
   const scheduleData = {
-    tagline: retreatData.scheduleTagline,
-    title: retreatData.scheduleTitle,
-    items: retreatData.scheduleItems
+    tagline: "SAMPLE SCHEDULE",
+    title: retreatData.agenda_title || "All Times Are In Costa Rica Time",
+    items: retreatData.agenda_items || []
   };
 
   const testimonialData = {
-    tagline: retreatData.testimonialTagline,
-    heading: retreatData.testimonialHeading,
-    testimonials: retreatData.testimonials
+    tagline: retreatData.testimonials?.tagline || "TESTIMONIALS",
+    heading: retreatData.testimonials?.heading || "Reflections from Recent Retreatants",
+    testimonials: retreatData.testimonials?.items || []
   };
 
   return (
-    <OnlineRetreatPage 
+    <OnlineRetreatPage
       heroData={heroWithBackDataMinimal}
       bookingData={bookingData}
       introData1={introData1}
@@ -113,7 +146,21 @@ export default function Page({ params }: PageProps) {
 }
 
 export async function generateStaticParams() {
-  return onlineRetreatsData.map((retreat: { slug: any; }) => ({
-    slug: retreat.slug,
-  }));
+  try {
+    const res = await fetch(`${FASTAPI_URL}/api/online-retreats`, {
+      cache: 'no-store'
+    });
+
+    if (!res.ok) {
+      return [];
+    }
+
+    const data = await res.json();
+    return data.retreats.map((retreat: { slug: string }) => ({
+      slug: retreat.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }

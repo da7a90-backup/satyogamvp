@@ -207,6 +207,13 @@ export const blogApi = {
     return fetchAPI("/api/blog-categories?sort=name:asc");
   },
 
+  /**
+   * Get all blog categories (alias for getCategories)
+   */
+  getAllCategories: async () => {
+    return fetchAPI("/api/blog-categories?sort=name:asc");
+  },
+
   createCategory: async (categoryData: any) => {
     return fetchAPI("/api/blog-categories", {
       method: "POST",

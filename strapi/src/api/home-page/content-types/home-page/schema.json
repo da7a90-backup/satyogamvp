@@ -1,0 +1,45 @@
+{
+  "kind": "singleType",
+  "collectionName": "home_pages",
+  "info": {
+    "singularName": "home-page",
+    "pluralName": "home-pages",
+    "displayName": "homePage"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "hero": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.hero-section"
+    },
+    "aboutSection": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.content-section"
+    },
+    "shunyamurtiSection": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.content-section"
+    },
+    "learningOptions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "sections.learning-tabs-section"
+    },
+    "membershipCta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.cta-section"
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.seo"
+    }
+  }
+}

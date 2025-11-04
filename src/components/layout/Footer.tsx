@@ -4,13 +4,79 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 const Footer = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [emailError, setEmailError] = useState('');
 
-  const handleNewsletterSubmit = (e: any) => {
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    // Clear error when user starts typing
+    if (emailError) {
+      setEmailError('');
+    }
+
+    // Validate on blur or when email looks complete
+    if (newEmail && !validateEmail(newEmail) && newEmail.includes('@')) {
+      setEmailError('Please enter a valid email address');
+    }
+  };
+
+  const handleEmailBlur = () => {
+    if (email && !validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+    }
+  };
+
+  const handleNewsletterSubmit = async (e: any) => {
     e.preventDefault();
-    // Handle newsletter signup
-    console.log('Newsletter signup:', email);
-    setEmail('');
+
+    if (!name.trim() || !email.trim()) {
+      return;
+    }
+
+    // Validate email before submission
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+      const response = await fetch(`${FASTAPI_URL}/api/forms/newsletter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email })
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setName('');
+        setEmail('');
+        // Reset success message after 3 seconds
+        setTimeout(() => setSubmitStatus('idle'), 3000);
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      console.error('Newsletter signup error:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -52,32 +118,68 @@ const Footer = () => {
           </div>
 
           {/* Newsletter Form */}
-          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="px-4 py-3 bg-transparent border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:border-white/60 transition-colors"
-              style={{
-                fontFamily: 'Avenir Next, sans-serif',
-                fontSize: '16px',
-                minWidth: '280px'
-              }}
-            />
-            <button
-              type="submit"
-              className="px-6 py-3 bg-transparent border border-white/30 rounded-lg text-white hover:bg-white/10 transition-colors font-medium"
-              style={{
-                fontFamily: 'Avenir Next, sans-serif',
-                fontSize: '16px',
-                minWidth: '120px'
-              }}
-            >
-              Subscribe
-            </button>
-          </form>
+          <div className="w-full lg:w-auto">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+              <input
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="px-4 py-3 bg-transparent border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:border-white/60 transition-colors"
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '16px',
+                  minWidth: '200px'
+                }}
+              />
+              <div className="flex flex-col">
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
+                  required
+                  className={`px-4 py-3 bg-transparent border ${emailError ? 'border-red-400' : 'border-white/30'} rounded-lg text-white placeholder-white/60 focus:outline-none focus:border-white/60 transition-colors`}
+                  style={{
+                    fontFamily: 'Avenir Next, sans-serif',
+                    fontSize: '16px',
+                    minWidth: '200px'
+                  }}
+                />
+                {emailError && (
+                  <span className="text-red-300 text-xs mt-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    {emailError}
+                  </span>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-3 bg-transparent border border-white/30 rounded-lg text-white hover:bg-white/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '16px',
+                  minWidth: '120px'
+                }}
+              >
+                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+              </button>
+            </form>
+
+            {/* Status Messages */}
+            {submitStatus === 'success' && (
+              <div className="mt-3 text-green-300 text-sm" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                Thank you for subscribing to our newsletter!
+              </div>
+            )}
+            {submitStatus === 'error' && (
+              <div className="mt-3 text-red-300 text-sm" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                Something went wrong. Please try again.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -192,7 +294,7 @@ const Footer = () => {
             <Link href="/donate" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
               Donate
             </Link>
-            <Link href="/contact" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+            <Link href="/contact?queryType=general" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
               Contact us
             </Link>
           </div>
@@ -295,7 +397,7 @@ const Footer = () => {
             <Link href="/donate" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
               Donate
             </Link>
-            <Link href="/contact" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
+            <Link href="/contact?queryType=general" className="text-white/80 hover:text-white transition-colors" style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '14px' }}>
               Contact
             </Link>
           </div>

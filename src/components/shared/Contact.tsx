@@ -40,9 +40,10 @@ interface ContactSectionData {
 
 interface ContactSectionProps {
   data: ContactSectionData;
+  initialTopic?: string;
 }
 
-export default function ContactSection({ data }: ContactSectionProps) {
+export default function ContactSection({ data, initialTopic }: ContactSectionProps) {
   const [formData, setFormData] = useState<Record<string, any>>(() => {
     const initialData: Record<string, any> = {};
     data.formFields.forEach(field => {
@@ -54,6 +55,13 @@ export default function ContactSection({ data }: ContactSectionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Set topic when initialTopic changes
+  React.useEffect(() => {
+    if (initialTopic) {
+      setFormData(prev => ({ ...prev, topic: initialTopic }));
+    }
+  }, [initialTopic]);
 
   const validateField = (field: FormField, value: any): string | null => {
     if (field.required) {
@@ -117,7 +125,9 @@ export default function ContactSection({ data }: ContactSectionProps) {
     setSubmitStatus('idle');
 
     try {
-      const response = await fetch('/api/contact', {
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+
+      const response = await fetch(`${FASTAPI_URL}/api/forms/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -137,6 +147,7 @@ export default function ContactSection({ data }: ContactSectionProps) {
         setSubmitStatus('error');
       }
     } catch (error) {
+      console.error('Contact form submission error:', error);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -202,6 +213,15 @@ export default function ContactSection({ data }: ContactSectionProps) {
             type="email"
             value={formData[field.id] || ''}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
+            onBlur={(e) => {
+              const value = e.target.value;
+              if (value) {
+                const error = validateField(field, value);
+                if (error) {
+                  setErrors(prev => ({ ...prev, [field.id]: error }));
+                }
+              }
+            }}
             placeholder={field.placeholder}
             style={{
               width: '100%',
@@ -413,7 +433,11 @@ export default function ContactSection({ data }: ContactSectionProps) {
         {/* Right Column - Contact Form */}
         <div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {data.formFields.map(field => renderField(field))}
+            {data.formFields.map(field => (
+              <React.Fragment key={field.id}>
+                {renderField(field)}
+              </React.Fragment>
+            ))}
           </div>
 
           {/* Submit Button */}

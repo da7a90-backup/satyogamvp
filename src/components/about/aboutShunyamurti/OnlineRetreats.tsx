@@ -1,22 +1,61 @@
 'use client';
 
-const OnlineRetreatsSection = () => {
+import Link from 'next/link';
+import { OnlineRetreat } from '@/lib/data';
+
+interface OnlineRetreatsSectionProps {
+  retreat: OnlineRetreat;
+}
+
+const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
+  // Don't render if no retreat data
+  if (!retreat || !retreat.fixedDate) {
+    return null;
+  }
+
+  // Parse the start date to calculate days until retreat
+  const parseDate = (dateStr: string) => {
+    // Parse "December 27-29, 2025" format
+    const match = dateStr.match(/(\w+)\s+(\d+)(?:-\d+)?,\s+(\d{4})/);
+    if (match) {
+      const [, month, day, year] = match;
+      return new Date(`${month} ${day}, ${year}`);
+    }
+    return new Date(dateStr);
+  };
+
+  const startDate = parseDate(retreat.fixedDate);
+
+  const calculateDaysUntil = () => {
+    const today = new Date();
+    const diffTime = startDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const daysUntil = calculateDaysUntil();
+
+  // Format date parts
+  const dayOfWeek = startDate.toLocaleDateString('en-US', { weekday: 'short' });
+  const dayOfMonth = startDate.getDate();
+  const monthYear = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
   return (
-    <section 
+    <section
       className="relative w-full flex flex-col items-start py-16 lg:py-28 px-4 lg:px-16"
       style={{
         backgroundColor: '#FAF8F1'
       }}
     >
       {/* Content Container */}
-      <div 
+      <div
         className="w-full flex flex-col items-start max-w-7xl mx-auto"
         style={{
           gap: '32px'
         }}
       >
         {/* Section Header */}
-        <div 
+        <div
           className="w-full flex flex-col justify-center items-center mx-auto max-w-3xl"
           style={{
             gap: '16px'
@@ -24,7 +63,7 @@ const OnlineRetreatsSection = () => {
         >
           {/* Tagline */}
           <div className="flex items-center">
-            <span 
+            <span
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
                 fontSize: '14px',
@@ -40,7 +79,7 @@ const OnlineRetreatsSection = () => {
           </div>
 
           {/* Main Title */}
-          <h2 
+          <h2
             className="text-black text-center w-full"
             style={{
               fontFamily: 'Optima, Georgia, serif',
@@ -54,7 +93,7 @@ const OnlineRetreatsSection = () => {
           </h2>
 
           {/* Description */}
-          <p 
+          <p
             className="text-center w-full"
             style={{
               fontFamily: 'Avenir Next, sans-serif',
@@ -69,7 +108,7 @@ const OnlineRetreatsSection = () => {
         </div>
 
         {/* Event Card */}
-        <div 
+        <div
           className="w-full flex flex-col lg:flex-row bg-white border rounded-lg overflow-hidden relative"
           style={{
             borderColor: '#D2D6DB',
@@ -79,17 +118,17 @@ const OnlineRetreatsSection = () => {
           {/* Image Section */}
           <div className="relative w-full lg:w-1/2 h-64 lg:h-96">
             {/* Background Image */}
-            <div 
+            <div
               className="w-full h-full"
               style={{
-                background: 'linear-gradient(149.44deg, rgba(0, 0, 0, 0.1) 56.92%, rgba(0, 0, 0, 0.3) 74.56%, rgba(0, 0, 0, 0.3) 91.04%), url(/ssi.jpg)',
+                background: `linear-gradient(149.44deg, rgba(0, 0, 0, 0.1) 56.92%, rgba(0, 0, 0, 0.3) 74.56%, rgba(0, 0, 0, 0.3) 91.04%), url(${retreat.heroBackground || ''})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
               }}
             />
 
             {/* Date Badge */}
-            <div 
+            <div
               className="absolute top-4 left-4 bg-white rounded-lg p-3 flex flex-col items-center justify-center"
               style={{
                 width: '80px',
@@ -97,7 +136,7 @@ const OnlineRetreatsSection = () => {
                 borderRadius: '8px'
               }}
             >
-              <span 
+              <span
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '12px',
@@ -107,9 +146,9 @@ const OnlineRetreatsSection = () => {
                   textAlign: 'center'
                 }}
               >
-                Sat
+                {dayOfWeek}
               </span>
-              <span 
+              <span
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '28px',
@@ -119,9 +158,9 @@ const OnlineRetreatsSection = () => {
                   textAlign: 'center'
                 }}
               >
-                17
+                {dayOfMonth}
               </span>
-              <span 
+              <span
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '12px',
@@ -131,13 +170,13 @@ const OnlineRetreatsSection = () => {
                   textAlign: 'center'
                 }}
               >
-                Fri Dec 2024
+                {monthYear}
               </span>
             </div>
 
             {/* Illustration Icon */}
             <div className="absolute bottom-4 right-4">
-              <div 
+              <div
                 className="relative"
                 style={{
                   width: '80px',
@@ -145,7 +184,7 @@ const OnlineRetreatsSection = () => {
                 }}
               >
                 {/* Blur circle background */}
-                <div 
+                <div
                   style={{
                     position: 'absolute',
                     width: '80px',
@@ -155,82 +194,73 @@ const OnlineRetreatsSection = () => {
                     borderRadius: '50%'
                   }}
                 />
-                {/* Icon */}
-                <div 
-                  style={{
-                    position: 'absolute',
-                    width: '64px',
-                    height: '64px',
-                    left: '8px',
-                    top: '8px',
-                    backgroundImage: 'url(/illustrations.png)',
-                    backgroundSize: 'contain',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center'
-                  }}
-                />
+                {/* Icon - Removed hardcoded illustration, should come from API */}
               </div>
             </div>
 
-            {/* "In 3 days" Badge - Mobile */}
-            <div 
-              className="absolute top-4 right-4 lg:hidden bg-white border rounded-lg flex items-center justify-center px-3 py-1"
-              style={{
-                borderColor: '#D5D7DA',
-                boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)',
-                borderRadius: '8px'
-              }}
-            >
-              <span 
+            {/* "In X days" Badge - Mobile */}
+            {daysUntil > 0 && (
+              <div
+                className="absolute top-4 right-4 lg:hidden bg-white border rounded-lg flex items-center justify-center px-3 py-1"
                 style={{
-                  fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  lineHeight: '20px',
-                  color: '#414651',
-                  textAlign: 'center'
+                  borderColor: '#D5D7DA',
+                  boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)',
+                  borderRadius: '8px'
                 }}
               >
-                In 3 days
-              </span>
-            </div>
+                <span
+                  style={{
+                    fontFamily: 'Avenir Next, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    lineHeight: '20px',
+                    color: '#414651',
+                    textAlign: 'center'
+                  }}
+                >
+                  In {daysUntil} {daysUntil === 1 ? 'day' : 'days'}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Content Section */}
           <div className="w-full lg:w-1/2 p-6 lg:p-8 flex flex-col justify-center relative">
-            {/* "In 3 days" Badge - Desktop */}
-            <div 
-              className="hidden lg:flex absolute top-4 right-4 bg-white border rounded-lg items-center justify-center px-3 py-1"
-              style={{
-                borderColor: '#D5D7DA',
-                boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)',
-                borderRadius: '8px'
-              }}
-            >
-              <span 
+            {/* "In X days" Badge - Desktop */}
+            {daysUntil > 0 && (
+              <div
+                className="hidden lg:flex absolute top-4 right-4 bg-white border rounded-lg items-center justify-center px-3 py-1"
                 style={{
-                  fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  lineHeight: '20px',
-                  color: '#414651',
-                  textAlign: 'center'
+                  borderColor: '#D5D7DA',
+                  boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)',
+                  borderRadius: '8px'
                 }}
               >
-                In 3 days
-              </span>
-            </div>
+                <span
+                  style={{
+                    fontFamily: 'Avenir Next, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    lineHeight: '20px',
+                    color: '#414651',
+                    textAlign: 'center'
+                  }}
+                >
+                  In {daysUntil} {daysUntil === 1 ? 'day' : 'days'}
+                </span>
+              </div>
+            )}
 
             <div className="space-y-6">
               {/* Event Details Row */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                {/* Duration */}
+                {/* Date */}
                 <div className="flex items-center gap-2">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <rect x="2" y="3" width="12" height="11" rx="2" stroke="#535862" strokeWidth="1.5"/>
                     <path d="M11 1v4M5 1v4M2 7h12" stroke="#535862" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  <span 
+                  <span
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
                       fontSize: '14px',
@@ -239,12 +269,12 @@ const OnlineRetreatsSection = () => {
                       color: '#384250'
                     }}
                   >
-                    Duration: 1 month
+                    {retreat.fixedDate}
                   </span>
                 </div>
 
                 {/* Divider */}
-                <div 
+                <div
                   className="hidden sm:block w-6 h-0 border-t"
                   style={{
                     borderColor: '#D0D0D0',
@@ -258,7 +288,7 @@ const OnlineRetreatsSection = () => {
                     <path d="M14 6.67c0 4.67-6 8.67-6 8.67s-6-4-6-8.67a6 6 0 1112 0z" stroke="#535862" strokeWidth="1.5"/>
                     <circle cx="8" cy="6.67" r="1.67" stroke="#535862" strokeWidth="1.5"/>
                   </svg>
-                  <span 
+                  <span
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
                       fontSize: '14px',
@@ -267,15 +297,15 @@ const OnlineRetreatsSection = () => {
                       color: '#384250'
                     }}
                   >
-                    Onsite Retreat
+                    {retreat.location}
                   </span>
                 </div>
               </div>
 
               {/* Content */}
               <div className="space-y-3">
-                {/* Price/Program Type */}
-                <span 
+                {/* Category/Tagline */}
+                <span
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
                     fontSize: '16px',
@@ -284,11 +314,11 @@ const OnlineRetreatsSection = () => {
                     color: '#942017'
                   }}
                 >
-                  Ashram Immersion program
+                  {retreat.bookingTagline}
                 </span>
 
                 {/* Title */}
-                <h3 
+                <h3
                   style={{
                     fontFamily: 'Optima, Georgia, serif',
                     fontSize: 'clamp(20px, 3vw, 24px)',
@@ -298,11 +328,11 @@ const OnlineRetreatsSection = () => {
                     margin: 0
                   }}
                 >
-                  Shakti Saturation
+                  {retreat.title}
                 </h3>
 
                 {/* Description */}
-                <p 
+                <p
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
                     fontSize: '16px',
@@ -312,42 +342,44 @@ const OnlineRetreatsSection = () => {
                     margin: 0
                   }}
                 >
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros.
+                  {retreat.intro1Content[0]}
                 </p>
               </div>
 
               {/* Action Button */}
-              <button
-                className="w-full sm:w-auto"
-                style={{
-                  boxSizing: 'border-box',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  padding: '10px 16px',
-                  gap: '6px',
-                  minWidth: '135px',
-                  height: '44px',
-                  background: '#7D1A13',
-                  boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <span
+              <Link href={`/retreats/online/${retreat.slug}`}>
+                <button
+                  className="w-full sm:w-auto"
                   style={{
-                    fontFamily: 'Avenir Next, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    lineHeight: '24px',
-                    color: '#FFFFFF'
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '10px 16px',
+                    gap: '6px',
+                    minWidth: '135px',
+                    height: '44px',
+                    background: '#7D1A13',
+                    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer'
                   }}
                 >
-                  Save my spot
-                </span>
-              </button>
+                  <span
+                    style={{
+                      fontFamily: 'Avenir Next, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      lineHeight: '24px',
+                      color: '#FFFFFF'
+                    }}
+                  >
+                    Learn More
+                  </span>
+                </button>
+              </Link>
             </div>
           </div>
         </div>

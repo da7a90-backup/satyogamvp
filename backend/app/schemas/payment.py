@@ -11,6 +11,18 @@ class PaymentCreate(BaseModel):
     payment_type: str  # donation, membership, course, retreat, product
     reference_id: Optional[str] = None  # course_id, retreat_id, etc.
     currency: str = "USD"
+    description: Optional[str] = None
+    # Billing info for anonymous payments
+    billing_email: Optional[str] = None
+    billing_name: Optional[str] = None
+    billing_first_name: Optional[str] = None
+    billing_last_name: Optional[str] = None
+    billing_address: Optional[str] = None
+    billing_city: Optional[str] = None
+    billing_state: Optional[str] = None
+    billing_country: Optional[str] = None
+    billing_postal_code: Optional[str] = None
+    billing_telephone: Optional[str] = None
 
 
 class PaymentResponse(BaseModel):

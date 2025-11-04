@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "course_comments",
+  "info": {
+    "singularName": "course-comment",
+    "pluralName": "course-comments",
+    "displayName": "CourseComment",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "course_comments"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "course_comments"
+    },
+    "comment": {
+      "type": "text",
+      "required": true
+    },
+    "sectionType": {
+      "type": "enumeration",
+      "enum": [
+        "testimonial",
+        "video",
+        "additionalMaterials"
+      ],
+      "required": true
+    },
+    "classIndex": {
+      "type": "integer",
+      "min": 1
+    }
+  }
+}

@@ -22,16 +22,36 @@ export default function FavouritesClient({ favorites: initialFavorites }: Favour
   const [activeTab, setActiveTab] = useState<'video' | 'audio' | 'text'>('video');
   const [favorites, setFavorites] = useState(initialFavorites);
 
-  // Filter teachings by content type (backend returns uppercase)
+  // Debug logging
+  console.log('FavouritesClient - Received favorites:', initialFavorites);
+  console.log('FavouritesClient - Favorites count:', initialFavorites.length);
+  console.log('FavouritesClient - Content types:', initialFavorites.map(f => f.content_type));
+  console.log('FavouritesClient - Active tab:', activeTab);
+
+  // Filter teachings by content type
   const filteredTeachings = favorites.filter(teaching => {
-    const contentType = teaching.content_type?.toUpperCase();
-    if (activeTab === 'video') return contentType === 'VIDEO';
-    if (activeTab === 'audio') return contentType === 'AUDIO' || contentType === 'MEDITATION';
-    if (activeTab === 'text') return contentType === 'TEXT' || contentType === 'ESSAY';
+    const contentType = teaching.content_type?.toLowerCase();
+    console.log('Filtering:', teaching.title, '- Content type:', contentType, '- Active tab:', activeTab);
+
+    if (activeTab === 'video') {
+      return contentType === 'video' || contentType === 'videoandaudio' || contentType === 'video_teaching' || contentType === 'qa';
+    }
+    if (activeTab === 'audio') {
+      return contentType === 'audio' || contentType === 'meditation' || contentType === 'guided_meditation';
+    }
+    if (activeTab === 'text') {
+      return contentType === 'text' || contentType === 'essay';
+    }
     return true;
   });
 
+  console.log('FavouritesClient - Filtered count:', filteredTeachings.length);
+
   const getContentTypeLabel = (contentType: string) => {
+    const lower = contentType.toLowerCase();
+    if (lower === 'videoandaudio') return 'Video & Audio';
+    if (lower === 'video_teaching') return 'Video';
+    if (lower === 'guided_meditation') return 'Meditation';
     return contentType.charAt(0).toUpperCase() + contentType.slice(1);
   };
 
@@ -97,10 +117,10 @@ export default function FavouritesClient({ favorites: initialFavorites }: Favour
               teachings whenever you need them.
             </p>
             <Link
-              href="/dashboard/user/library"
+              href="/dashboard/user/teachings"
               className="px-6 py-3 bg-[#7D1A13] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
             >
-              Go to The Library
+              Browse Teachings
             </Link>
           </div>
         ) : (

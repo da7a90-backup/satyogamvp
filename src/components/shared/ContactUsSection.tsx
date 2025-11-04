@@ -43,14 +43,14 @@ const ContactUsSection = () => {
           }}
         >
           {/* Decorative Left Labyrinth - Desktop Only */}
-          <div 
+          <div
             className="absolute hidden lg:block"
             style={{
               width: '399px',
               height: '399px',
               left: '-200px',
               top: '-259px',
-              backgroundImage: 'url(/innerlab.png)',
+              backgroundImage: 'url(https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public)',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               transform: 'matrix(1, 0, 0, -1, 0, 0)',
@@ -111,8 +111,9 @@ const ContactUsSection = () => {
             {isMobile ? (
               <>
                 {/* View FAQ Button - Mobile Only */}
-                <button
-                  className="w-full px-6 py-3 rounded-lg font-medium text-white transition-colors duration-300 hover:opacity-90"
+                <a
+                  href="/faq"
+                  className="w-full px-6 py-3 rounded-lg font-medium text-white transition-colors duration-300 hover:opacity-90 text-center block"
                   style={{
                     backgroundColor: '#7D1A13',
                     fontFamily: 'Avenir Next, sans-serif',
@@ -121,11 +122,12 @@ const ContactUsSection = () => {
                   }}
                 >
                   View our FAQ's
-                </button>
+                </a>
 
                 {/* Contact Us Button - Outlined for Mobile */}
-                <button
-                  className="w-full px-6 py-3 rounded-lg font-medium border-2 transition-colors duration-300 hover:bg-gray-50"
+                <a
+                  href="/contact?queryType=general"
+                  className="w-full px-6 py-3 rounded-lg font-medium border-2 transition-colors duration-300 hover:bg-gray-50 text-center block"
                   style={{
                     borderColor: '#C7C7C7',
                     color: '#384250',
@@ -135,12 +137,13 @@ const ContactUsSection = () => {
                   }}
                 >
                   Contact us
-                </button>
+                </a>
               </>
             ) : (
               /* Desktop: Only Contact Us Button - Filled */
-              <button
-                className="px-6 py-3 rounded-lg font-medium text-white transition-colors duration-300 hover:opacity-90"
+              <a
+                href="/contact?queryType=general"
+                className="px-6 py-3 rounded-lg font-medium text-white transition-colors duration-300 hover:opacity-90 text-center block"
                 style={{
                   backgroundColor: '#7D1A13',
                   fontFamily: 'Avenir Next, sans-serif',
@@ -149,7 +152,7 @@ const ContactUsSection = () => {
                 }}
               >
                 Contact us
-              </button>
+              </a>
             )}
           </div>
 
@@ -161,7 +164,7 @@ const ContactUsSection = () => {
               height: '399px',
               right: '-200px',
               top: '0px',
-              backgroundImage: 'url(/innerlab.png)',
+              backgroundImage: 'url(https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public)',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               transform: 'matrix(1, 0, 0, -1, 0, 0)',
@@ -178,7 +181,7 @@ const ContactUsSection = () => {
               height: '399px',
               left: '-200px',
               top: '-259px',
-              backgroundImage: 'url(/innerlab.png)',
+              backgroundImage: 'url(https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public)',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               transform: 'matrix(1, 0, 0, -1, 0, 0)',

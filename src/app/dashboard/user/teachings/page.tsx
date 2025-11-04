@@ -1,14 +1,42 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import TeachingLibrarySection from '@/components/shared/TeachingLibrary';
-import { getTeachingsData } from '@/lib/teachings-api';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import DashboardTeachingsClient from './DashboardTeachingsClient';
 
 export const metadata: Metadata = {
   title: 'Teachings Library | Dashboard | Sat Yoga',
   description: 'Access your personal teachings library with exclusive member content.',
 };
+
+async function getTeachings() {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(`${API_BASE_URL}/api/teachings?limit=1000`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.teachings;
+  } catch (error) {
+    console.error('[getTeachings] Error fetching teachings:', error);
+    return [];
+  }
+}
 
 export default async function DashboardTeachingsPage() {
   // Get authentication session
@@ -19,32 +47,18 @@ export default async function DashboardTeachingsPage() {
     redirect('/login?callbackUrl=/dashboard/user/teachings');
   }
 
-  // Fetch teachings data (will show full library for logged-in users)
-  const teachingLibraryData = await getTeachingsData(true);
+  // Fetch all teachings
+  const teachings = await getTeachings();
+
+  // Find featured teaching (first one with featured flag for video_teaching)
+  const featuredTeaching = teachings.find(
+    (t: any) => t.featured === 'teaching' && t.category === 'video_teaching'
+  ) || teachings.find((t: any) => t.category === 'video_teaching') || null;
 
   return (
-    <div className="min-h-screen bg-[#FAF8F1]">
-      <div className="max-w-[1312px] mx-auto px-4 lg:px-8 py-8">
-        <h1
-          className="mb-8"
-          style={{
-            fontFamily: 'Optima, Georgia, serif',
-            fontSize: '32px',
-            fontWeight: 700,
-            lineHeight: '40px',
-            color: '#000000',
-          }}
-        >
-          Teachings Library
-        </h1>
-
-        <TeachingLibrarySection
-          data={teachingLibraryData}
-          showAllTeachings={true}
-          listFormat="pagination"
-          isDashboard={true}
-        />
-      </div>
-    </div>
+    <DashboardTeachingsClient
+      initialTeachings={teachings}
+      initialFeaturedTeaching={featuredTeaching}
+    />
   );
 }

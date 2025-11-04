@@ -1,0 +1,19 @@
+
+> satyogamvp@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.0.3
+   - Local:        http://localhost:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 2.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 5.3s (758 modules)
+Fetching homepage data from Strapi...
+ ✓ Compiled in 630ms (353 modules)
+ ✓ Compiled in 50ms (339 modules)
+ ○ Compiling /teachings ...
+ ✓ Compiled /teachings in 1863ms (970 modules)
+[getTeachingsData] Fetching from: http://127.0.0.1:8000/api/teachings
+[getTeachingsData] isLoggedIn: false

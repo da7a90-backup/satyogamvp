@@ -1,38 +1,76 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { X, ShoppingCart, Heart } from 'lucide-react';
 
-const BooksSection = () => {
+interface Book {
+  id: string;
+  slug: string;
+  title: string;
+  short_description?: string;
+  price: number;
+  type: string;
+  featured_image?: string;
+  categories?: string[];
+}
+
+// Modal Component
+function ActionModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: () => void; message: string }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-[#942017]/10 rounded-full flex items-center justify-center mx-auto">
+              <ShoppingCart className="w-8 h-8 text-[#942017]" />
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Feature Under Development</h3>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <button
+            onClick={onClose}
+            className="w-full bg-[#942017] hover:bg-[#942017]/90 text-white py-2 px-4 rounded-lg transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const BooksSection = ({ books: apiBooks }: { books: Book[] }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
-  const books = [
-    {
-      id: 1,
-      title: "The seven veils of Maya",
-      category: "Shunyamurti Reads",
-      price: "$20.00",
-      type: "Text",
-      image: "/bookcover1.jpg",
-      description: "Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo. Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo."
-    },
-    {
-      id: 2,
-      title: "The secret of singularity",
-      category: "Guided meditation",
-      price: "$20.00", 
-      type: "Audio",
-      image: "/bookcover2.png",
-      description: "Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo. Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo."
-    },
-    {
-      id: 3,
-      title: "Tibetan Zen",
-      category: "Shunyamurti Reads",
-      price: "$20.00",
-      type: "Text", 
-      image: "/bookcover3.jpg",
-      description: "Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo. Lorem ipsum dolor sit amet consectetur. Gravida nunc magna ac non tincidunt cras odio egestas leo."
-    }
-  ];
+  // Transform API books to component format
+  const books = apiBooks.slice(0, 3).map((book) => ({
+    id: book.id,
+    slug: book.slug,
+    title: book.title,
+    category: book.categories?.[0] || 'E-Books',
+    price: `$${Number(book.price).toFixed(2)}`,
+    type: book.type === 'EBOOK' ? 'Text' : book.type,
+    image: book.featured_image || null,
+    description: book.short_description || 'Book description'
+  }));
 
   // Auto-slide functionality for mobile only
   useEffect(() => {
@@ -53,6 +91,16 @@ const BooksSection = () => {
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
+  };
+
+  const handleAddToCart = () => {
+    setModalMessage('Add to cart functionality under active development, try again in a couple of days!');
+    setModalOpen(true);
+  };
+
+  const handleBookmark = () => {
+    setModalMessage('Save for later functionality under active development, try again in a couple of days!');
+    setModalOpen(true);
   };
 
   return (
@@ -133,7 +181,7 @@ const BooksSection = () => {
           }}
         >
           {/* Book Count */}
-          <span 
+          <span
             style={{
               fontFamily: 'Avenir Next, sans-serif',
               fontSize: '18px',
@@ -142,11 +190,12 @@ const BooksSection = () => {
               color: '#111927'
             }}
           >
-            2423 items
+            {apiBooks.length} {apiBooks.length === 1 ? 'item' : 'items'}
           </span>
 
           {/* View All Button */}
-          <button
+          <Link
+            href="/store?type=EBOOK"
             style={{
               boxSizing: 'border-box',
               display: 'flex',
@@ -170,7 +219,7 @@ const BooksSection = () => {
             }}
           >
             View all
-          </button>
+          </Link>
         </div>
 
         {/* Desktop Grid - Exactly as Original */}
@@ -181,12 +230,12 @@ const BooksSection = () => {
           }}
         >
           {books.map((book) => (
-            <div 
-              key={book.id} 
+            <div
+              key={book.id}
               className="flex flex-col items-start"
               style={{
                 width: '421px',
-                height: '583px',
+                minHeight: '583px',
                 gap: '8px',
                 isolation: 'isolate'
               }}
@@ -201,32 +250,16 @@ const BooksSection = () => {
                   borderRadius: '8px'
                 }}
               >
-                {/* Heart/Bookmark Icon */}
-                <div 
-                  className="absolute flex justify-center items-center"
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    right: '0px',
-                    top: '0px',
-                    padding: '16px'
+                {/* Bookmark Icon */}
+                <button
+                  className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleBookmark();
                   }}
                 >
-                  <div 
-                    className="flex justify-center items-center"
-                    style={{
-                      width: '48px',
-                      height: '48px',
-                      background: 'rgba(0, 0, 0, 0.1)',
-                      borderRadius: '80px'
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M2.6665 11.9869V6.47136C2.6665 4.04912 2.6665 2.838 3.44755 2.0855C4.2286 1.33301 5.48568 1.33301 7.99984 1.33301C10.514 1.33301 11.7711 1.33301 12.5521 2.0855C13.3332 2.838 13.3332 4.04912 13.3332 6.47136V11.9869C13.3332 13.5241 13.3332 14.2927 12.8179 14.5679C11.8202 15.1006 9.94864 13.3231 9.05984 12.7879C8.54437 12.4776 8.28663 12.3224 7.99984 12.3224C7.71304 12.3224 7.45531 12.4776 6.93984 12.7879C6.05104 13.3231 4.17948 15.1006 3.18174 14.5679C2.6665 14.2927 2.6665 13.5241 2.6665 11.9869Z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M2.6665 4.66602H13.3332" stroke="black" strokeWidth="1.5"/>
-                    </svg>
-                  </div>
-                </div>
+                  <Heart className="w-4 h-4 text-white" />
+                </button>
 
                 {/* Book Cover Image */}
                 <div
@@ -238,22 +271,30 @@ const BooksSection = () => {
                     top: '48px'
                   }}
                 >
-                  <img
-                    src={book.image}
-                    alt={book.title}
-                    className="w-full h-full object-cover"
-                    style={{
-                      borderRadius: '2.37536px',
-                      boxShadow: '4.27565px 4.27565px 9.50144px rgba(0, 0, 0, 0.25)'
-                    }}
-                    onError={(e: any) => {
-                      e.target.style.backgroundColor = '#D4C5B3';
-                      e.target.style.display = 'flex';
-                      e.target.style.alignItems = 'center';
-                      e.target.style.justifyContent = 'center';
-                      e.target.innerHTML = `<span style="color: #6b7280; font-size: 14px; text-align: center;">${book.title}</span>`;
-                    }}
-                  />
+                  {book.image ? (
+                    <img
+                      src={book.image}
+                      alt={book.title}
+                      className="w-full h-full object-cover"
+                      style={{
+                        borderRadius: '2.37536px',
+                        boxShadow: '4.27565px 4.27565px 9.50144px rgba(0, 0, 0, 0.25)'
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{
+                        backgroundColor: '#D4C5B3',
+                        borderRadius: '2.37536px',
+                        boxShadow: '4.27565px 4.27565px 9.50144px rgba(0, 0, 0, 0.25)'
+                      }}
+                    >
+                      <span style={{ color: '#6b7280', fontSize: '12px', textAlign: 'center', padding: '8px' }}>
+                        {book.title}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Type Badge */}
@@ -293,28 +334,26 @@ const BooksSection = () => {
               </div>
 
               {/* Content Bottom */}
-              <div 
-                className="flex flex-col items-start"
+              <div
+                className="flex flex-col items-start flex-1"
                 style={{
                   width: '421px',
-                  height: '219px',
                   gap: '16px'
                 }}
               >
                 {/* Header with Category, Title, and Price */}
-                <div 
+                <div
                   className="flex flex-row items-start w-full"
                   style={{
                     gap: '16px',
-                    height: '51px'
+                    minHeight: '51px'
                   }}
                 >
                   {/* Category and Title */}
-                  <div 
+                  <div
                     className="flex flex-col items-start flex-1"
                     style={{
-                      gap: '8px',
-                      height: '51px'
+                      gap: '8px'
                     }}
                   >
                     {/* Category */}
@@ -366,15 +405,19 @@ const BooksSection = () => {
                 </div>
 
                 {/* Description */}
-                <p 
+                <p
+                  className="line-clamp-4"
                   style={{
                     width: '421px',
-                    height: '96px',
                     fontFamily: 'Avenir Next, sans-serif',
                     fontWeight: 400,
                     fontSize: '16px',
                     lineHeight: '24px',
-                    color: '#384250'
+                    color: '#384250',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 4,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
                   }}
                 >
                   {book.description}
@@ -382,6 +425,7 @@ const BooksSection = () => {
 
                 {/* Add to Cart Button */}
                 <button
+                  onClick={handleAddToCart}
                   style={{
                     boxSizing: 'border-box',
                     display: 'flex',
@@ -392,6 +436,7 @@ const BooksSection = () => {
                     gap: '4px',
                     width: '421px',
                     height: '40px',
+                    marginTop: 'auto',
                     background: '#FFFFFF',
                     border: '1px solid #D5D7DA',
                     boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
@@ -435,36 +480,35 @@ const BooksSection = () => {
                         background: '#E4DBCD'
                       }}
                     >
-                      {/* Heart/Bookmark Icon */}
-                      <div className="absolute top-4 right-4 z-10">
-                        <div 
-                          className="flex justify-center items-center w-12 h-12 rounded-full"
-                          style={{
-                            background: 'rgba(0, 0, 0, 0.1)'
-                          }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M2.6665 11.9869V6.47136C2.6665 4.04912 2.6665 2.838 3.44755 2.0855C4.2286 1.33301 5.48568 1.33301 7.99984 1.33301C10.514 1.33301 11.7711 1.33301 12.5521 2.0855C13.3332 2.838 13.3332 4.04912 13.3332 6.47136V11.9869C13.3332 13.5241 13.3332 14.2927 12.8179 14.5679C11.8202 15.1006 9.94864 13.3231 9.05984 12.7879C8.54437 12.4776 8.28663 12.3224 7.99984 12.3224C7.71304 12.3224 7.45531 12.4776 6.93984 12.7879C6.05104 13.3231 4.17948 15.1006 3.18174 14.5679C2.6665 14.2927 2.6665 13.5241 2.6665 11.9869Z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2.6665 4.66602H13.3332" stroke="black" strokeWidth="1.5"/>
-                          </svg>
-                        </div>
-                      </div>
+                      {/* Bookmark Icon */}
+                      <button
+                        className="absolute top-4 right-4 z-10 w-12 h-12 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors backdrop-blur-sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleBookmark();
+                        }}
+                      >
+                        <Heart className="w-4 h-4 text-white" />
+                      </button>
 
                       {/* Book Cover */}
                       <div className="absolute inset-0 flex items-center justify-center p-8">
                         <div className="w-32 h-48">
-                          <img
-                            src={book.image}
-                            alt={book.title}
-                            className="w-full h-full object-cover rounded shadow-lg"
-                            onError={(e: any) => {
-                              e.target.style.backgroundColor = '#D4C5B3';
-                              e.target.style.display = 'flex';
-                              e.target.style.alignItems = 'center';
-                              e.target.style.justifyContent = 'center';
-                              e.target.innerHTML = `<span style="color: #6b7280; font-size: 12px; text-align: center; padding: 8px;">${book.title}</span>`;
-                            }}
-                          />
+                          {book.image ? (
+                            <img
+                              src={book.image}
+                              alt={book.title}
+                              className="w-full h-full object-cover rounded shadow-lg"
+                            />
+                          ) : (
+                            <div
+                              className="w-full h-full flex items-center justify-center bg-[#D4C5B3] rounded shadow-lg"
+                            >
+                              <span className="text-gray-600 text-xs text-center px-2">
+                                {book.title}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -523,6 +567,7 @@ const BooksSection = () => {
 
                       {/* Add to Cart Button */}
                       <button
+                        onClick={handleAddToCart}
                         className="w-full py-2 px-4 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                         style={{
                           fontFamily: 'Avenir Next, sans-serif',
@@ -576,6 +621,13 @@ const BooksSection = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      <ActionModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        message={modalMessage}
+      />
     </section>
   );
 };

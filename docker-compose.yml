@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL for main backend
+  postgres:
+    image: postgres:15-alpine
+    container_name: satyoga-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: satyoga_dev
+      POSTGRES_USER: satyoga_user
+      POSTGRES_PASSWORD: satyoga_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - satyoga-network
+
+  # PostgreSQL for Strapi CMS
+  strapi-postgres:
+    image: postgres:15-alpine
+    container_name: satyoga-strapi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: strapi_cms
+      POSTGRES_USER: strapi_user
+      POSTGRES_PASSWORD: strapi_dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - strapi_postgres_data:/var/lib/postgresql/data
+    networks:
+      - satyoga-network
+
+  # Strapi CMS
+  strapi:
+    image: node:18-alpine
+    container_name: satyoga-strapi
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install && npm run develop"
+    environment:
+      NODE_ENV: development
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: strapi-postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi_cms
+      DATABASE_USERNAME: strapi_user
+      DATABASE_PASSWORD: strapi_dev_password
+      JWT_SECRET: ${STRAPI_JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET:-your-super-secret-admin-jwt-key}
+      APP_KEYS: ${STRAPI_APP_KEYS:-app-key-1,app-key-2,app-key-3,app-key-4}
+      API_TOKEN_SALT: ${STRAPI_API_TOKEN_SALT:-api-token-salt-change-me}
+    ports:
+      - "1337:1337"
+    volumes:
+      - ./strapi:/app
+      - strapi_node_modules:/app/node_modules
+    depends_on:
+      - strapi-postgres
+    networks:
+      - satyoga-network
+
+volumes:
+  postgres_data:
+  strapi_postgres_data:
+  strapi_node_modules:
+
+networks:
+  satyoga-network:
+    driver: bridge

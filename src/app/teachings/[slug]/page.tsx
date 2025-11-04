@@ -1,7 +1,8 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { notFound } from 'next/navigation';
-import TeachingDetailPage from '@/components/teachings/TeachingDetail';
+import TeachingDetailPageClient from './TeachingDetailPageClient';
+import { TeachingData } from '@/types/Teachings';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -27,6 +28,7 @@ interface APITeaching {
   audio_url?: string;
   text_content?: string;
   cloudflare_ids?: string[];
+  youtube_ids?: string[];
   podbean_ids?: string[];
   view_count?: number;
 }
@@ -111,7 +113,8 @@ export default async function TeachingPage({ params }: PageProps) {
   const relatedTeachingsData = await getRelatedTeachings(teaching.category || '', teaching.slug);
 
   // Transform main teaching to match expected format
-  // accessType: 'free' = can access without restrictions (logged in with permission OR preview mode)
+  // accessType: 'free' = fully accessible (no preview limit)
+  // accessType: 'preview' = preview mode with time limit
   // accessType: 'restricted' = locked, need to upgrade
   const transformedTeaching = {
     id: teaching.id,
@@ -121,11 +124,11 @@ export default async function TeachingPage({ params }: PageProps) {
     excerpt_text: teaching.description || '',
     date: teaching.published_date,
     content_type: teaching.content_type?.toLowerCase() || 'video_teaching',
-    accessType: teaching.can_access || teaching.access_type === 'preview' ? 'free' : 'restricted',
+    accessType: teaching.access_type, // Use the access_type from backend directly
     cloudflare_ids: teaching.cloudflare_ids || [],
     podbean_ids: teaching.podbean_ids || [],
     youtube_ids: teaching.youtube_ids || [],
-    preview_duration: teaching.preview_duration || 300,
+    preview_duration: teaching.preview_duration || 0, // Respect database value (0 for free, >0 for preview)
     content_text: teaching.text_content || '',
     transcription: teaching.text_content || '',
     featured_media: teaching.thumbnail_url ? { url: teaching.thumbnail_url } : null,
@@ -141,11 +144,11 @@ export default async function TeachingPage({ params }: PageProps) {
     excerpt_text: t.description || '',
     date: t.published_date,
     content_type: t.content_type?.toLowerCase() || 'video_teaching',
-    accessType: t.can_access || t.access_type === 'preview' ? 'free' : 'restricted',
+    accessType: t.access_type, // Use the access_type from backend directly
     cloudflare_ids: t.cloudflare_ids || [],
     podbean_ids: t.podbean_ids || [],
     youtube_ids: t.youtube_ids || [],
-    preview_duration: t.preview_duration || 300,
+    preview_duration: t.preview_duration || 0, // Respect database value
     content_text: t.text_content || '',
     transcription: t.text_content || '',
     featured_media: t.thumbnail_url ? { url: t.thumbnail_url } : null,
@@ -153,9 +156,9 @@ export default async function TeachingPage({ params }: PageProps) {
   }));
 
   return (
-    <TeachingDetailPage
-      data={transformedTeaching}
-      relatedTeachings={relatedTeachings}
+    <TeachingDetailPageClient
+      data={transformedTeaching as TeachingData}
+      relatedTeachings={relatedTeachings as TeachingData[]}
       isAuthenticated={isLoggedIn}
     />
   );

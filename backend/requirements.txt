@@ -17,6 +17,10 @@ python-multipart==0.0.6
 # HTTP Clients
 httpx==0.26.0
 requests==2.31.0
+aiohttp==3.9.1  # For async API calls in scripts
+
+# Cloud Storage
+boto3==1.34.34  # For Cloudflare R2 (S3-compatible)
 
 # Payment Processing
 # Tilopay (no official SDK, using requests)

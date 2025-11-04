@@ -1,0 +1,35 @@
+{
+  "collectionName": "components_sections_course_features",
+  "info": {
+    "displayName": "course_features",
+    "icon": "bulletList"
+  },
+  "options": {},
+  "attributes": {
+    "videoClasses": {
+      "type": "text",
+      "maxLength": 250,
+      "required": true
+    },
+    "guidedMeditations": {
+      "type": "text",
+      "maxLength": 250,
+      "required": true
+    },
+    "studyMaterials": {
+      "type": "text",
+      "required": true,
+      "maxLength": 250
+    },
+    "supportInfo": {
+      "type": "text",
+      "required": true,
+      "maxLength": 250
+    },
+    "curriculumAids": {
+      "type": "text",
+      "required": true,
+      "maxLength": 250
+    }
+  }
+}

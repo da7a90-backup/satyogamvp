@@ -1,0 +1,56 @@
+{
+  "collectionName": "components_tracking_class_progresses",
+  "info": {
+    "displayName": "ClassProgress",
+    "icon": "chartCircle",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "classId": {
+      "type": "integer",
+      "required": true
+    },
+    "orderIndex": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "video": {
+      "type": "decimal",
+      "max": 1,
+      "min": 0,
+      "default": 0,
+      "required": true
+    },
+    "keyConcepts": {
+      "type": "decimal",
+      "default": 0,
+      "max": 1,
+      "min": 0,
+      "required": true
+    },
+    "writingPrompts": {
+      "type": "decimal",
+      "default": 0,
+      "max": 1,
+      "min": 0,
+      "required": true
+    },
+    "additionalMaterials": {
+      "type": "decimal",
+      "default": 0,
+      "max": 1,
+      "min": 0,
+      "required": true
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "lastAccessed": {
+      "type": "datetime"
+    }
+  }
+}

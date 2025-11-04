@@ -11,7 +11,7 @@ interface Teaching {
   description: string;
   date: string;
   duration: string;
-  accessType: 'free' | 'restricted';
+  accessType: 'free' | 'preview' | 'restricted';
   mediaType: 'video' | 'audio' | 'text';
   pageCount?: number;
   slug: string;
@@ -71,11 +71,11 @@ function transformTeaching(apiTeaching: any): Teaching {
     categoryType = 'video_teaching';
   }
 
-  // Determine access type
-  const accessType: 'free' | 'restricted' =
-    apiTeaching.access_level === 'FREE' || apiTeaching.can_access
-      ? 'free'
-      : 'restricted';
+  // Determine access type - use backend's access_type directly
+  const accessType: 'free' | 'preview' | 'restricted' =
+    apiTeaching.access_type === 'free' ? 'free' :
+    apiTeaching.access_type === 'preview' ? 'preview' :
+    'restricted';
 
   // Format duration
   const formatDuration = (seconds?: number): string => {

@@ -1,20 +1,22 @@
-// app/page.tsx (using App Router in Next.js 13+)
+// app/about/ashram/page.tsx
 
 import AboutAshramPage from "@/components/aboutPage/AboutAshram";
-
+import { staticContentAPI } from '@/lib/static-content-api';
 
 // This is a server component that fetches data
 export default async function AboutAshram() {
   try {
-    console.log("Fetching homepage data from Strapi...");
-  
-    
+    console.log("Fetching about/ashram data from backend API...");
+
+    // Fetch about-ashram page data from FastAPI backend
+    const pageData = await staticContentAPI.getPage('about-ashram');
+    console.log("About/ashram data loaded successfully:", Object.keys(pageData));
+
     // Pass the data to your client component
-    return <AboutAshramPage
-     />;
+    return <AboutAshramPage data={pageData} />;
   } catch (error) {
     console.error("Error loading about page data:", error);
-    
+
     // Return an error message
     return (
       <div className="container mx-auto px-4 py-16 text-center">

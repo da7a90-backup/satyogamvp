@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Heart, X, ShoppingCart } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -31,10 +32,56 @@ interface PastRetreatsData {
 }
 
 // ============================================================================
+// MODAL COMPONENT
+// ============================================================================
+
+function ActionModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: () => void; message: string }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-[#7D1A13]/10 rounded-full flex items-center justify-center mx-auto">
+              <ShoppingCart className="w-8 h-8 text-[#7D1A13]" />
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Feature Under Development</h3>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <button
+            onClick={onClose}
+            className="w-full bg-[#7D1A13] hover:bg-[#7D1A13]/90 text-white px-6 py-2.5 rounded-md font-semibold transition-opacity"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // COMPONENT
 // ============================================================================
 
 const StoreProductSection = ({ data }: { data: PastRetreatsData }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -62,7 +109,7 @@ const StoreProductSection = ({ data }: { data: PastRetreatsData }) => {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
@@ -70,10 +117,15 @@ const StoreProductSection = ({ data }: { data: PastRetreatsData }) => {
     if (isLeftSwipe && window.innerWidth < 1024) {
       setCurrentSlide((prev) => (prev + 1) % data.products.length);
     }
-    
+
     if (isRightSwipe && window.innerWidth < 1024) {
       setCurrentSlide((prev) => (prev - 1 + data.products.length) % data.products.length);
     }
+  };
+
+  const handleAction = (message: string) => {
+    setModalMessage(message);
+    setModalOpen(true);
   };
 
   return (
@@ -149,31 +201,31 @@ const StoreProductSection = ({ data }: { data: PastRetreatsData }) => {
         {/* Desktop: Grid Layout */}
         <div className="hidden lg:grid lg:grid-cols-3 gap-6">
           {data.products.map((product, index) => (
-            <ProductCard key={index} product={product} />
+            <ProductCard key={index} product={product} onAction={handleAction} />
           ))}
         </div>
 
         {/* Mobile: Carousel */}
         <div className="lg:hidden">
-          <div 
+          <div
             className="overflow-hidden rounded-lg cursor-grab active:cursor-grabbing"
             ref={carouselRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <div 
+            <div
               className="flex transition-transform duration-300 ease-in-out"
               style={{
                 transform: `translateX(-${currentSlide * 100}%)`,
               }}
             >
               {data.products.map((product, index) => (
-                <div 
+                <div
                   key={index}
                   className="w-full flex-shrink-0 px-2"
                 >
-                  <ProductCard product={product} />
+                  <ProductCard product={product} onAction={handleAction} />
                 </div>
               ))}
             </div>
@@ -199,13 +251,25 @@ const StoreProductSection = ({ data }: { data: PastRetreatsData }) => {
           </div>
         </div>
       </div>
+
+      {/* Action Modal */}
+      <ActionModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        message={modalMessage}
+      />
     </section>
   );
 };
 
 // Product Card Component
-const ProductCard = ({ product }: { product: Product }) => {
+const ProductCard = ({ product, onAction }: { product: Product; onAction: (message: string) => void }) => {
   const [isFavorited, setIsFavorited] = useState(false);
+
+  const handleFavoriteClick = () => {
+    setIsFavorited(!isFavorited);
+    onAction('Save for later functionality under active development, try again in a couple of days!');
+  };
 
   return (
     <div className="bg-transparent rounded-lg overflow-hidden border-none flex flex-col h-full">
@@ -216,22 +280,19 @@ const ProductCard = ({ product }: { product: Product }) => {
           alt={product.title}
           className="w-full h-full object-cover"
         />
-        
-        {/* Bookmark Button */}
+
+        {/* Heart Button */}
         <button
-          onClick={() => setIsFavorited(!isFavorited)}
+          onClick={handleFavoriteClick}
           className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors"
           aria-label="Save for later"
         >
-          <svg 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill={isFavorited ? "#7D1A13" : "#FFFFFF"}
-            stroke="none"
-          >
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-          </svg>
+          <Heart
+            className="w-5 h-5"
+            fill={isFavorited ? "#7D1A13" : "none"}
+            stroke={isFavorited ? "#7D1A13" : "#525252"}
+            strokeWidth={2}
+          />
         </button>
 
         {/* Format Badges */}

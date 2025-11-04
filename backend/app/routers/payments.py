@@ -7,13 +7,16 @@ from datetime import datetime, timedelta
 import logging
 
 from ..core.database import get_db, SessionLocal
-from ..core.deps import get_current_user
+from ..core.deps import get_current_user, get_optional_user
+from ..core.config import settings
 from ..models.user import User
 from ..models.payment import Payment, PaymentStatus, PaymentType
 from ..models.course import CourseEnrollment, EnrollmentStatus
 from ..models.retreat import RetreatRegistration, RegistrationStatus, AccessType
-from ..models.product import Order, OrderItem, OrderStatus, UserProductAccess
+from ..models.product import Order, OrderItem, OrderStatus, UserProductAccess, Product, Cart, CartItem
 from ..services import tilopay_service, mixpanel_service, ga4_service, sendgrid_service
+from ..schemas.product import CheckoutRequest, CheckoutResponse
+from ..schemas.payment import PaymentCreate
 
 logger = logging.getLogger(__name__)
 
@@ -22,32 +25,166 @@ router = APIRouter()
 
 @router.post("/create")
 async def create_payment(
-    amount: float,
-    payment_type: str,
-    reference_id: Optional[str] = None,
-    description: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    payment_data: PaymentCreate,
+    current_user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
     """
     Create an embedded payment session with Tilopay.
 
+    Supports both authenticated and anonymous payments.
+    For anonymous payments, billing information must be provided.
+
     Returns payment data for frontend to embed Tilopay form in-page.
     """
     # Validate payment type
     try:
-        payment_type_enum = PaymentType(payment_type)
+        payment_type_enum = PaymentType(payment_data.payment_type)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payment type")
+
+    # For anonymous payments, require billing email and name
+    if not current_user:
+        if not payment_data.billing_email:
+            raise HTTPException(status_code=400, detail="Email is required for anonymous payments")
+        if not payment_data.billing_first_name and not payment_data.billing_name:
+            raise HTTPException(status_code=400, detail="Name is required for anonymous payments")
+
+    # Determine customer info
+    if current_user:
+        customer_email = current_user.email
+        customer_name = current_user.name
+        user_id = current_user.id
+    else:
+        customer_email = payment_data.billing_email
+        # Construct name from first/last or use billing_name
+        if payment_data.billing_first_name or payment_data.billing_last_name:
+            customer_name = f"{payment_data.billing_first_name or ''} {payment_data.billing_last_name or ''}".strip()
+        else:
+            customer_name = payment_data.billing_name or "Anonymous Donor"
+        user_id = None  # Anonymous payment
+
+    # Create payment record
+    payment = Payment(
+        user_id=user_id,
+        amount=payment_data.amount,
+        currency=payment_data.currency,
+        status=PaymentStatus.PENDING,
+        payment_type=payment_type_enum,
+        reference_id=payment_data.reference_id,
+    )
+    db.add(payment)
+    db.commit()
+    db.refresh(payment)
+
+    # Get SDK token from Tilopay
+    token_response = await tilopay_service.get_sdk_token()
+
+    if not token_response.get("success"):
+        payment.status = PaymentStatus.FAILED
+        db.commit()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get Tilopay SDK token: {token_response.get('message', 'Unknown error')}",
+        )
+
+    # Store order ID in payment
+    payment.tilopay_order_id = str(payment.id)
+    db.commit()
+
+    logger.info(f"Payment created: id={payment.id}, type={payment_data.payment_type}, amount={payment_data.amount}, user={'authenticated' if current_user else 'anonymous'}")
+
+    # Extract first and last names
+    first_name = payment_data.billing_first_name or (customer_name.split()[0] if customer_name else "")
+    last_name = payment_data.billing_last_name or (" ".join(customer_name.split()[1:]) if customer_name and len(customer_name.split()) > 1 else "")
+
+    # Return SDK token and all payment/billing info for frontend to initialize Tilopay SDK
+    return {
+        "payment_id": str(payment.id),
+        "tilopay_key": token_response.get("token"),  # Return the actual SDK token from loginSdk
+        "order_number": str(payment.id),
+        "amount": float(payment_data.amount),
+        "currency": payment_data.currency,
+        "description": payment_data.description or f"{payment_data.payment_type.capitalize()} to Sat Yoga",
+        "customer_email": customer_email,
+        "customer_name": customer_name,
+        "first_name": first_name,
+        "last_name": last_name,
+        "address": payment_data.billing_address or "",
+        "city": payment_data.billing_city or "",
+        "state": payment_data.billing_state or "",
+        "zip_code": payment_data.billing_postal_code or "",
+        "country": payment_data.billing_country or "",
+        "telephone": payment_data.billing_telephone or "",
+    }
+
+
+@router.post("/checkout", response_model=CheckoutResponse)
+async def checkout(
+    checkout_data: CheckoutRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Create an order from the cart and initiate payment with Tilopay.
+
+    This endpoint:
+    1. Gets the user's cart
+    2. Creates an Order with OrderItems
+    3. Creates a Payment record
+    4. Initiates Tilopay embedded checkout
+    5. Clears the cart
+    6. Returns payment data for frontend to embed Tilopay form
+    """
+    # Get user's cart
+    cart = db.query(Cart).filter(Cart.user_id == current_user.id).first()
+    if not cart or not cart.items:
+        raise HTTPException(status_code=400, detail="Cart is empty")
+
+    # Calculate totals
+    subtotal = sum(item.product.price * item.quantity for item in cart.items)
+    tax = subtotal * 0.13  # Costa Rica 13% IVA
+    total = subtotal + tax
+
+    # Create order
+    order = Order(
+        user_id=current_user.id,
+        subtotal=subtotal,
+        tax=tax,
+        total=total,
+        status=OrderStatus.PENDING,
+        billing_email=checkout_data.billing_email or current_user.email,
+        billing_name=checkout_data.billing_name or current_user.name,
+        billing_address=checkout_data.billing_address,
+        billing_city=checkout_data.billing_city,
+        billing_country=checkout_data.billing_country,
+        billing_postal_code=checkout_data.billing_postal_code,
+    )
+    db.add(order)
+    db.flush()  # Get order ID without committing
+
+    # Create order items from cart items
+    for cart_item in cart.items:
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=cart_item.product_id,
+            quantity=cart_item.quantity,
+            price=cart_item.product.price,
+            subtotal=cart_item.product.price * cart_item.quantity,
+        )
+        db.add(order_item)
+
+    db.commit()
+    db.refresh(order)
 
     # Create payment record
     payment = Payment(
         user_id=current_user.id,
-        amount=amount,
+        amount=total,
         currency="USD",
         status=PaymentStatus.PENDING,
-        payment_type=payment_type_enum,
-        reference_id=reference_id,
+        payment_type=PaymentType.PRODUCT,
+        reference_id=str(order.id),
     )
     db.add(payment)
     db.commit()
@@ -55,15 +192,16 @@ async def create_payment(
 
     # Create Tilopay embedded payment session
     tilopay_response = await tilopay_service.create_embedded_payment(
-        amount=amount,
+        amount=float(total),
         order_id=str(payment.id),
-        description=description or f"{payment_type} payment",
-        customer_email=current_user.email,
-        customer_name=current_user.name,
+        description=f"Order #{order.id} - {len(cart.items)} item(s)",
+        customer_email=order.billing_email,
+        customer_name=order.billing_name,
     )
 
     if not tilopay_response.get("success"):
         payment.status = PaymentStatus.FAILED
+        order.status = OrderStatus.CANCELLED
         db.commit()
         raise HTTPException(
             status_code=500,
@@ -75,11 +213,21 @@ async def create_payment(
     payment.tilopay_response = tilopay_response.get("payment_data")
     db.commit()
 
-    return {
-        "payment_id": str(payment.id),
-        "payment_data": tilopay_response.get("payment_data"),
-        "order_id": tilopay_response.get("order_id"),
-    }
+    # Clear cart after successful order creation
+    for item in cart.items:
+        db.delete(item)
+    db.commit()
+
+    logger.info(f"Checkout completed: order={order.id}, payment={payment.id}, user={current_user.id}")
+
+    return CheckoutResponse(
+        order_id=str(order.id),
+        payment_id=str(payment.id),
+        payment_data=tilopay_response.get("payment_data"),
+        tilopay_order_id=tilopay_response.get("order_id"),
+        total=float(total),
+        currency="USD",
+    )
 
 
 @router.post("/webhook")

@@ -46,7 +46,15 @@ class Teaching(Base):
     published_date = Column(DateTime, nullable=True)
     category = Column(String(100), nullable=True, index=True)
     tags = Column(JSON_TYPE, nullable=True, default=[])
+    topic = Column(String(100), nullable=True, index=True)  # Main topic for filtering (e.g., "Consciousness", "Meditation", "Yoga")
+    filter_tags = Column(JSON_TYPE, nullable=True, default=[])  # Additional filterable tags for extensibility
     view_count = Column(Integer, default=0, nullable=False)
+
+    # Feature flags
+    featured = Column(String(50), nullable=True, default=None)  # 'teaching' | 'meditation' | 'essay' | null
+    of_the_month = Column(String(50), nullable=True, default=None)  # For guided meditations
+    pinned = Column(String(50), nullable=True, default=None)  # For essays
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

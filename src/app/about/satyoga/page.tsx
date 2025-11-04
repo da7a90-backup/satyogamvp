@@ -1,18 +1,22 @@
-// app/page.tsx (using App Router in Next.js 13+)
+// app/about/satyoga/page.tsx
 
 import AboutPage from '@/components/aboutPage/AboutPage';
+import { staticContentAPI } from '@/lib/static-content-api';
 
 // This is a server component that fetches data
 export default async function About() {
   try {
-    console.log("Fetching homepage data from Strapi...");
-  
-    
+    console.log("Fetching about/satyoga data from backend API...");
+
+    // Fetch about-satyoga page data from FastAPI backend
+    const pageData = await staticContentAPI.getPage('about-satyoga');
+    console.log("About/satyoga data loaded successfully:", Object.keys(pageData));
+
     // Pass the data to your client component
-    return <AboutPage />;
+    return <AboutPage data={pageData} />;
   } catch (error) {
     console.error("Error loading about page data:", error);
-    
+
     // Return an error message
     return (
       <div className="container mx-auto px-4 py-16 text-center">

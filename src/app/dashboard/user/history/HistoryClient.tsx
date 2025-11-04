@@ -26,14 +26,30 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
   const [activeTab, setActiveTab] = useState<'video' | 'audio' | 'text'>('video');
   const [history, setHistory] = useState(initialHistory);
 
-  // Filter teachings by content type (backend returns uppercase)
+  // Debug logging
+  console.log('HistoryClient - Received history:', initialHistory);
+  console.log('HistoryClient - History count:', initialHistory.length);
+  console.log('HistoryClient - Content types:', initialHistory.map(f => f.content_type));
+  console.log('HistoryClient - Active tab:', activeTab);
+
+  // Filter teachings by content type
   const filteredTeachings = history.filter(teaching => {
-    const contentType = teaching.content_type?.toUpperCase();
-    if (activeTab === 'video') return contentType === 'VIDEO';
-    if (activeTab === 'audio') return contentType === 'AUDIO' || contentType === 'MEDITATION';
-    if (activeTab === 'text') return contentType === 'TEXT' || contentType === 'ESSAY';
+    const contentType = teaching.content_type?.toLowerCase();
+    console.log('Filtering:', teaching.title, '- Content type:', contentType, '- Active tab:', activeTab);
+
+    if (activeTab === 'video') {
+      return contentType === 'video' || contentType === 'videoandaudio' || contentType === 'video_teaching' || contentType === 'qa';
+    }
+    if (activeTab === 'audio') {
+      return contentType === 'audio' || contentType === 'meditation' || contentType === 'guided_meditation';
+    }
+    if (activeTab === 'text') {
+      return contentType === 'text' || contentType === 'essay';
+    }
     return true;
   });
+
+  console.log('HistoryClient - Filtered count:', filteredTeachings.length);
 
   // Group by date
   const groupedByDate: { [key: string]: HistoryTeaching[] } = {};
@@ -69,6 +85,10 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
   };
 
   const getContentTypeLabel = (contentType: string) => {
+    const lower = contentType.toLowerCase();
+    if (lower === 'videoandaudio') return 'Video & Audio';
+    if (lower === 'video_teaching') return 'Video';
+    if (lower === 'guided_meditation') return 'Meditation';
     return contentType.charAt(0).toUpperCase() + contentType.slice(1);
   };
 
@@ -130,10 +150,10 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
               Start watching teachings to build your spiritual journey history.
             </p>
             <Link
-              href="/dashboard/user/library"
+              href="/dashboard/user/teachings"
               className="px-6 py-3 bg-[#7D1A13] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
             >
-              Go to The Library
+              Browse Teachings
             </Link>
           </div>
         ) : (

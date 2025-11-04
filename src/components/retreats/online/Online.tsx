@@ -4,18 +4,45 @@ import UpcomingRetreatsSection from "@/components/shared/RelatedOnline";
 import StoreProductSection from "@/components/shared/StoreSuggestions";
 import TestimonialSecondarySection from "@/components/shared/TestimonialSecondary";
 import TwoPaneComponent from "@/components/shared/TwoPaneComponent";
-import { onlineRetreatsData, type OnlineRetreat } from "@/lib/data";
 import React from "react";
+
+// Placeholder image URL from Cloudflare
+const PLACEHOLDER_IMAGE = "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/65a18ef5-6885-4a17-a55c-97f3bc808400/public";
+
+// Icon overlay for retreat cards
+const ICON_OVERLAY = "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public";
+
+interface OnlineRetreat {
+  id: number;
+  slug: string;
+  title: string;
+  subtitle?: string;
+  fixed_date: string;
+  fixedDate?: string; // Alias
+  location: string;
+  duration: string;
+  price?: number;
+  booking_tagline: string;
+  bookingTagline?: string; // Alias
+  hero_background: string;
+  heroBackground?: string; // Alias
+  images: Array<{ src: string; alt: string }>;
+  intro1_content?: string[];
+  intro1Content?: string[]; // Alias
+}
 
 /**
  * Extracts duration from fixedDate string
  * e.g., "7-Day Retreat • December 27, 2024 - January 2, 2025" → "7 days"
  */
- function extractDuration(fixedDate: string): string {
+function extractDuration(fixedDate: string): string {
+  // Handle undefined/null/empty values
+  if (!fixedDate) return '3 days';
+
   if (fixedDate.includes('7-Day')) return '7 days';
   if (fixedDate.includes('5-Day')) return '5 days';
   if (fixedDate.includes('3-Day')) return '3 days';
-  
+
   // Try to calculate from date range
   const dateRangeMatch = fixedDate.match(/(\w+ \d+, \d{4}) - (\w+ \d+, \d{4})/);
   if (dateRangeMatch) {
@@ -25,7 +52,7 @@ import React from "react";
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return `${diffDays} days`;
   }
-  
+
   return '3 days'; // Default fallback
 }
 
@@ -33,7 +60,10 @@ import React from "react";
  * Extracts end date from fixedDate string for filtering
  * e.g., "December 27, 2024 - January 2, 2025" → Date object for Jan 2, 2025
  */
- function extractEndDate(fixedDate: string): Date | null {
+function extractEndDate(fixedDate: string): Date | null {
+  // Handle undefined/null/empty values
+  if (!fixedDate) return null;
+
   // Try to find date range pattern
   const dateRangeMatch = fixedDate.match(/-\s*(\w+ \d+, \d{4})/);
   if (dateRangeMatch) {
@@ -62,13 +92,15 @@ import React from "react";
  function getUpcomingRetreats(retreats: OnlineRetreat[]): OnlineRetreat[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Start of today
-  
+
   return retreats.filter(retreat => {
-    const endDate = extractEndDate(retreat.fixedDate);
-    
+    // Get fixedDate with fallback
+    const dateString = retreat.fixedDate || retreat.fixed_date || '';
+    const endDate = extractEndDate(dateString);
+
     // If we can't parse the date, include it anyway
     if (!endDate) return true;
-    
+
     // Include if end date is today or in the future
     return endDate >= today;
   });
@@ -77,47 +109,67 @@ import React from "react";
 /**
  * Transforms online retreat data into UpcomingRetreatsSection card format
  */
- function transformRetreatsToCards(retreats: OnlineRetreat[]) {
-  return retreats.map(retreat => ({
-    image: retreat.images[0]?.src || retreat.heroBackground,
-    iconOverlay: "/progicon.png",
-    duration: extractDuration(retreat.fixedDate),
-    type: retreat.location,
-    date: retreat.fixedDate,
-    category: retreat.bookingTagline,
-    title: retreat.title,
-    description: retreat.intro1Content[0],
-    button: {
-      text: "Learn more",
-      url: `/retreats/online/${retreat.slug}`
-    }
-  }));
+function transformRetreatsToCards(retreats: OnlineRetreat[], iconOverlay?: string) {
+  return retreats.map(retreat => {
+    // Handle both API format (snake_case) and static format (camelCase)
+    const fixedDate = retreat.fixed_date || retreat.fixedDate || '';
+    const bookingTagline = retreat.booking_tagline || retreat.bookingTagline || '';
+    const heroBackground = retreat.hero_background || retreat.heroBackground || '';
+    const intro1Content = retreat.intro1_content || retreat.intro1Content || [];
+
+    return {
+      image: retreat.images[0]?.src || heroBackground || PLACEHOLDER_IMAGE,
+      iconOverlay: iconOverlay || ICON_OVERLAY,
+      duration: retreat.duration || extractDuration(fixedDate),
+      type: retreat.location,
+      date: fixedDate,
+      category: bookingTagline,
+      title: retreat.title,
+      description: intro1Content[0] || retreat.subtitle || '',
+      button: {
+        text: "Learn more",
+        url: `/retreats/online/${retreat.slug}`
+      }
+    };
+  });
 }
 
 /**
  * Complete utility to get upcoming retreats in card format
- * Usage: const cards = getUpcomingRetreatCards(onlineRetreatsData);
+ * Usage: const cards = getUpcomingRetreatCards(onlineRetreatsData, iconOverlay);
  */
-export function getUpcomingRetreatCards(retreats: OnlineRetreat[]) {
+export function getUpcomingRetreatCards(retreats: OnlineRetreat[], iconOverlay?: string) {
   const upcomingRetreats = getUpcomingRetreats(retreats);
-  return transformRetreatsToCards(upcomingRetreats);
+  return transformRetreatsToCards(upcomingRetreats, iconOverlay);
 }
-export default function OnlinePage({ data }: any) {
+interface Product {
+  id: string;
+  slug: string;
+  title: string;
+  short_description?: string;
+  price: number;
+  thumbnail_url?: string;
+  featured_image?: string;
+  categories?: string[];
+  type: string;
+}
+
+export default function OnlinePage({ data, retreats = [], products = [] }: { data?: any; retreats?: OnlineRetreat[]; products?: Product[] }) {
   const heroData = {
-    tagline: "Online Retreats", 
-    background: "/onlineretreatherobanner.jpg", 
-    heading: "Online Retreats Led by Shunyamurti", 
-    subtext: "Livestreamed for a fully immersive experience wherever you are. Also offered onsite through the Shakti Saturation and Sevadhari programs."
+    tagline: data?.hero?.tagline || "Online Retreats",
+    background: data?.hero?.backgroundImage,
+    heading: data?.hero?.heading || "Online Retreats Led by Shunyamurti",
+    subtext: data?.hero?.subheading || "Livestreamed for a fully immersive experience wherever you are. Also offered onsite through the Shakti Saturation and Sevadhari programs."
   };
 
   const introData = {
     leftPane: {
-      title: "Transmissions of Truth for a World in Crisis",
+      title: data?.intro?.heading || "Transmissions of Truth for a World in Crisis",
       titleLineHeight: "120%"
     },
     rightPane: {
       type: 'paragraphs' as const,
-      content: [
+      content: data?.intro?.content || [
         "Since the founding of the Sat Yoga Ashram, these retreats have been momentous and grounding tribal gatherings as well as the centerpiece of our wisdom school curriculum. For each retreat, Shunyamurti chooses a title and theme that speak to a current topic of study into which we dive more deeply.",
         "Originally, these retreats were offered only at the ashram; but, since the lockdowns of 2020, we have been offering them as livestream events. Now, both our local ashram community and onsite guests can join together with our global sangha to have our hearts nourished, to receive direct guidance from Shunyamurti on the path to Self-Realization, and to raise the vibrational frequency of the morphogenic field.",
         "These retreats are a rare opportunity to ask Shunyamurti the most precious questions from your heart, to communicate and share with the Sat Yoga community and with online retreat participants worldwide, and to deepen your meditation practice while being immersed in the energy field transmitted from the ashram.",
@@ -125,8 +177,9 @@ export default function OnlinePage({ data }: any) {
     }
   };
 
-  // Get upcoming retreats dynamically from data
-  const upcomingCards = getUpcomingRetreatCards(onlineRetreatsData);
+  // Get upcoming retreats dynamically from API data
+  const iconOverlay = data?.retreatCards?.iconOverlay || ICON_OVERLAY;
+  const upcomingCards = getUpcomingRetreatCards(retreats, iconOverlay);
   const upcomingRetreatsData = {
     heading: `${upcomingCards.length} upcoming ${upcomingCards.length === 1 ? 'retreat' : 'retreats'}`,
     viewAllLink: undefined, // No "View all" link since we're on the retreats page
@@ -134,84 +187,45 @@ export default function OnlinePage({ data }: any) {
   };
 
   const testimonialSecondaryData = {
-    title: "Testimonials",
-    subtitle: "A few words from people who attended previous online retreats",
-    testimonials: [
-      {
-        quote: "It was truly a joy and adventure for me to be part of the retreat. I learned a lot of mind and heart expanding concepts.",
-        name: "Idelle",
-        location: "USA",
-        avatar: "/illustrations.png"
-      },
-      {
-        quote: "We extend infinite gratitude for the gift of the scholarship—deep bows and much love to Shunyamurti and the whole community.",
-        name: "Angela",
-        location: "Canada",
-        avatar: "/illustrations.png"
-      },
-      {
-        quote: "It was an illuminating and transformative retreat—filled with wisdom that touched me deeply. I feel truly blessed to be part of our collective dream and a member of the Sat Yoga family.",
-        name: "Anthony",
-        location: "USA",
-        avatar: "/illustrations.png"
-      },
-      {
-        quote: "Being connected with you helps me focus on what's important. Shunya opens these vast realms of understanding—it's rare and unforgettable. I loved the meditations, the teachings—this retreat nourished me in ways I didn't expect.",
-        name: "Hector",
-        location: "Costa Rica",
-        avatar: "/illustrations.png"
-      },
-      {
-        quote: "Wow, awesome retreat packed with information. I find myself with a renewed commitment to quieting the mind and doing the work for liberation.",
-        name: "Judy",
-        location: "USA",
-        avatar: "/illustrations.png"
-      },
-    ]
+    title: data?.testimonials?.heading || "Testimonials",
+    subtitle: data?.testimonials?.subheading || "A few words from people who attended previous online retreats",
+    testimonials: data?.testimonials?.content || []
   };
+
+  // Transform API products to StoreProductSection format
+  const transformedProducts = products.map(product => ({
+    image: product.featured_image || product.thumbnail_url || PLACEHOLDER_IMAGE,
+    hasVideo: true, // Assuming retreats have video content
+    hasAudio: true, // Assuming retreats have audio content
+    category: product.categories?.[0] || "Past online retreat",
+    title: product.title,
+    price: `$${Number(product.price).toFixed(2)}`,
+    subtitle: product.short_description?.substring(0, 50) || "",
+    description: product.short_description?.substring(0, 50) + "..." || "",
+    cartUrl: `/store/${product.slug}`
+  }));
 
   const pastRetreatsData = {
     tagline: "STORE",
     heading: "Discover past retreats",
     description: "Since 2017, we've offered over forty 3-, 5-, and 7-day retreats—each a gateway into the timeless wisdom of Shunyamurti. With uniquely titled classes, guided meditations, and profound discourses in video and audio formats, these retreats remain powerful tools for ongoing transformation. All are now easily accessible from your personalized Dashboard.",
-    productsHeading: "Latest courses",
+    productsHeading: "Latest retreats",
     viewAllLink: {
       text: "View all",
       url: "/store"
     },
-    products: [
+    products: transformedProducts.length > 0 ? transformedProducts : [
+      // Fallback to placeholder if no products
       {
-        image: "/storeproduct1.png",
+        image: PLACEHOLDER_IMAGE,
         hasVideo: true,
         hasAudio: true,
         category: "Past online retreat",
-        title: "Name of the product",
-        price: "$155.00",
-        subtitle: "Ramana's revelation of liberating truth",
-        description: "Lorem ipsum dolor sit amet consectet...",
-        cartUrl: "/cart/add/product1"
-      },
-      {
-        image: "/storeproduct2.png",
-        hasVideo: true,
-        hasAudio: true,
-        category: "Past online retreat",
-        title: "Name of the product",
-        price: "$155.00",
-        subtitle: "Ramana's revelation of liberating truth",
-        description: "Lorem ipsum dolor sit amet consectet...",
-        cartUrl: "/cart/add/product2"
-      },
-      {
-        image: "/storeproduct3.png",
-        hasVideo: true,
-        hasAudio: true,
-        category: "Past online retreat",
-        title: "Name of the product",
-        price: "$155.00",
-        subtitle: "Ramana's revelation of liberating truth",
-        description: "Lorem ipsum dolor sit amet consectet...",
-        cartUrl: "/cart/add/product3"
+        title: "No products available",
+        price: "$0.00",
+        subtitle: "",
+        description: "Check back soon for new retreats",
+        cartUrl: "/store"
       }
     ]
   };

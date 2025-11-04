@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { X, Bookmark } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -14,7 +15,7 @@ interface Teaching {
   description: string;
   date: string;
   duration: string;
-  accessType: 'free' | 'restricted';
+  accessType: 'free' | 'preview' | 'restricted';
   mediaType: 'video' | 'audio' | 'text';
   pageCount?: number;
   slug: string;
@@ -38,6 +39,50 @@ interface TeachingLibraryData {
 }
 
 // ============================================================================
+// MODAL COMPONENT
+// ============================================================================
+
+function ActionModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: () => void; message: string }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-[#942017]/10 rounded-full flex items-center justify-center mx-auto">
+              <Bookmark className="w-8 h-8 text-[#942017]" />
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Feature Under Development</h3>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <button
+            onClick={onClose}
+            className="w-full bg-[#942017] hover:bg-[#942017]/90 text-white py-2 px-4 rounded-lg transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // COMPONENT
 // ============================================================================
 
@@ -57,20 +102,14 @@ const TeachingLibrarySection = ({
   isDashboard = false,
 }: TeachingLibrarySectionProps) => {
   const [activeCategory, setActiveCategory] = useState(0);
-  const [savedTeachings, setSavedTeachings] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const itemsPerPage = 12; // Show 12 teachings per page in pagination mode
 
-  const toggleSave = (teachingId: string) => {
-    setSavedTeachings(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(teachingId)) {
-        newSet.delete(teachingId);
-      } else {
-        newSet.add(teachingId);
-      }
-      return newSet;
-    });
+  const handleBookmark = () => {
+    setModalMessage('Save for later functionality under active development, try again in a couple of days!');
+    setModalOpen(true);
   };
 
   // Filter teachings based on active category
@@ -79,18 +118,20 @@ const TeachingLibrarySection = ({
 
     let filtered = data.allTeachings.filter(t => t.categoryType === categoryKey);
 
-    // If not logged in and not showing all teachings, prioritize free teachings and fill up to 9
+    // If not logged in and not showing all teachings, prioritize free/preview teachings and fill up to 9
     if (!data.isLoggedIn && !showAllTeachings) {
       const freeTeachings = filtered.filter(t => t.accessType === 'free');
+      const previewTeachings = filtered.filter(t => t.accessType === 'preview');
       const restrictedTeachings = filtered.filter(t => t.accessType === 'restricted');
 
-      // Take up to 9 teachings: prioritize free, then add restricted
+      // Take up to 9 teachings: prioritize free, then preview, then add restricted
       const limit = 9;
-      if (freeTeachings.length >= limit) {
-        return freeTeachings.slice(0, limit);
+      const accessible = [...freeTeachings, ...previewTeachings];
+      if (accessible.length >= limit) {
+        return accessible.slice(0, limit);
       } else {
-        const remainingSlots = limit - freeTeachings.length;
-        return [...freeTeachings, ...restrictedTeachings.slice(0, remainingSlots)];
+        const remainingSlots = limit - accessible.length;
+        return [...accessible, ...restrictedTeachings.slice(0, remainingSlots)];
       }
     }
 
@@ -138,7 +179,7 @@ const TeachingLibrarySection = ({
             >
               {data.sectionTitle}
             </h2>
-            {data.viewAllLink && (
+      {/*       {data.viewAllLink && (
             <button
               className="px-4 py-2.5 border rounded-lg hover:bg-gray-50 transition-colors"
               style={{
@@ -153,7 +194,7 @@ const TeachingLibrarySection = ({
             >
               {data.viewAllLink.text}
             </button>
-          )}
+          )} */}
         </div>
         )}
 
@@ -200,18 +241,18 @@ const TeachingLibrarySection = ({
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  toggleSave(data.featuredTeaching.id);
+                  handleBookmark();
                 }}
                 className="absolute top-4 right-4 w-[52px] h-[52px] rounded-full flex items-center justify-center hover:bg-white/50 transition-colors"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.4)'
                 }}
               >
-                <svg 
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 24 24" 
-                  fill={savedTeachings.has(data.featuredTeaching.id) ? "#7D1A13" : "none"}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
                   stroke="#FFFFFF"
                   strokeWidth="1.67"
                 >
@@ -349,7 +390,7 @@ const TeachingLibrarySection = ({
               </span>
             )}
           </p>
-          <div className="flex gap-3">
+{/*           <div className="flex gap-3">
             <button
               className="px-3 py-2 rounded-lg"
               style={{
@@ -378,7 +419,7 @@ const TeachingLibrarySection = ({
               </svg>
               Filters
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Teaching Grid with Overlay */}
@@ -388,8 +429,7 @@ const TeachingLibrarySection = ({
               <TeachingCard
                 key={teaching.id}
                 teaching={teaching}
-                isSaved={savedTeachings.has(teaching.id)}
-                onToggleSave={() => toggleSave(teaching.id)}
+                onBookmark={handleBookmark}
                 isDashboard={isDashboard}
               />
             ))}
@@ -504,7 +544,7 @@ const TeachingLibrarySection = ({
               </div>
 
               <div className="relative z-10 w-full max-w-[480px]">
-                <div className="flex flex-col gap-3 mb-4">
+{/*                 <div className="flex flex-col gap-3 mb-4">
                   <button
                     className="w-full px-4 py-2.5 border rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
                     style={{
@@ -570,7 +610,7 @@ const TeachingLibrarySection = ({
                       Sign in with Apple
                     </span>
                   </button>
-                </div>
+                </div> */}
 
                 <div className="flex items-center gap-2 my-4 px-0 py-4">
                   <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
@@ -579,11 +619,11 @@ const TeachingLibrarySection = ({
                     fontSize: '18px',
                     color: '#898989'
                   }}>
-                    OR
+                    Coming soon...
                   </span>
                   <div className="flex-1 border-t" style={{ borderColor: '#898989' }} />
                 </div>
-
+{/* 
                 <button
                   className="w-full underline hover:no-underline"
                   style={{
@@ -594,12 +634,19 @@ const TeachingLibrarySection = ({
                   }}
                 >
                   Continue with email
-                </button>
+                </button> */}
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Modal */}
+      <ActionModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        message={modalMessage}
+      />
     </section>
   );
 };
@@ -610,13 +657,11 @@ const TeachingLibrarySection = ({
 
 const TeachingCard = ({
   teaching,
-  isSaved,
-  onToggleSave,
+  onBookmark,
   isDashboard = false
 }: {
   teaching: Teaching;
-  isSaved: boolean;
-  onToggleSave: () => void;
+  onBookmark: () => void;
   isDashboard?: boolean;
 }) => {
   const teachingUrl = isDashboard
@@ -694,6 +739,22 @@ const TeachingCard = ({
                   Membership
                 </span>
               </>
+            ) : teaching.accessType === 'preview' ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="5" stroke="#414651" strokeWidth="1.2"/>
+                  <path d="M6 3v3l2 1" stroke="#414651" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                <span style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  lineHeight: '20px',
+                  color: '#414651'
+                }}>
+                  Preview
+                </span>
+              </>
             ) : (
               <>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -718,18 +779,18 @@ const TeachingCard = ({
         <button
           onClick={(e) => {
             e.preventDefault();
-            onToggleSave();
+            onBookmark();
           }}
           className="absolute top-4 right-4 w-[52px] h-[52px] rounded-full flex items-center justify-center hover:bg-white/50 transition-colors"
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.4)'
           }}
         >
-          <svg 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill={isSaved ? "#7D1A13" : "none"}
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
             stroke="#FFFFFF"
             strokeWidth="1.67"
           >

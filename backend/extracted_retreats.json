@@ -1,0 +1,107 @@
+{
+    slug: "hopeless-yet-hilarious",
+    heroBackground: "/orbanner.png",
+    
+    // Booking Configuration
+    retreatType: "online",
+    bookingTagline: "3-DAY ONLINE RETREAT",
+    title: "Why Our Situation is Hopeless, Yet Hilarious! (testing specific retreat page through slug system)",
+    basePrice: 195, // Limited access price
+    priceOptions: [
+      {
+        type: 'limited',
+        label: 'Limited Access (12 days)',
+        price: 195,
+        description: 'You will have access to all the retreat teachings for 12 days following the end of the retreat. All materials will be available to access and review for the duration of the retreat, plus an additional week for a final review after the retreat ends. You are welcome to upgrade to lifetime access at any time after the retreat begins.'
+      },
+      {
+        type: 'lifetime',
+        label: 'Lifetime Access',
+        price: 285,
+        description: 'The online portal will remain open for you to return to it as often as you wish to re-immerse yourself in this life-changing wisdom to support your spiritual practice for a lifetime!'
+      }
+    ],
+    memberDiscountPercentage: 10, // 10% discount for members
+    scholarshipAvailable: true,
+    scholarshipDeadline: "Thursday, December 20, 2025",
+    fixedDate: "December 27-29, 2025",
+    location: "Online Retreat",
+    applicationUrl: "/purchase/hopeless-yet-hilarious",
+    images: [
+      { src: '/PURCHASE GALLERY 2.jpg', alt: 'Retreat session' },
+      { src: '/PURCHASE GALLERY 3.jpg', alt: 'Meditation practice' },
+      { src: '/PURCHASE GALLERY 4.jpg', alt: 'Community gathering' },
+      { src: '/PURCHASE GALLERY 5.jpg', alt: 'Wisdom teaching' },
+      { src: '/PURCHASE GALLERY 5.jpg', alt: 'Wisdom teaching' }
+    ],
+    
+    // Content Sections
+    intro1Title: "About This Retreat",
+    intro1Content: [
+      "Every ego eventually gets mired in a swamp of hopelessness. There is only one way out. When you open your third eye, you will immediately perceive the unreality of the world you thought you were living in, and of your own appearance in that projected dreamfield.",
+      "Suddenly, what had been regarded as adverse and traumatic events; feelings of pain and suffering; and a weak, disgraceful, and unlovable identity are recognized as hilarious illusions. In this retreat, we will help you pry open your third eyelid—so you can enjoy the healing laughter of your liberated heart."
+    ],
+    
+    intro2Title: "This 3-Day Online Retreat Includes:",
+    intro2Content: [
+      "<strong>Livestream Satsangs with Shunyamurti:</strong> Three, 90-minute Livestream Satsangs including Wisdom Classes, Guided Meditations, and Question and Answer Sessions",
+      "<strong>Early Morning Meditation:</strong> Meditate with the Sat Yoga Sangha Live via Zoom",
+      "<strong>Encounter Group:</strong> Connect with Senior Sat Yogis Live via Zoom",
+      "<strong>Asanas:</strong> Yoga Asana Practice Live via Zoom",
+      "<strong>Retreat Portal:</strong> Access your transformational journey through our beautifully designed Retreat Portal, directly available from your personal dashboard. This intuitive platform includes responsive design for any device, live calendar, instant replay of all sessions, at-home practice guide, and community forum to submit questions and connect with fellow retreatants."
+    ],
+    
+    intro3Title: "About Shunyamurti",
+    intro3Content: [
+      "Shunyamurti's own search for a way to live in this world without self-betrayal and in constant process of growth and individuation, transcendence of the ego, and attunement to the Source of creative intelligence and love, has led to the unfoldment of this non-ordinary social-psycho-spiritual project.",
+      "He is always learning, changing, deepening his understanding and empathy, and humbly correcting his course–guided by his connection to the One Supreme Being Whom he serves. He joyfully lives the paradox of changeless nonduality manifesting as multiplicity in ceaseless becoming, surfing the quantum waves while abiding as the stillness of the unified field."
+    ],
+    
+    // Schedule
+    scheduleTagline: "SAMPLE SCHEDULE",
+    scheduleTitle: "All Times Are In Costa Rica Time",
+    scheduleItems: [
+      { time: "6:00 - 6:45am", activity: "Morning Meditation (via Zoom)" },
+      { time: "10:00am - 12:00pm", activity: "Livestream Satsang with Shunyamurti" },
+      { time: "3:00 - 4:30pm", activity: "Encounter Group (via Zoom)" },
+      { time: "5:00 - 6:00pm", activity: "Yoga Asana Practice (via Zoom)" }
+    ],
+    
+    // Testimonials
+    testimonialTagline: "TESTIMONIALS",
+    testimonialHeading: "Reflections from Recent Retreatants",
+    testimonials: [
+      {
+        quote: "These teachings this weekend have been amazing. My husband and I watch and discuss for hours. Thank you, Sat Yoga team, for bringing this to our living room. Thank you also to Shunyamurti for sharing his sacred wisdom with us.",
+        name: "Anissa",
+        location: "USA"
+      },
+      {
+        quote: "The retreat left my being much lighter. I feel I dissolved many layers of the ego and more are lifting with each breath.",
+        name: "Brad",
+        location: "Canada"
+      },
+      {
+        quote: "Thank you for this most amazing, wonderful retreat! The teachings were fantastic, so much wisdom and useful tools, I will listen again and again.",
+        name: "Elisabeth",
+        location: "Sweden"
+      },
+      {
+        quote: "I have so enjoyed immersing myself in the blissful ocean of these teachings and meditations. Please convey my deepest gratitude to Shunyamurti for his exquisite transmissions.",
+        name: "Mara",
+        location: "UK"
+      }
+    ],
+    
+    // Booking Form Fields
+    memberLabel: "Are you a member?*",
+    memberOptions: ["Select an option ...", "Yes", "No"],
+    buttonText: "Purchase Now",
+    buttonUrl: "/purchase/hopeless-yet-hilarious",
+    infoButtonText: "Request More Information",
+    infoButtonUrl: "/contact?queryType=onlineretreat",
+    membershipText: "Discover our",
+    membershipLink: "memberships",
+    membershipLinkUrl: "/memberships",
+    membershipNote: "to receive discounts"
+  }

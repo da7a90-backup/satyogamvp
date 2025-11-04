@@ -10,53 +10,11 @@ import {
   EyeIcon,
   StarIcon,
 } from "@heroicons/react/24/outline";
-import { blogApi } from "@/lib/strapi";
-
-// Updated BlogPost interface to match Strapi collection structure
-interface BlogPost {
-  id: number;
-  attributes: {
-    title: string;
-    slug: string;
-    excerpt: string;
-    content: string;
-    featuredImage?: {
-      data?: {
-        id: number;
-        attributes: {
-          url: string;
-          formats: {
-            thumbnail: {
-              url: string;
-            };
-          };
-        };
-      };
-    };
-    category?: {
-      data?: {
-        id: number;
-        attributes: {
-          name: string;
-        };
-      };
-    };
-    author?: {
-      data?: {
-        id: number;
-        attributes: {
-          name: string;
-        };
-      };
-    };
-    readTime?: number;
-    isFeatured: boolean;
-    hiddenTag?: string;
-    createdAt: string;
-    updatedAt: string;
-    publishedAt: string | null;
-  };
-}
+import {
+  getBlogPosts,
+  deleteBlogPost as deleteBlogPostApi,
+  type BlogPost,
+} from "@/lib/blog-api";
 
 const BlogIndex = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -66,21 +24,17 @@ const BlogIndex = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<number | null>(null);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   const fetchBlogPosts = async (page = 1, query = "") => {
     setIsLoading(true);
     try {
-      // Using blogApi from strapi.ts instead of direct fetch
-      const data: any = await blogApi.getPosts(page, 10, query);
-      
-      setBlogPosts(data.data);
+      // Fetch posts from FastAPI backend - show all posts (published and drafts) in admin
+      const data = await getBlogPosts(page, 10, query, undefined, undefined, undefined);
 
-      // Set pagination info
-      if (data.meta?.pagination) {
-        setTotalPages(data.meta.pagination.pageCount);
-        setCurrentPage(data.meta.pagination.page);
-      }
+      setBlogPosts(data.posts);
+      setTotalPages(data.total_pages);
+      setCurrentPage(data.page);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred"
@@ -103,10 +57,9 @@ const BlogIndex = () => {
   };
 
   // Delete blog post
-  const deleteBlogPost = async (id: number) => {
+  const deleteBlogPost = async (id: string) => {
     try {
-      // Using blogApi from strapi.ts instead of direct fetch
-      await blogApi.deletePost(id.toString());
+      await deleteBlogPostApi(id);
 
       // Refresh the blog posts list
       fetchBlogPosts(currentPage, searchQuery);
@@ -276,60 +229,54 @@ const BlogIndex = () => {
                     <tr key={post.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          {post.attributes.isFeatured && (
+                          {post.is_featured && (
                             <StarIcon className="h-4 w-4 text-yellow-500 mr-1" />
                           )}
                           <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                            {post.attributes.title}
+                            {post.title}
                           </div>
                         </div>
-                        {post.attributes.hiddenTag && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mt-1">
-                            {post.attributes.hiddenTag}
-                          </span>
-                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-500 truncate max-w-xs">
-                          {truncateExcerpt(post.attributes.excerpt)}
+                          {truncateExcerpt(post.excerpt)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          {post.attributes.category?.data?.attributes.name ||
-                            "-"}
+                          {post.category?.name || "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          {post.attributes.author?.data?.attributes.name || "-"}
+                          {post.author_name || "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          {formatDate(post.attributes.createdAt)}
+                          {formatDate(post.created_at)}
                         </div>
-                        {post.attributes.readTime && (
+                        {post.read_time && (
                           <div className="text-xs text-gray-400">
-                            {post.attributes.readTime} min read
+                            {post.read_time} min read
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            post.attributes.publishedAt
+                            post.is_published
                               ? "bg-green-100 text-green-800"
                               : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
-                          {post.attributes.publishedAt ? "Published" : "Draft"}
+                          {post.is_published ? "Published" : "Draft"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <Link
-                            href={`/blog/${post.attributes.slug}`}
+                            href={`/blog/${post.slug}`}
                             target="_blank"
                             className="text-indigo-600 hover:text-indigo-900"
                           >

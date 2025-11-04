@@ -39,6 +39,44 @@ class TilopayService:
         # Generate SHA256 hash
         return hashlib.sha256(signature_string.encode()).hexdigest()
 
+    async def get_sdk_token(self) -> Dict[str, Any]:
+        """
+        Get SDK token from Tilopay for SDK V2 integration.
+
+        Calls /api/v1/loginSdk with apiuser, password, and key to get the security token.
+
+        Returns:
+            Dict with token for SDK initialization
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.base_url}/loginSdk",
+                    json={
+                        "apiuser": settings.TILOPAY_API_USER,
+                        "password": settings.TILOPAY_API_PASSWORD,
+                        "key": self.api_key,
+                    },
+                    headers={"Content-Type": "application/json"},
+                    timeout=30.0,
+                )
+
+                response.raise_for_status()
+                result = response.json()
+
+                return {
+                    "success": True,
+                    "token": result.get("access_token"),  # loginSdk returns "access_token" not "token"
+                    "data": result,
+                }
+
+        except httpx.HTTPError as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to get SDK token",
+            }
+
     async def create_embedded_payment(
         self,
         amount: float,

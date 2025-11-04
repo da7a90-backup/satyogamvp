@@ -51,7 +51,8 @@ const UserSidebar = () => {
             className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="8.33" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M2.5 15L10 5L17.5 15H2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              <path d="M10 8L13.33 12H6.67L10 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
             </svg>
             <span className="text-sm font-medium" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Online Retreats</span>
           </Link>
@@ -60,8 +61,10 @@ const UserSidebar = () => {
             className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 3.33V10L13.33 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M3.33 7.5L10 10L10 3.33" stroke="currentColor" strokeWidth="1.5" />
+              <rect x="3" y="4" width="14" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M3 7H17" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M7 4V7" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M13 4V7" stroke="currentColor" strokeWidth="1.5" />
             </svg>
             <span className="text-sm font-medium" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Courses</span>
           </Link>
@@ -112,7 +115,9 @@ const UserSidebar = () => {
           >
             <div className="flex items-center gap-3">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="2.5" y="3.75" width="15" height="12.5" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="2.5" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="8.5" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="14.5" y="3" width="3" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
               </svg>
               <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Library</span>
             </div>
@@ -168,7 +173,11 @@ const UserSidebar = () => {
           </Link>
           <Link href="/dashboard/user/book-group" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M3.33 2.5L10 5L16.67 2.5" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="6" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="14" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="10" cy="14" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M8 7L7 12" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M12 7L13 12" stroke="currentColor" strokeWidth="1.5" />
             </svg>
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Book Group</span>
           </Link>
@@ -181,14 +190,17 @@ const UserSidebar = () => {
           </div>
           <Link href="/dashboard/user/discussion" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="7.5" cy="7.5" r="5" stroke="currentColor" strokeWidth="1.5" />
-              <circle cx="12.5" cy="12.5" r="5" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="6" cy="6" r="3" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="14" cy="6" r="3" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="6" cy="14" r="3" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="14" cy="14" r="3" stroke="currentColor" strokeWidth="1.5" />
             </svg>
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Discussion Group</span>
           </Link>
           <Link href="/dashboard/user/forum" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2.5" y="2.5" width="15" height="11.67" rx="1.67" stroke="currentColor" strokeWidth="1.5" />
+              <rect x="2.5" y="4" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M6 8H14M6 11H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Forum</span>
           </Link>
@@ -201,13 +213,15 @@ const UserSidebar = () => {
         <div className="space-y-0">
           <Link href="/store" className="flex items-center gap-1 px-3 py-2.5 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2.5" y="2.5" width="15" height="15" stroke="currentColor" strokeWidth="1.5" />
+              <rect x="2.5" y="6" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M2.5 6L4 3H16L17.5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M10 9V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>The Dharma Bandhara</span>
           </Link>
           <Link href="/dashboard/user/saved" className="flex items-center gap-1 px-3 py-2.5 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M5 2.5H15L17.5 7.5V17.5H2.5V7.5L5 2.5Z" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M5 2.5H15V17.5L10 14L5 17.5V2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
             </svg>
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Saved For Later</span>
           </Link>
@@ -226,7 +240,8 @@ const UserSidebar = () => {
           </Link>
           <Link href="/dashboard/tour" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2.5" y="2.5" width="15" height="15" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M8 7L13 10L8 13V7Z" fill="currentColor" />
             </svg>
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Dashboard Tour</span>
           </Link>

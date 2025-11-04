@@ -30,19 +30,19 @@ export default async function LoginPage({
   const registered = resolvedSearchParams?.registered === 'true';
   
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12">
+    <>
       <Login redirectTo={redirectTo} />
-      
+
       {/* Display success message if user just registered */}
       {registered && (
-        <div className="w-full max-w-md mx-auto mt-4 px-4">
-          <div className="bg-green-50 border-l-4 border-green-500 p-4">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
+          <div className="bg-green-50 border-l-4 border-green-500 p-4 shadow-lg rounded-lg">
             <p className="text-green-700">
               Account created successfully. Please log in with your credentials.
             </p>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

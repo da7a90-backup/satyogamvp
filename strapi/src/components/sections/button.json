@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_sections_buttons",
+  "info": {
+    "displayName": "button"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "primary": {
+      "type": "boolean"
+    }
+  }
+}

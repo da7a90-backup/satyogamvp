@@ -2,32 +2,28 @@
 
 import { useState, useEffect } from 'react';
 
-const PatronSagesGallery = () => {
+interface Sage {
+  src: string;
+  alt: string;
+  name: string;
+}
+
+interface PatronSagesGalleryProps {
+  sages: Sage[];
+  heading: string;
+  description: string;
+}
+
+const PatronSagesGallery = ({ sages: apiSages, heading, description }: PatronSagesGalleryProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  const sages = [
-    {
-      id: 0,
-      name: "Sri Ramana Maharshi",
-      image: "/xatronsage1.png"
-    },
-    {
-      id: 1,
-      name: "Anandamayi Ma",
-      image: "/xatronsage2.png"
-    },
-    {
-      id: 2,
-      name: "Nisargadatta Maharaj",
-      image: "/xatronsage3.png"
-    },
-    {
-      id: 3,
-      name: "Swami Lakshman Joo",
-      image: "/xatronsage4.png"
-    }
-  ];
+  // Transform API data to component format
+  const sages = apiSages.map((sage, index) => ({
+    id: index,
+    name: sage.name,
+    image: sage.src
+  }));
 
   // Check screen size
   useEffect(() => {
@@ -73,7 +69,7 @@ const PatronSagesGallery = () => {
         }}
       >
         {/* Section Title */}
-        <h2 
+        <h2
           className="text-black w-full"
           style={{
             fontFamily: 'Optima, Georgia, serif',
@@ -83,11 +79,11 @@ const PatronSagesGallery = () => {
             letterSpacing: '-0.02em'
           }}
         >
-          Our Patron (and Matron) Sages
+          {heading}
         </h2>
 
         {/* Description */}
-        <p 
+        <p
           className="text-gray-700 w-full"
           style={{
             fontFamily: 'Avenir Next, sans-serif',
@@ -96,7 +92,7 @@ const PatronSagesGallery = () => {
             color: '#384250'
           }}
           >
-          The star exemplar of liberation in life in modern times is Sri Ramana Maharshi, who transcended the ego illusion in one afternoon at the age of sixteen and who, without intention, became a world teacher. <br/> <br/> We admire as well all the recent spiritual geniuses of India, including Ananda Mayi Ma, Yogananda, Swami Lakshmanjoo, Sri Aurobindo, and Sri Nisargadatta. <br/><br/> The Buddha Dharma is also appreciated and studied here. We learn from the great Christian mystics and their hesychasm and via negativa. We revel in the fiery drunkenness of the wild poetic Sufis and learn (and laugh at) the antics of trickster sages from the Daoist and Zen lineages, not to mention the fascinating formulations of the Hermeticists and Alchemists. <br/><br/> Many of the ancient Greek philosophers—from Pythagoras and Parmenides to the Stoics and neo-Platonists—have also left us jewels of practical wisdom. Last but not least, important insights into consciousness and the Real have been discovered by scientists and delivered by recent paradigm-shifting thinkers. We distill and assimilate all of that.
+          {description}
         </p>
 
         {/* Gallery Container */}

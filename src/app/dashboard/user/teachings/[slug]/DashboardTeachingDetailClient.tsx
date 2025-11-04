@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import TeachingDetailPage from '@/components/teachings/TeachingDetail';
+import { TeachingData } from '@/types/Teachings';
 
 interface DashboardTeachingDetailClientProps {
   teaching: any;
@@ -81,8 +82,8 @@ export default function DashboardTeachingDetailClient({
   return (
     <div className="bg-[#FAF8F1] min-h-screen">
       <TeachingDetailPage
-        data={transformedTeaching}
-        relatedTeachings={relatedTeachings}
+        data={transformedTeaching as TeachingData}
+        relatedTeachings={relatedTeachings as TeachingData[]}
         isAuthenticated={isLoggedIn}
         accessToken={accessToken}
         onLoginClick={() => router.push('/login')}

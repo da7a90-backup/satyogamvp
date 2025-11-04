@@ -19,7 +19,7 @@ A full-stack spiritual learning platform featuring teachings, courses, retreats,
 
 ### Backend
 - **Framework**: FastAPI (Python)
-- **Database**: PostgreSQL (Docker locally, Vercel Postgres in production)
+- **Database**: PostgreSQL (Docker locally, Prisma Postgres in production)
 - **ORM**: SQLAlchemy
 - **Auth**: JWT tokens
 - **Payments**: Tilopay (embedded checkout)

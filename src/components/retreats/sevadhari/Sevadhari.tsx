@@ -35,14 +35,7 @@ export default function SevadhariPage({ data }: any) {
     }
   };
 
-  const carouselImages : CarouselImage[] = [
-    { src: '/SD GALLERY 1.jpg', alt: 'Teaching session' },
-    { src: '/SD GALLERY 2.jpg', alt: 'Shunyamurti with student' },
-    { src: '/SD GALLERY 3.jpg', alt: 'Community gathering' },
-    { src: '/SD GALLERY 4.jpg', alt: 'Ashram activities' },
-    { src: '/SD GALLERY 5.jpg', alt: 'Group learning' },
-    { src: '/SD GALLERY 6.jpg', alt: 'Meditation practice' }
-  ];
+  const carouselImages: CarouselImage[] = data?.carousel?.secondaryImages || [];
 
   const scheduleData = {
     tagline: "A TYPICAL ASHRAM DAY",
@@ -88,8 +81,7 @@ export default function SevadhariPage({ data }: any) {
     retreatType: "onsite" as const,
     tagline: "RETREAT CONTRIBUTION AND DATES",
     title: "Darshan Retreat",
-    price: "$1750",
-    priceNote: "(inc. all taxes)",
+    basePrice: 1750,
     description: "The Darshan Retreat with Shunyamurti is a sacred seven-day retreat designed to elevate your spiritual journey through direct transmission. This retreat offers a unique opportunity for a personal encounter with Shunyamurti, including a transformative one-on-one session. ",
     accommodation: "Stay in a charming cabin, with a private room that includes its own bathroom and balcony.",
     meals: "Nourishing vegetarian meals. We offer vegan and gluten-free options to those on specialized diets.",
@@ -107,39 +99,19 @@ export default function SevadhariPage({ data }: any) {
     membershipLink: "memberships",
     membershipLinkUrl: "/memberships",
     membershipNote: "to receive discounts",
-    images: [
-      { src: '/darshanproduct1.jpg', alt: 'Woman meditating by water' },
-      { src: '/darshanproduct2.jpg', alt: 'Interior cabin view' },
-      { src: '/darshanproduct3.jpg', alt: 'Bathroom interior' },
-      { src: '/darshanproduct4.jpg', alt: 'Evening meditation' },
-      { src: '/darshanproduct5.jpg', alt: 'Meditation by nature' }
-    ]
+    images: data?.productComponent?.content?.images || []
   };
 
+  const heroData = {
+    tagline: data?.hero?.tagline || "",
+    background: data?.hero?.backgroundImage || "",
+    heading: data?.hero?.heading || "",
+    subtext: data?.hero?.subheading || ""
+  };
 
-  const heroData = {tagline:"Ashram Onsite Retreats", background: "/sevadhari.jpg", heading: "Staying at the Ashram", subtext: "Visit, Study, and Serve at the Sat Yoga Ashram, Costa Rica"}
   const relatedProgramsData = {
-    sectionTitle: "Related onsite programs",
-    programs: [
-      {
-        image: '/ssi.jpg',
-        icon: '/progicon.png',
-        duration: "1 month",
-        location: "Onsite Retreat",
-        tagline: "Ashram Immersion Program",
-        title: "Shakti Saturation Intensive",
-        link: "/retreats/shakti"
-      },
-      {
-        image: '/darshan.jpg',
-        icon: '/progicon.png',
-        duration: "7 days",
-        location: "Onsite Retreat",
-        tagline: "Darshan Retreat!",
-        title: "Darshan retreat",
-        link: "/retreats/darshan"
-      }
-    ]
+    sectionTitle: data?.relatedPrograms?.heading || "",
+    programs: data?.relatedPrograms?.content || []
   };
 
   const applicationProcessData = {

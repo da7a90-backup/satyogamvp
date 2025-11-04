@@ -18,9 +18,5 @@ export default async function SignupPage() {
     redirect('/dashboard');
   }
   
-  return (
-    <div className="min-h-screen flex flex-col justify-center py-12">
-      <Signup />
-    </div>
-  );
+  return <Signup />;
 }

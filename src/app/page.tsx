@@ -1,14 +1,18 @@
 // app/page.tsx (using App Router in Next.js 13+)
 
 import HomePage from '@/components/homepage/Homepage';
-import { homePageData } from '@/lib/hpdata';
+import { staticContentAPI } from '@/lib/static-content-api';
 
 // This is a server component that fetches data
 export default async function Home() {
   try {
-    console.log("Fetching homepage data from Strapi...");
-  
-    
+    console.log("Fetching homepage data from backend API...");
+
+    // Fetch homepage data from FastAPI backend
+    const homePageData = await staticContentAPI.getHomepage();
+
+    console.log("Homepage data loaded successfully:", Object.keys(homePageData));
+
     // Pass the data to your client component
     return <HomePage data={homePageData}/>;
   } catch (error) {

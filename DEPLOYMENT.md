@@ -168,6 +168,8 @@ DEBUG=True
 
 Copy from `backend/.env.production.example` with production values.
 
+**Note**: Use `POSTGRES_URL` from Vercel integration (direct connection), NOT `PRISMA_DATABASE_URL` (Accelerate is for Prisma ORM only).
+
 ### 3.3 Deploy Backend
 
 ```bash
@@ -387,10 +389,11 @@ PGPASSWORD='satyoga_dev_password' psql -h localhost -U satyoga_user -d satyoga_d
 
 ### Database Monitoring:
 
-- Vercel Postgres dashboard shows:
+- Prisma Postgres dashboard (via Vercel integrations) shows:
   - Connection count
   - Query performance
   - Storage usage
+  - Direct access via Prisma Data Platform
 
 ### Recommended Monitoring Tools:
 
@@ -411,8 +414,8 @@ PGPASSWORD='satyoga_dev_password' psql -h localhost -U satyoga_user -d satyoga_d
 
 ### Database Rollback:
 
-1. Restore from Vercel Postgres backup
-2. Or re-import from local export
+1. Restore from Prisma Postgres backup (available in Prisma Data Platform)
+2. Or re-import from local export using `database_export/complete_export.sql`
 
 ---
 
@@ -435,8 +438,9 @@ PGPASSWORD='satyoga_dev_password' psql -h localhost -U satyoga_user -d satyoga_d
 ### Database Connection Errors:
 
 - Verify `sslmode=require` in connection string
-- Check connection pool limits (max 10 on Hobby plan)
-- Use connection pooling in FastAPI config
+- Ensure using `POSTGRES_URL` (not `PRISMA_DATABASE_URL`)
+- Check connection pool limits in Prisma Postgres plan
+- Prisma Postgres host is `db.prisma.io`
 
 ---
 
@@ -479,16 +483,18 @@ PGPASSWORD='satyoga_dev_password' psql -h localhost -U satyoga_user -d satyoga_d
 
 - **Vercel Documentation**: [vercel.com/docs](https://vercel.com/docs)
 - **FastAPI on Vercel**: [vercel.com/docs/frameworks/fastapi](https://vercel.com/docs/frameworks/fastapi)
-- **Vercel Postgres**: [vercel.com/docs/storage/vercel-postgres](https://vercel.com/docs/storage/vercel-postgres)
+- **Prisma Postgres**: [vercel.com/integrations/prisma-postgres](https://vercel.com/integrations/prisma-postgres)
+- **Prisma Data Platform**: [prisma.io/docs/data-platform](https://prisma.io/docs/data-platform)
 - **Next.js Deployment**: [nextjs.org/docs/deployment](https://nextjs.org/docs/deployment)
 
 ---
 
 ## Changelog
 
-### 2024-01-XX - Initial Deployment
+### 2024-11-04 - Initial Deployment
 - Configured Vercel deployment for FastAPI backend
 - Configured Vercel deployment for Next.js frontend
-- Migrated PostgreSQL database to Vercel Postgres
+- Migrated PostgreSQL database to Prisma Postgres (via Vercel Marketplace)
 - Set up staging and production environments
 - Maintained local Docker development environment
+- Imported 693 teachings, 159 media assets, 85 products, and 63 total tables

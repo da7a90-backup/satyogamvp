@@ -113,7 +113,7 @@ return (
     <>
     <StandardHeroSection data={heroData}/>
     <TwoPaneComponent data={introData}/>
-    <UpcomingRetreatsSection data={sampleData}/>
+    {/* <UpcomingRetreatsSection data={sampleData}/> */}
     <TestimonialCarouselTertiary data={testimonialCarouselData}/>
 
     </>

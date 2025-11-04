@@ -1,18 +1,24 @@
 'use client';
 
-const SriRamanaSection = () => {
+interface SriRamanaSectionProps {
+  backgroundImage?: string;
+}
+
+const SriRamanaSection = ({ backgroundImage }: SriRamanaSectionProps) => {
+  const bgImage = backgroundImage || 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/da33b24a-9521-4b2a-7b37-5fcb7128d900/public';
+
   return (
-    <section 
+    <section
       className="relative w-full flex flex-col items-center overflow-hidden py-20 px-4 lg:py-28 lg:px-16"
       style={{
         backgroundColor: '#FAF8F1'
       }}
     >
       {/* Sri Ramana Card */}
-      <div 
+      <div
         className="relative w-full max-w-7xl rounded-xl overflow-hidden h-[500px] lg:h-[600px]"
         style={{
-          backgroundImage: 'linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url(/aboutshunya2.jpg)',
+          backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           borderRadius: '12px'
