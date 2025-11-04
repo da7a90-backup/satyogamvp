@@ -3,6 +3,9 @@
 import AshramStayPage from "@/components/retreats/StayingAtAshram";
 import { staticContentAPI } from '@/lib/static-content-api';
 
+// Force dynamic rendering (don't pre-render at build time)
+export const dynamic = 'force-dynamic';
+
 const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
 async function getOnlineRetreats() {

@@ -3,6 +3,9 @@
 import OnlinePage from "@/components/retreats/online/Online";
 import { staticContentAPI } from '@/lib/static-content-api';
 
+// Force dynamic rendering (don't pre-render at build time)
+export const dynamic = 'force-dynamic';
+
 const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
 // Fetch products from store (online retreat products)

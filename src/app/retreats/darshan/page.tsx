@@ -3,6 +3,9 @@
 import DarshanPage from "@/components/retreats/darshan/Darshan";
 import { staticContentAPI } from '@/lib/static-content-api';
 
+// Force dynamic rendering (don't pre-render at build time)
+export const dynamic = 'force-dynamic';
+
 // This is a server component that fetches data
 export default async function Darshan() {
   try {
