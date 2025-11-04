@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+backend/venv/
+backend/env/
+
+# Build output
+.next/
+out/
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+e2e/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+
+# Backend Python
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/**/*.pyd
+
+# Logs
+*.log
+backend.log
+frontend.log
+backend_server.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker (not needed for Vercel)
+docker-compose.yml
+Dockerfile
+
+# Strapi (not needed for Vercel)
+strapi/
+
+# Scripts
+scripts/
+backend/scripts/
+
+# Documentation and misc
+*.md
+!README.md
+!DEPLOYMENT.md
+downloaded_pdfs/
+public/*.jpg
+public/*.png
+public/*.mp4

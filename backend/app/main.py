@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 
 from .core.config import settings
 from .core.database import engine, Base
-from .routers import auth, users, teachings, courses, retreats, events, products, payments, email, admin, forms
+from .routers import auth, users, teachings, courses, retreats, events, products, payments, email, admin, forms, blog
+from .routers import static_pages, static_content, online_retreats, faq, form_templates
 
 
 @asynccontextmanager
@@ -24,10 +25,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Configure CORS
+# Configure CORS - Use dynamic origins for Vercel deployment support
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,7 +45,17 @@ app.include_router(products.router, prefix="/api/products", tags=["Products & St
 app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
 app.include_router(email.router, prefix="/api/email", tags=["Email Marketing"])
 app.include_router(forms.router, prefix="/api/forms", tags=["Forms"])
+app.include_router(form_templates.router, prefix="/api/form-templates", tags=["Form Templates"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(blog.router, prefix="/api/blog", tags=["Blog"])
+
+# Static Content APIs
+app.include_router(static_pages.router, prefix="/api/pages", tags=["Static Pages"])
+app.include_router(faq.router, prefix="/api", tags=["FAQs"])
+app.include_router(static_content.contact_router, prefix="/api", tags=["Contact"])
+app.include_router(static_content.membership_router, prefix="/api", tags=["Membership"])
+app.include_router(static_content.donations_router, prefix="/api", tags=["Donations"])
+app.include_router(online_retreats.router, prefix="/api/online-retreats", tags=["Online Retreats"])
 
 
 @app.get("/")

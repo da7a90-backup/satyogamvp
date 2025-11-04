@@ -22,9 +22,11 @@ class Settings(BaseSettings):
 
     # Tilopay
     TILOPAY_API_KEY: Optional[str] = None
+    TILOPAY_API_USER: Optional[str] = None
+    TILOPAY_API_PASSWORD: Optional[str] = None
     TILOPAY_MERCHANT_KEY: Optional[str] = None
     TILOPAY_WEBHOOK_SECRET: Optional[str] = None
-    TILOPAY_BASE_URL: str = "https://api.tilopay.com/v1"
+    TILOPAY_BASE_URL: str = "https://app.tilopay.com/api/v1"
     TILOPAY_REDIRECT_URL: str = "http://localhost:3000/payment/success"
     TILOPAY_CANCEL_URL: str = "http://localhost:3000/payment/cancel"
 
@@ -47,6 +49,13 @@ class Settings(BaseSettings):
     BEEFREE_CLIENT_ID: Optional[str] = None
     BEEFREE_CLIENT_SECRET: Optional[str] = None
 
+    # Cloudflare Stream
+    CLOUDFLARE_ACCOUNT_ID: Optional[str] = None
+    CLOUDFLARE_API_TOKEN: Optional[str] = None
+
+    # YouTube
+    YOUTUBE_API_KEY: Optional[str] = None
+
     # Frontend
     FRONTEND_URL: str = "http://localhost:3000"
 
@@ -56,6 +65,24 @@ class Settings(BaseSettings):
         "http://localhost:8000",
     ]
     CORS_ORIGINS: Optional[str] = None
+
+    def get_allowed_origins(self) -> list[str]:
+        """
+        Get list of allowed CORS origins, combining default and environment-specific origins.
+        Supports comma-separated CORS_ORIGINS environment variable.
+        """
+        origins = self.ALLOWED_ORIGINS.copy()
+
+        # Add origins from CORS_ORIGINS environment variable
+        if self.CORS_ORIGINS:
+            additional_origins = [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+            origins.extend(additional_origins)
+
+        # Add frontend URL if specified
+        if self.FRONTEND_URL and self.FRONTEND_URL not in origins:
+            origins.append(self.FRONTEND_URL)
+
+        return list(set(origins))  # Remove duplicates
 
     # API
     API_V1_PREFIX: str = "/api"
