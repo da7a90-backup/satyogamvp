@@ -11,8 +11,10 @@ from .routers import static_pages, static_content, online_retreats, faq, form_te
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan events for startup and shutdown."""
-    # Create database tables
-    Base.metadata.create_all(bind=engine)
+    # Create database tables (disabled for serverless - tables should exist)
+    # Only run this in development or during initial setup
+    if settings.ENVIRONMENT == "development":
+        Base.metadata.create_all(bind=engine)
     yield
     # Cleanup if needed
 
