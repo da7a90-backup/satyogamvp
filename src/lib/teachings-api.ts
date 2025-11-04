@@ -113,7 +113,7 @@ function transformTeaching(apiTeaching: any): Teaching {
 
   return {
     id: apiTeaching.id,
-    thumbnail: apiTeaching.thumbnail_url || '/default-thumbnail.jpg',
+    thumbnail: apiTeaching.thumbnail_url || 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/98b66756-25e9-42fe-4b4a-2c51caf39b00/public',
     title: apiTeaching.title,
     description: apiTeaching.description || '',
     date: formatDate(apiTeaching.published_date),
