@@ -79,13 +79,18 @@ export default function TeachingDetailClient({ teaching, isLoggedIn }: TeachingD
             {isVideoOrAudio && teaching.can_access && (
               <div className="bg-black rounded-lg overflow-hidden mb-6" style={{ position: 'relative', paddingTop: '56.25%' }}>
                 {hasVideoPlayer && teaching.cloudflare_ids[0] && videoStarted && (
-                  <iframe
-                    key={teaching.cloudflare_ids[0]}
-                    src={`https://iframe.videodelivery.net/${teaching.cloudflare_ids[0]}`}
-                    style={{ border: 0, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                    allowFullScreen
-                  />
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                    <iframe
+                      key={teaching.cloudflare_ids[0]}
+                      src={`https://iframe.videodelivery.net/${teaching.cloudflare_ids[0]}`}
+                      width="640"
+                      height="360"
+                      style={{ border: 0, width: '100%', height: '100%' }}
+                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                      allowFullScreen={true}
+                      loading="eager"
+                    />
+                  </div>
                 )}
                 {hasVideoPlayer && teaching.cloudflare_ids[0] && !videoStarted && (
                   <div
