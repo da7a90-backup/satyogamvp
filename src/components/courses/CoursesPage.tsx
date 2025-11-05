@@ -1,4 +1,6 @@
-import React from "react";
+'use client';
+
+import React, { useEffect, useState } from "react";
 
 
 import OnlineRetreatsSection from "../about/aboutShunyamurti/OnlineRetreats";
@@ -10,7 +12,36 @@ import StandardHeroSection from "../shared/Hero";
 import UpcomingRetreatsSection from "../shared/RelatedOnline";
 import TestimonialCarouselTertiary from "../shared/TestimonialTertiary";
 
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+
 export default function CoursesPage({ data }: any) {
+  const [heroData, setHeroData] = useState<any>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`${FASTAPI_URL}/api/courses-page/hero`).then(res => res.json()),
+      fetch(`${FASTAPI_URL}/api/courses-page/instructor-avatar`).then(res => res.json())
+    ])
+    .then(([hero, avatar]) => {
+      setHeroData(hero);
+      setAvatarUrl(avatar.avatar);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error('Failed to load courses data:', err);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading || !heroData || !avatarUrl) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#942017]"></div>
+      </div>
+    );
+  }
 // Data structure for Testimonial Carousel Section
 
 const introData = {
@@ -31,34 +62,31 @@ const introData = {
    heading: "testimonials",
    testimonials: [
     {
-      quote: "Like so much of the wisdom that Shunyamurti abundantly shares with so much love, this meditation ‘course’ is profoundly simple, yet simply profound… Pure gold for the soul… Thank you from the depth of my Be-ing!",
+      quote: "Like so much of the wisdom that Shunyamurti abundantly shares with so much love, this meditation 'course' is profoundly simple, yet simply profound… Pure gold for the soul… Thank you from the depth of my Be-ing!",
       name: 'Timothy',
       location: 'Canada',
-      avatar: '/illustrations.png'
+      avatar: avatarUrl
     },
     {
-      quote: "Gratitude in overload, I appreciate the guidance and feel much clearer on the path, more in tune with the ‘Self’ and being in ‘The now.’",
+      quote: "Gratitude in overload, I appreciate the guidance and feel much clearer on the path, more in tune with the 'Self' and being in 'The now.'",
       name: 'Marié',
       location: 'South Africa',
-      avatar: '/illustrations.png'
+      avatar: avatarUrl
     },
     {
-      quote: "Having been meditating for over 50 years now and not having a teacher I never felt I was really understanding meditation but since listening to Shunyamurti I have found real meaning. It’s changed my perception towards reality.",
+      quote: "Having been meditating for over 50 years now and not having a teacher I never felt I was really understanding meditation but since listening to Shunyamurti I have found real meaning. It's changed my perception towards reality.",
       name: 'Gordon',
       location: 'UK',
-      avatar: '/illustrations.png'
+      avatar: avatarUrl
     },
     {
       quote: "Sat Yoga is truth to me. Thank you for gracing my soul with your presence post Guru purnima. Love and peace from India.",
       name: 'Hussain',
       location: 'India',
-      avatar: '/illustrations.png'
+      avatar: avatarUrl
     }
   ]
  };
- 
-
-  const heroData = {tagline:"Courses", background: "/courseslanding.jpg", heading: "Online Training for Self-mastery", subtext: "Structured Online Courses for Spiritual Liberation and Self-realization."}
   const sampleData = {
     heading: "3 upcoming retreats",
     viewAllLink: {

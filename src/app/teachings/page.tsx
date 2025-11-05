@@ -15,13 +15,29 @@ export default async function TeachingsPage() {
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session?.user;
 
-  // Hero data
-  const heroData = {
+  // Fetch hero data from backend API
+  const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+  let heroData = {
     tagline: "FREE TEACHINGS LIBRARY",
-    background: "/bgteachings.png",
+    background: "",
     heading: "Unlock Your Inner Genius",
     subtext: "Explore a curated collection of teachings—videos, guided meditations, and essays—from our public offerings, along with a small taste of the exclusive content reserved for our Members Section."
   };
+
+  try {
+    const heroResponse = await fetch(`${FASTAPI_URL}/api/teachings-page/hero`, {
+      cache: 'no-store'
+    });
+    if (heroResponse.ok) {
+      const apiHeroData = await heroResponse.json();
+      heroData = {
+        ...heroData,
+        background: apiHeroData.background
+      };
+    }
+  } catch (error) {
+    console.error('Failed to fetch teachings hero:', error);
+  }
 
   // Fetch teachings data from backend API
   const teachingLibraryData = await getTeachingsData(isLoggedIn);

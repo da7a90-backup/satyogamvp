@@ -133,7 +133,12 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
   // Use 127.0.0.1 instead of localhost for server-side fetching
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
 
-  console.log('[getTeachingsData] Fetching from:', `${API_BASE_URL}/api/teachings`);
+  console.log('===== [getTeachingsData] START =====');
+  console.log('[getTeachingsData] Environment:', process.env.NODE_ENV);
+  console.log('[getTeachingsData] NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+  console.log('[getTeachingsData] NEXT_PUBLIC_FASTAPI_URL:', process.env.NEXT_PUBLIC_FASTAPI_URL);
+  console.log('[getTeachingsData] Final API_BASE_URL:', API_BASE_URL);
+  console.log('[getTeachingsData] Fetching from:', `${API_BASE_URL}/api/teachings?limit=1000`);
   console.log('[getTeachingsData] isLoggedIn:', isLoggedIn);
 
   try {
@@ -141,6 +146,9 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
     // Using high limit to get all teachings (we have 693 total)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    console.log('[getTeachingsData] Starting fetch...');
+    const fetchStart = Date.now();
 
     const response = await fetch(`${API_BASE_URL}/api/teachings?limit=1000`, {
       cache: 'no-store', // Always fetch fresh data
@@ -151,14 +159,21 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
     });
 
     clearTimeout(timeoutId);
+    const fetchDuration = Date.now() - fetchStart;
+    console.log('[getTeachingsData] Fetch completed in', fetchDuration, 'ms');
+    console.log('[getTeachingsData] Response status:', response.status, response.statusText);
 
     if (!response.ok) {
       console.error('[getTeachingsData] API error:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('[getTeachingsData] Error response:', errorText);
       throw new Error(`API error: ${response.status}`);
     }
 
+    console.log('[getTeachingsData] Parsing JSON response...');
     const data = await response.json();
     console.log('[getTeachingsData] Received', data.total, 'teachings from API');
+    console.log('[getTeachingsData] First teaching raw data:', JSON.stringify(data.teachings[0], null, 2));
 
     // Transform to frontend format
     const transformedTeachings: Teaching[] = data.teachings.map(transformTeaching);
@@ -169,7 +184,7 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
       return acc;
     }, {} as Record<string, number>);
     console.log('[getTeachingsData] Category distribution:', categoryCounts);
-    console.log('[getTeachingsData] Sample teaching:', transformedTeachings[0]);
+    console.log('[getTeachingsData] Sample transformed teaching:', JSON.stringify(transformedTeachings[0], null, 2));
 
     // Sort by date (newest first)
     transformedTeachings.sort((a, b) => {
@@ -182,8 +197,13 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
     const featuredTeaching = transformedTeachings.find(t => t.accessType === 'free') || transformedTeachings[0];
 
     if (!featuredTeaching) {
+      console.error('[getTeachingsData] ERROR: No featured teaching found!');
       throw new Error('No teachings available');
     }
+
+    console.log('[getTeachingsData] Featured teaching:', featuredTeaching.title);
+    console.log('[getTeachingsData] Total transformed teachings:', transformedTeachings.length);
+    console.log('===== [getTeachingsData] SUCCESS =====');
 
     // Create library data
     return {
@@ -205,13 +225,18 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[getTeachingsData] Error fetching teachings:', errorMessage);
-    console.error('[getTeachingsData] Full error:', error);
+    console.error('===== [getTeachingsData] ERROR =====');
+    console.error('[getTeachingsData] Error type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('[getTeachingsData] Error message:', errorMessage);
+    console.error('[getTeachingsData] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('[getTeachingsData] Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
     // If it's an abort error, the fetch timed out
     if (error instanceof Error && error.name === 'AbortError') {
-      console.error('[getTeachingsData] Fetch timed out after 10 seconds');
+      console.error('[getTeachingsData] !!!! FETCH TIMED OUT AFTER 10 SECONDS !!!!');
     }
+
+    console.warn('[getTeachingsData] Returning fallback data due to error');
 
     // Return fallback/empty data instead of throwing
     // This allows the page to render even if the API is down

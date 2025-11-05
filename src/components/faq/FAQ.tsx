@@ -37,86 +37,64 @@ export function FAQ({data}:any){
   const [faqData, setFaqData] = useState<FAQSectionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [galleryApiData, setGalleryApiData] = useState<any>(null);
 
   useEffect(() => {
-    const fetchFAQs = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${FASTAPI_URL}/api/faqs?page=faq`);
 
-        if (!response.ok) {
+        // Fetch FAQs
+        const faqResponse = await fetch(`${FASTAPI_URL}/api/faqs?page=faq`);
+        if (!faqResponse.ok) {
           throw new Error('Failed to fetch FAQs');
         }
+        const faqsData = await faqResponse.json();
+        setFaqData(faqsData);
 
-        const data = await response.json();
-        setFaqData(data);
+        // Fetch gallery data
+        const galleryResponse = await fetch(`${FASTAPI_URL}/api/faqs/gallery`);
+        if (galleryResponse.ok) {
+          const gallery = await galleryResponse.json();
+          setGalleryApiData(gallery);
+        }
       } catch (err) {
-        console.error('Error fetching FAQs:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load FAQs');
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFAQs();
+    fetchData();
   }, []);
-const heroData = {tagline:"", background: "/FAQBanner.jpg", heading: "FAQs", subtext: ""}
-// TypeScript interfaces for data structure
-interface GalleryImage {
-  src: string;
-  alt: string;
-  size?: 'small' | 'medium' | 'large';
-}
 
-interface PhotoGallerySectionData {
-  images: GalleryImage[];
-}
+  const heroData = {
+    tagline: "",
+    background: galleryApiData?.bannerImage || "/FAQBanner.jpg",
+    heading: "FAQs",
+    subtext: ""
+  };
 
-// Externalized data structure - ready for Strapi CMS
-const galleryData: PhotoGallerySectionData = {
-  images: [
-    {
-      src: '/FAQ Gallery 1.jpg',
-      alt: 'Guests arriving at ashram entrance',
-      size: 'medium'
-    },
-    {
-      src: '/FAQ Gallery 2.jpg',
-      alt: 'Ashram buildings under starlit sky',
-      size: 'medium'
-    },
-    {
-      src: '/FAQ Gallery 3.jpg',
-      alt: 'Person meditating by waterfall',
-      size: 'medium'
-    },
-    {
-      src: '/FAQ Gallery 4.jpg',
-      alt: 'Meditation cushions in dharma hall',
-      size: 'medium'
-    },
-    {
-      src: '/FAQ Gallery 5.jpg',
-      alt: 'Community members gathering in forest',
-      size: 'medium'
-    },
-    {
-      src: '/FAQ Gallery 6.jpg',
-      alt: 'Person viewing sunset from balcony',
-      size: 'medium'
-    },
-    {
-      src: '/FAQ Gallery 7.jpg',
-      alt: 'Mountain view at sunset',
-      size: 'medium'
-    },
-    {
-      src: '/FAQ Gallery 8.jpg',
-      alt: 'Mountain view at sunset',
-      size: 'medium'
-    }
-  ]
-};
+  // TypeScript interfaces for data structure
+  interface GalleryImage {
+    src: string;
+    alt: string;
+    size?: 'small' | 'medium' | 'large';
+  }
+
+  interface PhotoGallerySectionData {
+    images: GalleryImage[];
+  }
+
+  // Use gallery data from API or fallback to empty array
+  const galleryData: PhotoGallerySectionData = {
+    images: (galleryApiData?.galleryImages || []).map((img: any) => ({
+      src: img.url,
+      alt: img.alt,
+      size: 'medium' as const
+    }))
+  };
 
 
 

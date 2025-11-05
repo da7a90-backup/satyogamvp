@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import StandardHeroSection from '@/components/shared/Hero';
 import TwoPaneComponent from '@/components/shared/TwoPaneComponent';
 import QuoteSection from '@/components/shared/Quote';
+
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
 // ============================================================================
 // TYPES
@@ -19,55 +21,6 @@ interface DonationProject {
 }
 
 // ============================================================================
-// DATA
-// ============================================================================
-
-const donationProjects: DonationProject[] = [
-  {
-    id: 'animal-husbandry',
-    name: 'Animal Husbandry',
-    title: 'Animal Husbandry',
-    description: 'We are hoping to welcome horses and cows to the ashram—noble beings who would greatly enhance the vitality and beauty of our land, while supporting our vision of a self-sustaining ecosystem. With your help, we can build the shelters, provide veterinary care, and supply the feed needed to bring this project to life. Cows would offer fresh milk and compost-enriching manure, while horses would bring strength, mobility, and a deepened connection to the sacred rhythms of the Earth.',
-    image: '/images/donate/animal-husbandry.jpg'
-  },
-  {
-    id: 'broadcasting',
-    name: 'Broadcasting from the Ashram',
-    title: 'Broadcasting from the Ashram',
-    description: 'We will continue to capture, produce, archive, and disseminate this transformative wisdom that has the power to change our collective destiny. This requires improving the quality of our media and broadcasting infrastructure to ensure our long-term connectivity: upgrading our cameras, microphones, mixers and editing equipment, fiber optic cables, hard drives, and storage capacities.',
-    image: '/images/donate/broadcasting.jpg'
-  },
-  {
-    id: 'off-grid',
-    name: 'Off-Grid Preparedness',
-    title: 'Off-Grid Preparedness',
-    description: 'Support our off-grid initiatives to create a self-sustainable community model that can thrive independently of external systems. This includes developing water collection systems, sustainable energy solutions, and implementing permaculture principles throughout our campus.',
-    image: '/images/donate/off-grid.jpg'
-  },
-  {
-    id: 'scholarships',
-    name: 'Student Scholarships',
-    title: 'Student Scholarships',
-    description: 'Enable us to offer more scholarships to needy students, to reach out to more people within Costa Rica and throughout Latin America, and to guide more people to have better lives and raise their children to be healthy, awakened, and prepared for the future.',
-    image: '/images/donate/scholarships.jpg'
-  },
-  {
-    id: 'publishing',
-    name: 'Book Publishing',
-    title: 'Book Publishing',
-    description: 'Support the publication and distribution of sacred texts and teachings that preserve and transmit the wisdom of Sat Yoga to future generations and communities worldwide.',
-    image: '/images/donate/publishing.jpg'
-  },
-  {
-    id: 'infrastructure',
-    name: 'Infrastructure: Road Maintenance',
-    title: 'Infrastructure: Road Maintenance',
-    description: 'Maintain and improve our ashram infrastructure including roads, pathways, and essential facilities to ensure safe access and sustainable operations for our community and visitors.',
-    image: '/images/donate/infrastructure.jpg'
-  }
-];
-
-// ============================================================================
 // COMPONENTS
 // ============================================================================
 
@@ -76,6 +29,35 @@ const DonationProjectsSection = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [donationAmount, setDonationAmount] = useState('45.00');
+  const [donationProjects, setDonationProjects] = useState<DonationProject[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${FASTAPI_URL}/api/donations/projects`)
+      .then(res => res.json())
+      .then(data => {
+        setDonationProjects(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load donation projects:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="w-full bg-[#FAF8F1] py-20 px-4 lg:px-16">
+        <div className="max-w-[1312px] mx-auto flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#942017]"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!donationProjects.length) {
+    return null;
+  }
 
   const activeProject = donationProjects[activeTab];
 

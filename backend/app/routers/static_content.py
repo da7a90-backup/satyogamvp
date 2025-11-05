@@ -284,10 +284,74 @@ async def get_membership_hero(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 
 # =============================================================================
+# COURSES PAGE ROUTER
+# =============================================================================
+
+courses_page_router = APIRouter(prefix="/courses-page", tags=["Courses Page"])
+
+
+@courses_page_router.get("/hero")
+async def get_courses_hero(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get courses hero section content with CDN URLs"""
+
+    media_service = MediaService(db)
+
+    return {
+        "tagline": "Courses",
+        "background": media_service.resolve_url("/courseslanding.jpg"),
+        "heading": "Online Training for Self-mastery",
+        "subtext": "Structured Online Courses for Spiritual Liberation and Self-realization."
+    }
+
+
+@courses_page_router.get("/instructor-avatar")
+async def get_courses_avatar(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get default instructor avatar"""
+
+    media_service = MediaService(db)
+
+    return {
+        "avatar": media_service.resolve_url("/illustrations.png")
+    }
+
+
+# =============================================================================
+# TEACHINGS PAGE ROUTER
+# =============================================================================
+
+teachings_router = APIRouter(prefix="/teachings-page", tags=["Teachings Page"])
+
+
+@teachings_router.get("/hero")
+async def get_teachings_hero(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get teachings hero section content with CDN URLs"""
+
+    media_service = MediaService(db)
+
+    return {
+        "tagline": "Teachings",
+        "background": media_service.resolve_url("/bgteachings.png"),
+        "heading": "Wisdom Teachings",
+        "subtext": "Explore our library of transformative teachings"
+    }
+
+
+# =============================================================================
 # DONATIONS ROUTER
 # =============================================================================
 
 donations_router = APIRouter(prefix="/donations", tags=["Donations"])
+
+
+@donations_router.get("/hero")
+async def get_donations_hero(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get donations hero section content with CDN URLs"""
+
+    media_service = MediaService(db)
+
+    return {
+        "heroBackground": media_service.resolve_url("/images/donate/hero-bg.jpg")
+    }
 
 
 @donations_router.get("/projects")
@@ -415,13 +479,10 @@ async def get_online_retreats(
     return {"retreats": result, "total": len(result)}
 
 
-# =============================================================================
-# COURSES PAGE CONTENT ROUTER
-# =============================================================================
+# NOTE: courses_page_router is already defined earlier in this file around line 290
+# Additional courses page content endpoint (merged into main router above)
 
-courses_page_router = APIRouter(prefix="/courses-page", tags=["Courses Page"])
-
-
+# Keeping this endpoint separate for now
 @courses_page_router.get("/content")
 async def get_courses_page_content(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Get courses landing page content with CDN URLs for images"""

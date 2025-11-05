@@ -32,6 +32,13 @@ class MediaService:
 
         if asset:
             cdn_url = asset.cdn_url
+
+            # If CDN URL is a relative path (starts with /media/), prepend backend URL
+            if cdn_url.startswith('/media/'):
+                from app.core.config import settings
+                # Use FRONTEND_URL as base since media is served from same backend
+                cdn_url = f"{settings.FRONTEND_URL.replace('3000', '8000')}{cdn_url}"
+
             self._cache[original_path] = cdn_url
             return cdn_url
 
