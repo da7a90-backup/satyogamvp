@@ -78,52 +78,13 @@ export default function TeachingDetailClient({ teaching, isLoggedIn }: TeachingD
             {/* Video/Audio Player */}
             {isVideoOrAudio && teaching.can_access && (
               <div className="bg-black rounded-lg overflow-hidden mb-6" style={{ position: 'relative', paddingTop: '56.25%' }}>
-                {hasVideoPlayer && teaching.cloudflare_ids[0] && videoStarted && (
-                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                    <iframe
-                      key={teaching.cloudflare_ids[0]}
-                      src={`https://iframe.videodelivery.net/${teaching.cloudflare_ids[0]}?autoplay=true&muted=true`}
-                      title={teaching.title}
-                      style={{ border: 0, width: '100%', height: '100%' }}
-                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
-                      sandbox="allow-scripts allow-same-origin allow-presentation"
-                      allowFullScreen={true}
-                    />
-                  </div>
-                )}
-                {hasVideoPlayer && teaching.cloudflare_ids[0] && !videoStarted && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      cursor: 'pointer',
-                      backgroundColor: '#1a1a1a'
-                    }}
-                    className="flex items-center justify-center"
-                    onClick={() => {
-                      console.log('Play button clicked');
-                      setVideoStarted(true);
-                    }}
-                  >
-                    <img
-                      src={teaching.thumbnail_url || '/default-thumbnail.jpg'}
-                      alt={teaching.title}
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => {
-                        console.log('Thumbnail failed to load:', teaching.thumbnail_url);
-                        e.currentTarget.style.display = 'none';
-                      }}
-                      onLoad={() => console.log('Thumbnail loaded successfully')}
-                    />
-                    <div style={{ position: 'relative', zIndex: 10 }} className="bg-red-600 rounded-full p-6 hover:bg-red-700 transition-all">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                        <path d="M8 5v14l11-7z" fill="#FFFFFF" />
-                      </svg>
-                    </div>
-                  </div>
+                {hasVideoPlayer && teaching.cloudflare_ids[0] && (
+                  <iframe
+                    src={`https://iframe.videodelivery.net/${teaching.cloudflare_ids[0]}?controls=true`}
+                    style={{ border: 'none', position: 'absolute', top: 0, height: '100%', width: '100%' }}
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                    allowFullScreen={true}
+                  />
                 )}
                 {!hasVideoPlayer && hasAudioPlayer && teaching.podbean_ids[0] && (
                   <iframe
