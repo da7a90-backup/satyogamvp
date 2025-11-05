@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 
 interface APITeaching {
   id: string;
@@ -33,6 +34,7 @@ interface TeachingDetailClientProps {
 
 export default function TeachingDetailClient({ teaching, isLoggedIn }: TeachingDetailClientProps) {
   const [mounted, setMounted] = useState(false);
+  const [videoStarted, setVideoStarted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -75,24 +77,59 @@ export default function TeachingDetailClient({ teaching, isLoggedIn }: TeachingD
           <div className="lg:col-span-2">
             {/* Video/Audio Player */}
             {isVideoOrAudio && teaching.can_access && (
-              <div className="bg-black rounded-lg overflow-hidden mb-6" style={{ aspectRatio: '16/9' }}>
-                {hasVideoPlayer && teaching.cloudflare_ids[0] && (
+              <div className="bg-black rounded-lg overflow-hidden mb-6" style={{ position: 'relative', paddingTop: '56.25%' }}>
+                {hasVideoPlayer && teaching.cloudflare_ids[0] && videoStarted && (
                   <iframe
+                    key={teaching.cloudflare_ids[0]}
                     src={`https://iframe.videodelivery.net/${teaching.cloudflare_ids[0]}`}
-                    style={{ border: 'none', width: '100%', height: '100%' }}
-                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                    allowFullScreen={true}
+                    style={{ border: 0, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
                   />
+                )}
+                {hasVideoPlayer && teaching.cloudflare_ids[0] && !videoStarted && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      cursor: 'pointer',
+                      backgroundColor: '#1a1a1a'
+                    }}
+                    className="flex items-center justify-center"
+                    onClick={() => {
+                      console.log('Play button clicked');
+                      setVideoStarted(true);
+                    }}
+                  >
+                    <img
+                      src={teaching.thumbnail_url || '/default-thumbnail.jpg'}
+                      alt={teaching.title}
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        console.log('Thumbnail failed to load:', teaching.thumbnail_url);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={() => console.log('Thumbnail loaded successfully')}
+                    />
+                    <div style={{ position: 'relative', zIndex: 10 }} className="bg-red-600 rounded-full p-6 hover:bg-red-700 transition-all">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                        <path d="M8 5v14l11-7z" fill="#FFFFFF" />
+                      </svg>
+                    </div>
+                  </div>
                 )}
                 {!hasVideoPlayer && hasAudioPlayer && teaching.podbean_ids[0] && (
                   <iframe
                     src={`https://www.podbean.com/player-v2/?i=${teaching.podbean_ids[0]}&share=1&download=1&fonts=Arial&skin=1&btn-skin=7`}
-                    style={{ border: 'none', width: '100%', height: '100%' }}
+                    style={{ border: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
                     allowFullScreen={true}
                   />
                 )}
                 {!hasVideoPlayer && !hasAudioPlayer && (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} className="flex items-center justify-center bg-gray-900">
                     <img
                       src={teaching.thumbnail_url || '/default-thumbnail.jpg'}
                       alt={teaching.title}
@@ -105,13 +142,13 @@ export default function TeachingDetailClient({ teaching, isLoggedIn }: TeachingD
 
             {/* Thumbnail for locked content */}
             {isVideoOrAudio && !teaching.can_access && (
-              <div className="relative bg-black rounded-lg overflow-hidden mb-6" style={{ aspectRatio: '16/9' }}>
+              <div className="relative bg-black rounded-lg overflow-hidden mb-6" style={{ position: 'relative', paddingTop: '56.25%' }}>
                 <img
                   src={teaching.thumbnail_url || '/default-thumbnail.jpg'}
                   alt={teaching.title}
-                  className="w-full h-full object-cover opacity-50"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }}
                 />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} className="flex items-center justify-center bg-black/50">
                   <div className="text-center text-white">
                     <svg className="w-16 h-16 mx-auto mb-4" viewBox="0 0 24 24" fill="none">
                       <path d="M7 10V7a5 5 0 0110 0v3m-9 0h10a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8a2 2 0 012-2z" stroke="currentColor" strokeWidth="2"/>

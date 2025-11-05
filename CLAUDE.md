@@ -300,3 +300,5 @@ MIXPANEL_TOKEN=your_token
 - the database is a postgresql database running through docker
 - remove the playwright background thing we don't need that anymore and don't mention it ever again
 - never use the redirect payment url always use the embedded way. There is a way to do it with jquery or vanilla javascript but we just have to adapt it to work for react/nextjs
+- never use fallback hardcoded data
+- always retry connexion to vps when it say refused

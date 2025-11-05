@@ -54,6 +54,7 @@ export default function TeachingDetailPage({
   const [isFavorited, setIsFavorited] = useState(false);
   const [isInWatchLater, setIsInWatchLater] = useState(false);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  const [videoStarted, setVideoStarted] = useState(false);
 
   // Check if teaching is favorited on mount
   useEffect(() => {
@@ -293,7 +294,7 @@ export default function TeachingDetailPage({
                           onPreviewEnd={() => setShowPreviewEndModal(true)}
                           isDashboard={isDashboard}
                         />
-                      ) : (
+                      ) : videoStarted ? (
                         <VideoPlayer
                           videoId={currentVideo.id}
                           title={data.title}
@@ -303,6 +304,29 @@ export default function TeachingDetailPage({
                           previewDuration={effectivePreviewDuration}
                           onPreviewEnd={() => setShowPreviewEndModal(true)}
                         />
+                      ) : (
+                        <div
+                          style={{
+                            position: 'relative',
+                            paddingTop: '56.25%',
+                            backgroundColor: '#1a1a1a',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => setVideoStarted(true)}
+                        >
+                          <img
+                            src={imageUrl || '/default-thumbnail.jpg'}
+                            alt={data.title}
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }} className="bg-red-600 rounded-full p-6 hover:bg-red-700 transition-all">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                              <path d="M8 5v14l11-7z" fill="#FFFFFF" />
+                            </svg>
+                          </div>
+                        </div>
                       )}
                     </>
                   )}
@@ -590,25 +614,23 @@ const VideoPlayer: React.FC<{
             </p>
           </div>
           <div className="w-full bg-blue-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-              style={{ 
-                width: `${Math.min((playbackTime / previewDuration) * 100, 100)}%` 
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{
+                width: `${Math.min((playbackTime / previewDuration) * 100, 100)}%`
               }}
             ></div>
           </div>
         </div>
       )}
-      
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+
+      <div style={{ position: 'relative', paddingTop: '56.25%' }} className="bg-black rounded-lg overflow-hidden">
         <iframe
           ref={videoRef}
           src={cloudflareUrl}
           title={title}
-          className="w-full h-full"
-          style={{ border: 'none' }}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          style={{ border: 0, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
         />
       </div>
