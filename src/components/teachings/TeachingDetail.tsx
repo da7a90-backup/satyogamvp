@@ -587,7 +587,7 @@ const VideoPlayer: React.FC<{
     onPreviewEnd();
   };
 
-  const cloudflareUrl = `https://iframe.videodelivery.net/${videoId}`;
+  const cloudflareUrl = `https://iframe.videodelivery.net/${videoId}?autoplay=true&muted=true`;
 
   if (previewEnded) {
     return (
@@ -624,13 +624,14 @@ const VideoPlayer: React.FC<{
         </div>
       )}
 
-      <div style={{ position: 'relative', paddingTop: '56.25%' }} className="bg-black rounded-lg overflow-hidden">
+      <div style={{ position: 'relative', paddingTop: '56.25%', overflow: 'auto', WebkitOverflowScrolling: 'touch' }} className="bg-black rounded-lg">
         <iframe
           ref={videoRef}
           src={cloudflareUrl}
           title={title}
           style={{ border: 0, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+          sandbox="allow-scripts allow-same-origin allow-presentation"
           allowFullScreen
         />
       </div>
