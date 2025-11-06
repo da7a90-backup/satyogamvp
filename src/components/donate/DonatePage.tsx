@@ -20,6 +20,10 @@ interface DonationProject {
   image: string;
 }
 
+interface HeroData {
+  heroBackground: string;
+}
+
 // ============================================================================
 // COMPONENTS
 // ============================================================================
@@ -360,6 +364,30 @@ const GeneralFundSection = () => {
 
 // Main Donate Page Component
 const DonatePage = () => {
+  const [heroBackground, setHeroBackground] = useState<string>('');
+  const [heroLoading, setHeroLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${FASTAPI_URL}/api/donations/hero`)
+      .then(res => res.json())
+      .then(data => {
+        setHeroBackground(data.heroBackground);
+        setHeroLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load hero background:', err);
+        setHeroLoading(false);
+      });
+  }, []);
+
+  if (heroLoading) {
+    return (
+      <main className="w-full flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#942017]"></div>
+      </main>
+    );
+  }
+
   return (
     <main className="w-full">
       {/* Hero Section */}
@@ -368,7 +396,7 @@ const DonatePage = () => {
           tagline: 'SUPPORT THE SAT YOGA MISSION',
           heading: 'Help Bring a New World into Being',
           subtext: 'If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.',
-          background: '/images/donate/hero-bg.jpg'
+          background: heroBackground
         }}
       />
 
