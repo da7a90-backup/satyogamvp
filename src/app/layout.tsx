@@ -1,17 +1,9 @@
 // app/layout.tsx
 
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { Metadata } from 'next';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
 import AuthProvider from '@/components/auth/AuthProvider';
-
-// Initialize the Inter font with subset optimization
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
 
 // Metadata for all pages (SEO)
 export const metadata: Metadata = {
@@ -37,7 +29,7 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en">
       <body className="flex flex-col min-h-screen">
         <AuthProvider>
           <LayoutWrapper>{children}</LayoutWrapper>

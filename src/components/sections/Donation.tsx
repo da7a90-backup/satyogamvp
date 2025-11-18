@@ -25,11 +25,13 @@ const DonationSection = ({
         backgroundColor: '#FAF8F1'
       }}
     >
-      <div 
-        className="relative w-full max-w-7xl bg-white border border-gray-300 rounded-2xl overflow-hidden p-8 lg:p-28 min-h-[280px] lg:min-h-[400px]"
+      <div
+        className="relative w-full bg-white border border-gray-300 rounded-2xl overflow-hidden p-8 lg:p-28 min-h-[280px] lg:min-h-[400px]"
         style={{
           boxShadow: '0px 94px 38px rgba(111, 62, 21, 0.01), 0px 53px 32px rgba(111, 62, 21, 0.05), 0px 24px 24px rgba(111, 62, 21, 0.09), 0px 6px 13px rgba(111, 62, 21, 0.1)',
-          borderRadius: '16px'
+          borderRadius: '16px',
+          maxWidth: '1440px',
+          margin: '0 auto'
         }}
       >
         <div 

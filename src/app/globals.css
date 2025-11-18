@@ -2,8 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Optima';
+  src: url('/fonts/Optima.ttc') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Optima';
+  src: url('/fonts/Optima.ttc') format('truetype');
+  font-weight: 550;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-optima: 'Optima', 'Palatino', 'Palatino Linotype', 'Georgia', serif;
+  --font-avenir: 'Avenir Next', 'Avenir', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-avenir);
 }
 
 @layer base {
@@ -63,7 +84,8 @@ body {
 }
 
 @layer base {
-  * {
+  *, *::before, *::after {
+    box-sizing: border-box;
     @apply border-border;
   }
   body {

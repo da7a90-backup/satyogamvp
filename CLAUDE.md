@@ -302,3 +302,4 @@ MIXPANEL_TOKEN=your_token
 - never use the redirect payment url always use the embedded way. There is a way to do it with jquery or vanilla javascript but we just have to adapt it to work for react/nextjs
 - never use fallback hardcoded data
 - always retry connexion to vps when it say refused
+- make port 3000 the single port you test with locally if the port is busy kill the process on that port and start a new one on it

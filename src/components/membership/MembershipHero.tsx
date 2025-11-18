@@ -37,13 +37,13 @@ export default function MembershipHero() {
     <div className="bg-[#FAF8F1] py-20 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-[#B8860B] uppercase tracking-wider text-sm font-semibold mb-4">
+          <p className="font-avenir text-[#9C7520] uppercase tracking-wider text-base font-semibold mb-4">
             {heroData.tagline}
           </p>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="font-optima text-4xl md:text-5xl font-medium text-black mb-6 tracking-tight" style={{ letterSpacing: '-0.02em' }}>
             {heroData.heading}
           </h2>
-          <p className="text-gray-700 max-w-3xl mx-auto leading-relaxed">
+          <p className="font-avenir text-[#384250] text-lg max-w-3xl mx-auto leading-[28px]">
             {heroData.description}
           </p>
         </div>
@@ -52,16 +52,24 @@ export default function MembershipHero() {
           {heroData.benefits.map((benefit: any, index: number) => (
             <div key={index} className="text-center">
               <div className="flex justify-center mb-6">
-                <img
-                  src={benefit.iconPath}
-                  alt={`${benefit.title} icon`}
-                  className="w-16 h-16 object-contain"
-                />
+                <div
+                  className="w-[100px] h-[100px] rounded-full flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(180deg, #FFFFFF 0%, #FAF8F1 100%)',
+                    boxShadow: '-11px 50px 20px rgba(181, 85, 33, 0.01), -6px 28px 17px rgba(181, 85, 33, 0.05), -3px 12px 13px rgba(181, 85, 33, 0.09), -1px 3px 7px rgba(181, 85, 33, 0.1), -11px 50px 20px rgba(181, 85, 33, 0.01), -6px 28px 17px rgba(181, 85, 33, 0.05), -3px 12px 13px rgba(181, 85, 33, 0.09), -1px 3px 7px rgba(181, 85, 33, 0.1)'
+                  }}
+                >
+                  <img
+                    src={benefit.iconPath}
+                    alt={`${benefit.title} icon`}
+                    className="w-[98px] h-[98px] object-contain"
+                  />
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <h3 className="font-optima text-xl font-semibold text-black mb-4">
                 {benefit.title}
               </h3>
-              <p className="text-gray-700 leading-relaxed text-sm">
+              <p className="font-avenir text-[#384250] leading-relaxed text-sm">
                 {benefit.description}
               </p>
             </div>

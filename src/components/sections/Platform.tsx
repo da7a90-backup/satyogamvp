@@ -23,21 +23,18 @@ const PlatformSection = ({
   backgroundDecoration
 }: PlatformSectionProps) => {
   return (
-    <section 
-      className="relative w-full flex flex-col lg:flex-row items-center justify-between overflow-hidden"
+    <section
+      className="relative w-full overflow-hidden px-4 md:px-8 lg:px-16"
       style={{
         backgroundColor: '#FAF8F1',
         minHeight: '816px',
-        padding: '64px 16px',
-        gap: '32px'
+        paddingTop: '153px',
+        paddingBottom: '64px'
       }}
     >
-      <div 
-        className="w-full lg:flex-1 lg:max-w-2xl order-2 lg:order-1"
-        style={{
-          maxWidth: '616px',
-          margin: '0 auto'
-        }}
+      <div className="relative z-10 flex flex-col md:items-center lg:items-start lg:flex-row justify-between" style={{ gap: '80px', maxWidth: '1440px', margin: '0 auto' }}>
+      <div
+        className="order-2 lg:order-1 flex-shrink-0 w-full md:w-auto md:max-w-[616px]"
       >
         <div className="mb-6">
           <span 
@@ -94,11 +91,18 @@ const PlatformSection = ({
         </div>
       </div>
 
-      <div className="relative w-full px-2 lg:px-8 lg:flex-1 lg:max-w-xl order-1 lg:order-2">
-        <div 
-          className="relative flex items-center justify-center mx-auto h-60 lg:h-[620px]"
+      <div
+        className="order-1 lg:order-2 flex-shrink-0 w-full md:w-auto md:max-w-[616px]"
+        style={{
+          maxWidth: '616px',
+          position: 'relative'
+        }}
+      >
+        <div
+          className="relative flex items-center justify-center"
           style={{
-            maxWidth: '636px'
+            width: '100%',
+            height: '640px'
           }}
         >
           <div 
@@ -132,6 +136,7 @@ const PlatformSection = ({
             />
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

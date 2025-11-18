@@ -25,13 +25,15 @@ const MembershipSection = ({
         backgroundColor: '#FAF8F1'
       }}
     >
-      <div 
-        className="relative w-full max-w-7xl rounded-xl overflow-hidden h-[600px] lg:h-[900px]"
+      <div
+        className="relative w-full rounded-xl overflow-hidden h-[600px] lg:h-[900px]"
         style={{
           backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          borderRadius: '12px'
+          borderRadius: '12px',
+          maxWidth: '1440px',
+          margin: '0 auto'
         }}
       >
         <div 

@@ -1,18 +1,40 @@
 'use client';
 
+import { useRef } from 'react';
+
 interface HeroSectionProps {
   videoUrl: string;
   logoUrl: string;
   logoAlt: string;
   subtitle: string;
+  onScrollClick?: () => void;
 }
 
-const HeroSection = ({ videoUrl, logoUrl, logoAlt, subtitle }: HeroSectionProps) => {
+const HeroSection = ({ videoUrl, logoUrl, logoAlt, subtitle, onScrollClick }: HeroSectionProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const scrollToNext = () => {
-    window.scrollTo({
-      top: window.innerHeight + 120 + 700,
-      behavior: 'smooth'
-    });
+    if (onScrollClick) {
+      onScrollClick();
+    }
+  };
+
+  // Seamless loop handler - restarts video before it ends to prevent gap
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (video && video.duration && video.duration - video.currentTime < 0.5) {
+      video.currentTime = 0;
+    }
+  };
+
+  // Ensure video metadata is loaded
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch(() => {
+        // Silently handle autoplay restriction
+      });
+    }
   };
 
   const ChevronDown = () => (
@@ -22,12 +44,13 @@ const HeroSection = ({ videoUrl, logoUrl, logoAlt, subtitle }: HeroSectionProps)
   );
 
   return (
-    <section 
-      className="relative w-full h-screen flex items-center justify-center overflow-hidden"
+    <section
+      className="relative w-full h-full flex items-center justify-center overflow-hidden"
       style={{ margin: 0, padding: 0 }}
     >
       {/* Background Video */}
       <video
+        ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover"
         autoPlay
         muted
@@ -36,6 +59,13 @@ const HeroSection = ({ videoUrl, logoUrl, logoAlt, subtitle }: HeroSectionProps)
         preload="auto"
         disablePictureInPicture
         webkit-playsinline="true"
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        style={{
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+          backfaceVisibility: 'hidden'
+        }}
       >
         <source src={videoUrl} type="video/mp4" />
         Your browser does not support the video tag.

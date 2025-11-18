@@ -22,112 +22,144 @@ const AshramSection = ({
   images
 }: AshramSectionProps) => {
   return (
-    <section 
-      className="relative w-full flex flex-col lg:flex-row items-center justify-between overflow-hidden"
+    <section
+      className="relative w-full overflow-hidden px-4 md:px-8 lg:px-16"
       style={{
         backgroundColor: '#FAF8F1',
         minHeight: '816px',
-        padding: '64px 16px',
-        gap: '32px'
+        paddingTop: '153px',
+        paddingBottom: '64px'
       }}
     >
-      <div className="relative w-full px-8 lg:flex-1 lg:max-w-xl order-1 lg:order-1">
-        <div className="mb-4">
-          <img
-            src={images.main}
-            alt="Sat Yoga Ashram in Costa Rica"
-            className="w-full h-auto object-cover rounded-xl mx-auto"
-            style={{
-              maxWidth: '636px',
-              height: '400px',
-              objectFit: 'cover',
-              boxShadow: '-33px 73px 32px rgba(0, 0, 0, 0.01), -19px 41px 27px rgba(0, 0, 0, 0.05), -8px 18px 20px rgba(0, 0, 0, 0.09), -2px 5px 11px rgba(0, 0, 0, 0.1)',
-              borderRadius: '12px'
-            }}
-          />
-        </div>
-
-        <div className="flex gap-3 justify-center">
-          {images.secondary.map((image, index) => (
-            <div key={index} className="flex-1">
-              <img
-                src={image}
-                alt={`Ashram image ${index + 1}`}
-                className="w-full h-auto object-cover rounded-lg"
-                style={{
-                  height: '120px',
-                  objectFit: 'cover',
-                  boxShadow: '-33px 73px 32px rgba(0, 0, 0, 0.01), -19px 41px 27px rgba(0, 0, 0, 0.05), -8px 18px 20px rgba(0, 0, 0, 0.09), -2px 5px 11px rgba(0, 0, 0, 0.1)',
-                  borderRadius: '8px'
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div 
-        className="w-full lg:flex-1 lg:max-w-2xl order-2 lg:order-2"
-        style={{
-          maxWidth: '616px',
-          margin: '0 auto'
-        }}
-      >
-        <div className="mb-6">
-          <span 
-            className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
-            style={{
-              fontFamily: 'Avenir Next, sans-serif',
-              color: '#B8860B'
-            }}
-          >
-            {eyebrow}
-          </span>
-        </div>
-
-        <h2 
-          className="text-black mb-8"
+      {/* Flex Container for Image Gallery and Content */}
+      <div className="relative z-10 flex flex-col md:items-center lg:items-start lg:flex-row justify-between" style={{ gap: '80px', maxWidth: '1440px', margin: '0 auto' }}>
+        {/* Image Gallery - Left side on desktop */}
+        <div
+          className="order-1 lg:order-1 flex-shrink-0 w-full md:w-auto md:max-w-[616px]"
           style={{
-            fontFamily: 'Optima, Georgia, serif',
-            fontSize: 'clamp(1.5rem, 4vw, 3rem)',
-            fontWeight: 550,
-            lineHeight: '120%',
-            letterSpacing: '-1%'
+            width: '616px',
+            height: '640px',
+            filter: 'drop-shadow(-46px 60px 30px rgba(0, 0, 0, 0.01)) drop-shadow(-26px 34px 26px rgba(0, 0, 0, 0.05)) drop-shadow(-12px 15px 19px rgba(0, 0, 0, 0.09)) drop-shadow(-3px 4px 10px rgba(0, 0, 0, 0.1))'
           }}
         >
-          {heading}
-        </h2>
-
-        <div className="space-y-6 mb-8">
-          {content.map((paragraph, index) => (
-            <p 
-              key={index}
-              className="text-gray-700"
-              style={{
-                fontFamily: 'Avenir Next, sans-serif',
-                fontSize: '16px',
-                lineHeight: '150%',
-                color: '#4A5568'
-              }}
-            >
-              {paragraph}
-            </p>
-          ))}
-        </div>
-
-        <div className="text-center lg:text-left">
-          <Link
-            href={buttonLink}
-            className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
+          <div
             style={{
-              backgroundColor: '#7D1A13',
-              fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              fontWeight: 600
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              width: '617px',
+              height: '630px'
             }}
           >
-            {buttonText}
-          </Link>
+            <img
+              src={images.main}
+              alt="Sat Yoga Ashram in Costa Rica"
+              style={{
+                width: '617px',
+                height: '474px',
+                borderRadius: '12px',
+                objectFit: 'cover'
+              }}
+            />
+
+            <div style={{ display: 'flex', gap: '16px', height: '140px' }}>
+              {images.secondary.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`Ashram image ${index + 1}`}
+                  style={{
+                    width: '195px',
+                    height: '140px',
+                    objectFit: 'cover',
+                    borderRadius: '12px',
+                    flex: '1 1 0'
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Container - Right side on desktop */}
+        <div
+          className="order-2 lg:order-2 flex flex-col w-full md:w-auto md:max-w-[616px]"
+          style={{
+            paddingTop: '41px',
+            flex: 1
+          }}
+        >
+          {/* Eyebrow - positioned 41px from image top / 153px from section top */}
+          <div className="mb-4">
+            <span
+              className="uppercase"
+              style={{
+                fontFamily: 'Avenir Next, sans-serif',
+                fontWeight: 600,
+                fontSize: '16px',
+                lineHeight: '150%',
+                letterSpacing: '0%',
+                color: '#9C7520'
+              }}
+            >
+              {eyebrow}
+            </span>
+          </div>
+
+          {/* Main Heading */}
+          <h2
+            className="text-black mb-6"
+            style={{
+              fontFamily: 'Optima, Georgia, serif',
+              fontSize: '48px',
+              fontWeight: 550,
+              lineHeight: '60px',
+              letterSpacing: '-2%'
+            }}
+          >
+            {heading}
+          </h2>
+
+          {/* Description Paragraphs */}
+          <div className="space-y-6 mb-8">
+            {content.map((paragraph, index) => (
+              <p
+                key={index}
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontWeight: 500,
+                  fontSize: '18px',
+                  lineHeight: '28px',
+                  letterSpacing: '0%',
+                  color: '#384250'
+                }}
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+
+          {/* Action Button */}
+          <div className="text-left">
+            <Link
+              href={buttonLink}
+              className="inline-flex items-center px-4 py-2.5 text-white rounded-lg transition-all duration-300 hover:opacity-90"
+              style={{
+                backgroundColor: '#7D1A13',
+                fontFamily: 'Avenir Next, sans-serif',
+                fontWeight: 600,
+                fontSize: '16px',
+                lineHeight: '24px',
+                letterSpacing: '0%',
+                width: '120px',
+                height: '44px',
+                justifyContent: 'center',
+                boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)'
+              }}
+            >
+              {buttonText}
+            </Link>
+          </div>
         </div>
       </div>
     </section>

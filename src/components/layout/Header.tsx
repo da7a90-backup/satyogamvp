@@ -240,11 +240,11 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   );
 
   return (
-    <header className="relative z-30 font-sans">
+    <header className="sticky top-0 z-30 font-sans">
       {/* Promotional Banner */}
       {showBanner && (
-        <div 
-          className="px-4 md:px-16 h-12 flex items-center justify-center relative text-white"
+        <div
+          className="px-4 md:px-8 lg:px-16 h-12 flex items-center justify-center relative text-white"
           style={{ backgroundColor: '#7D1A13' }}
         >
           <div className="flex items-center gap-4 w-full max-w-screen-xl justify-center">
@@ -269,7 +269,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
 
       {/* Main Navigation */}
       <nav className="border-b border-black dropdown-container" style={{ backgroundColor: '#FAF8F1' }}>
-        <div className="px-4 md:px-16 h-16 flex items-center justify-between max-w-screen-2xl mx-auto py-8">
+        <div className="px-4 md:px-8 lg:px-16 h-16 flex items-center justify-between max-w-screen-2xl mx-auto py-8">
           {/* Logo */}
           <Link 
             href="/" 
@@ -279,7 +279,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => {
               const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
               return (
@@ -348,9 +348,9 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
             </button>
 
             {/* Donate Button */}
-            <Link 
+            <Link
               href="/donate"
-              className="hidden md:block border-none outline-none bg-transparent text-black rounded-lg px-4 py-2.5 text-base font-semibold no-underline hover:opacity-90 transition-opacity"
+              className="hidden lg:block border-none outline-none bg-transparent text-black rounded-lg px-4 py-2.5 text-base font-semibold no-underline hover:opacity-90 transition-opacity"
               style={{
                 fontFamily: 'Montserrat, sans-serif',
               }}
@@ -359,9 +359,9 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
             </Link>
 
             {/* Login Button */}
-            <Link 
+            <Link
               href="/login"
-              className="hidden md:block bg-white text-black border-none rounded-lg px-4 py-2.5 text-base font-semibold no-underline hover:opacity-90 transition-opacity"
+              className="hidden lg:block bg-white text-black border-none rounded-lg px-4 py-2.5 text-base font-semibold no-underline hover:opacity-90 transition-opacity"
               style={{
                 boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
                 fontFamily: 'Montserrat, sans-serif',
@@ -371,8 +371,8 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
             </Link>
             
             {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden bg-white border-none rounded-lg cursor-pointer p-2 flex items-center justify-center hover:opacity-80 transition-opacity"
+            <button
+              className="lg:hidden bg-white border-none rounded-lg cursor-pointer p-2 flex items-center justify-center hover:opacity-80 transition-opacity"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               style={{ color: '#414651' }}
               aria-label="Menu"
@@ -386,7 +386,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
       {/* Dropdown Menu */}
       {activeDropdown && (
         <div className="absolute left-0 right-0 bg-white z-10 dropdown-container" style={{ top: '100%' }}>
-          <div className="pt-8 px-4 md:px-16 max-w-screen-2xl mx-auto">
+          <div className="pt-8 px-4 md:px-8 lg:px-16 max-w-screen-2xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 mb-8">
               {navItems.find(item => item.label === activeDropdown)?.children?.map((child, index) => (
                 <Link 
@@ -434,8 +434,8 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div 
-          className="md:hidden absolute left-0 right-0 bg-white z-20 max-h-screen overflow-y-auto mobile-menu-container"
+        <div
+          className="lg:hidden absolute left-0 right-0 bg-white z-20 max-h-screen overflow-y-auto mobile-menu-container"
           style={{ 
             top: '100%',
             boxShadow: '0px 12px 16px -4px rgba(10, 13, 18, 0.08), 0px 4px 6px -2px rgba(10, 13, 18, 0.03), 0px 2px 2px -1px rgba(10, 13, 18, 0.04)'

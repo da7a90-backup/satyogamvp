@@ -89,8 +89,8 @@ const Footer = () => {
       }}
     >
       {/* Newsletter Signup Section */}
-      <div 
-        className="w-full flex flex-col items-start px-8"
+      <div
+        className="w-full flex flex-col items-start px-4 md:px-8 lg:px-16"
         style={{
           maxWidth: '1280px',
           gap: '16px'
@@ -194,8 +194,8 @@ const Footer = () => {
       />
 
       {/* Desktop Links Section */}
-      <div 
-        className="hidden lg:flex w-full flex-row items-start px-8"
+      <div
+        className="hidden lg:flex w-full flex-row items-start px-4 md:px-8 lg:px-16"
         style={{
           maxWidth: '1280px',
           gap: '40px',
@@ -332,8 +332,8 @@ const Footer = () => {
       </div>
 
       {/* Mobile Two-Pane Layout */}
-      <div 
-        className="lg:hidden w-full flex flex-row px-8 gap-8"
+      <div
+        className="lg:hidden w-full flex flex-row px-4 md:px-8 gap-8"
         style={{
           maxWidth: '430px'
         }}
@@ -415,8 +415,8 @@ const Footer = () => {
       />
 
       {/* Bottom Section */}
-      <div 
-        className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between px-8 gap-6 -mt-12"
+      <div
+        className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between px-4 md:px-8 lg:px-16 gap-6 -mt-12"
         style={{
           maxWidth: '1280px'
         }}
