@@ -563,7 +563,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
             Sat Yoga Blog
           </h1>
           <p
-            className="text-lg max-w-3xl mx-auto leading-relaxed"
+            className="text-lg leading-relaxed"
             style={{ color: '#414651', ...avenirNext }}
           >
             Reflections, teachings, and stories from the spiritual path—offering insight, inspiration, and a glimpse into life at the Sat Yoga Ashram.

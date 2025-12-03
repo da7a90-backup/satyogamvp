@@ -37,10 +37,14 @@ const PlatformSection = ({
         className="order-2 lg:order-1 flex-shrink-0 w-full md:w-auto md:max-w-[616px]"
       >
         <div className="mb-6">
-          <span 
-            className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
+          <span
+            className="uppercase"
             style={{
               fontFamily: 'Avenir Next, sans-serif',
+              fontWeight: 600,
+              fontSize: '16px',
+              lineHeight: '150%',
+              letterSpacing: '0%',
               color: '#B8860B'
             }}
           >
@@ -48,26 +52,27 @@ const PlatformSection = ({
           </span>
         </div>
 
-        <h2 
+        <h2
           className="text-black mb-8"
           style={{
             fontFamily: 'Optima, Georgia, serif',
-            fontSize: 'clamp(1.5rem, 4vw, 3rem)',
+            fontSize: '48px',
             fontWeight: 550,
-            lineHeight: '120%',
-            letterSpacing: '-1%'
+            lineHeight: '60px',
+            letterSpacing: '-2%'
           }}
         >
           {heading}
         </h2>
 
         <div className="space-y-6 mb-8">
-          <p 
-            className="text-gray-700"
+          <p
             style={{
               fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              lineHeight: '150%',
+              fontWeight: 500,
+              fontSize: '18px',
+              lineHeight: '28px',
+              letterSpacing: '0%',
               color: '#4A5568'
             }}
           >
@@ -95,17 +100,18 @@ const PlatformSection = ({
         className="order-1 lg:order-2 flex-shrink-0 w-full md:w-auto md:max-w-[616px]"
         style={{
           maxWidth: '616px',
-          position: 'relative'
+          position: 'relative',
+          marginTop: '-60px'
         }}
       >
         <div
           className="relative flex items-center justify-center"
           style={{
             width: '100%',
-            height: '640px'
+            height: '704px'
           }}
         >
-          <div 
+          <div
             className="absolute hidden lg:block"
             style={{
               left: '50%',
@@ -113,8 +119,8 @@ const PlatformSection = ({
               transform: 'translate(-50%, -50%)',
               width: '100%',
               height: '100%',
-              maxWidth: '700px',
-              maxHeight: '700px',
+              maxWidth: '770px',
+              maxHeight: '770px',
               backgroundImage: `url(${backgroundDecoration})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
@@ -128,7 +134,7 @@ const PlatformSection = ({
             <img
               src={image}
               alt={imageAlt}
-              className="w-max h-auto object-contain max-w-[500px] lg:max-w-[680px]"
+              className="w-max h-auto object-contain max-w-[726px] lg:max-w-[988px]"
               style={{
                 paddingRight: '20%',
                 filter: 'drop-shadow(33px 73px 32px rgba(0, 0, 0, 0.01)) drop-shadow(19px 41px 27px rgba(0, 0, 0, 0.05)) drop-shadow(8px 18px 20px rgba(0, 0, 0, 0.09)) drop-shadow(2px 5px 11px rgba(0, 0, 0, 0.1))'

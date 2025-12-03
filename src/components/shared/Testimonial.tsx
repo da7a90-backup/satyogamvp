@@ -336,9 +336,9 @@ const TestimonialCarousel = ({
       </div>
 
       {/* Navigation - Desktop */}
-      <div className="hidden lg:flex justify-between items-center mt-8 w-full max-w-7xl mx-auto">
-        {/* Slider Dots */}
-        <div className="flex items-center gap-2">
+      <div className="hidden lg:flex w-full items-center max-w-7xl mx-auto mt-8" style={{ gap: '80px' }}>
+        {/* Left side - matches text section */}
+        <div className="flex-1 flex items-center gap-2" style={{ maxWidth: hasMedia ? '500px' : '800px' }}>
           {testimonials.map((_, index) => (
             <button
               key={index}
@@ -350,25 +350,49 @@ const TestimonialCarousel = ({
           ))}
         </div>
 
-        {/* Slider Buttons */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={prevTestimonial}
-            className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12.5 15l-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <button
-            onClick={nextTestimonial}
-            className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 15l5-5-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
+        {/* Right side - matches media section */}
+        {hasMedia && (
+          <div className="flex-1 flex items-center justify-end gap-4" style={{ maxWidth: '616px' }}>
+            <button
+              onClick={prevTestimonial}
+              className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M12.5 15l-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <button
+              onClick={nextTestimonial}
+              className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M7.5 15l5-5-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* No media - center buttons */}
+        {!hasMedia && (
+          <div className="flex items-center justify-center gap-4 w-full">
+            <button
+              onClick={prevTestimonial}
+              className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M12.5 15l-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <button
+              onClick={nextTestimonial}
+              className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M7.5 15l5-5-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Navigation - Mobile (dots only, auto-slides) */}

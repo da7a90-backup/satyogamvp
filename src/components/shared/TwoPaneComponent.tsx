@@ -59,6 +59,7 @@ interface TwoPaneData {
   backgroundColor?: string;
   topMedia?: TopMediaSection;
   mediaPosition?: 'top' | 'bottom'; // Position of media relative to content
+  hugging?: boolean; // When true, reduces gap between media and content
   leftPane: {
     tagline?: string;
     taglineColor?: string;
@@ -187,93 +188,10 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
     return null;
   };
 
-  // Content component (left + right panes)
-  const ContentComponent = () => (
-    <div 
-      className="w-full flex flex-col lg:flex-row items-start"
-      style={{ gap: '80px' }}
-    >
-      {/* Left Pane */}
-      <div 
-        className={`flex flex-col gap-4 ${data.leftPane.description ? 'flex-1 w-full' : 'w-full lg:w-auto lg:flex-shrink-0'}`}
-        style={{
-          maxWidth: '616px'
-        }}
-      >
-        {data.leftPane.tagline && (
-          <span 
-            style={{
-              fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: data.leftPane.taglineColor || '#B8860B',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase'
-            }}
-          >
-            {data.leftPane.tagline}
-          </span>
-        )}
-
-        <h2 
-          className="text-black"
-          style={{
-            fontFamily: 'Optima, Georgia, serif',
-            fontWeight: 550,
-            fontSize: 'clamp(28px, 4vw, 48px)',
-            lineHeight: data.leftPane.titleLineHeight || '125%',
-            letterSpacing: '-0.02em',
-            ...(!data.leftPane.description && { width: 'clamp(300px, 50vw, 616px)' })
-          }}
-        >
-          {data.leftPane.title}
-        </h2>
-
-        {data.leftPane.description && (
-          <p 
-            className="text-gray-700"
-            style={{
-              fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              lineHeight: '150%',
-              color: '#4A5568'
-            }}
-          >
-            {data.leftPane.description}
-          </p>
-        )}
-
-        {/* Buttons */}
-        {data.leftPane.buttons && data.leftPane.buttons.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-4 mt-2">
-            {data.leftPane.buttons.slice(0, 2).map((button, index) => (
-              <a
-                key={index}
-                href={button.url}
-                className="px-6 py-3 rounded-lg font-medium text-center transition-opacity hover:opacity-90"
-                style={{
-                  fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '16px',
-                  backgroundColor: button.variant === 'primary' ? '#7D1A13' : '#FFFFFF',
-                  color: button.variant === 'primary' ? '#FFFFFF' : '#7D1A13',
-                  border: button.variant === 'secondary' ? '2px solid #7D1A13' : 'none'
-                }}
-              >
-                {button.text}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Right Pane */}
-      <div 
-        className="w-full flex flex-col"
-        style={{
-          maxWidth: '616px',
-          gap: data.rightPane.gap || '32px'
-        }}
-      >
+  // Helper function to render right pane content
+  const renderRightPaneContent = () => {
+    return (
+      <>
         {/* Accordion */}
         {data.rightPane.type === 'accordion' && (
           <div className="flex flex-col gap-4">
@@ -283,7 +201,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                   onClick={() => handleAccordionToggle(item.id)}
                   className="w-full flex items-center justify-between py-6 text-left hover:bg-gray-50 transition-colors"
                 >
-                  <h3 
+                  <h3
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
                       fontSize: '18px',
@@ -294,7 +212,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                   >
                     {item.title}
                   </h3>
-                  <div 
+                  <div
                     className="ml-4 transition-transform duration-300"
                     style={{
                       transform: openAccordion === item.id ? 'rotate(180deg)' : 'rotate(0deg)'
@@ -305,14 +223,14 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                     </svg>
                   </div>
                 </button>
-                <div 
+                <div
                   className="overflow-hidden transition-all duration-300 ease-in-out"
                   style={{
                     maxHeight: openAccordion === item.id ? '1000px' : '0px'
                   }}
                 >
                   <div className="pb-6">
-                    <p 
+                    <p
                       style={{
                         fontFamily: 'Avenir Next, sans-serif',
                         fontSize: '16px',
@@ -334,7 +252,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
           <>
             {(data.rightPane.content as ListItem[]).map((item, index) => (
               <div key={index} className="flex flex-col gap-6">
-                <h3 
+                <h3
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
                     fontSize: '18px',
@@ -345,7 +263,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                 >
                   {item.title}
                 </h3>
-                <p 
+                <p
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
                     fontSize: '18px',
@@ -366,7 +284,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
             {(data.rightPane.content as ContentSection[]).map((section, index) => (
               <div key={index} className="flex flex-col space-y-4">
                 {section.heading && (
-                  <h3 
+                  <h3
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
                       fontWeight: 600,
@@ -380,7 +298,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                 )}
                 <div className="flex flex-col space-y-4">
                   {section.paragraphs.map((paragraph, pIndex) => (
-                    <p 
+                    <p
                       key={pIndex}
                       style={{
                         fontFamily: 'Avenir Next, sans-serif',
@@ -403,7 +321,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
         {data.rightPane.type === 'paragraphs' && (
           <>
             {(data.rightPane.content as string[]).map((paragraph, index) => (
-              <p 
+              <p
                 key={index}
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
@@ -424,17 +342,17 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
             {(data.rightPane.content as TimelineItem[]).map((item, index) => (
               <div key={index} className="flex items-start" style={{ gap: '24px' }}>
                 <div className="flex flex-col items-center flex-shrink-0">
-                  <div 
+                  <div
                     className="w-5 h-5 rounded-full border-2 bg-white"
-                    style={{ 
+                    style={{
                       borderColor: '#D1D5DB',
                       marginTop: '4px'
                     }}
                   />
                   {index < (data.rightPane.content as TimelineItem[]).length - 1 && (
-                    <div 
+                    <div
                       className="w-0.5 flex-1"
-                      style={{ 
+                      style={{
                         backgroundColor: '#D1D5DB',
                         minHeight: '80px'
                       }}
@@ -523,7 +441,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                     onClick={() => handleAccordionToggle(item.id)}
                     className="w-full flex items-center justify-between py-6 text-left hover:bg-gray-50 transition-colors"
                   >
-                    <h3 
+                    <h3
                       style={{
                         fontFamily: 'Avenir Next, sans-serif',
                         fontSize: '18px',
@@ -534,7 +452,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                     >
                       {item.title}
                     </h3>
-                    <div 
+                    <div
                       className="ml-4 transition-transform duration-300"
                       style={{
                         transform: openAccordion === item.id ? 'rotate(180deg)' : 'rotate(0deg)'
@@ -545,14 +463,14 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                       </svg>
                     </div>
                   </button>
-                  <div 
+                  <div
                     className="overflow-hidden transition-all duration-300 ease-in-out"
                     style={{
                       maxHeight: openAccordion === item.id ? '1000px' : '0px'
                     }}
                   >
                     <div className="pb-6">
-                      <p 
+                      <p
                         style={{
                           fontFamily: 'Avenir Next, sans-serif',
                           fontSize: '16px',
@@ -569,64 +487,182 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
             </div>
           </>
         )}
+      </>
+    );
+  };
+
+  // Content component (left + right panes)
+  const ContentComponent = () => {
+    // Check if we should render full-width content (when title is empty and media is on top)
+    const isFullWidthContent = !data.leftPane.title && data.mediaPosition === 'top';
+
+    if (isFullWidthContent) {
+      // Render only right pane content, full width
+      return (
+        <div
+          className="w-full flex flex-col"
+          style={{
+            maxWidth: '100%',
+            gap: data.rightPane.gap || '32px'
+          }}
+        >
+          {renderRightPaneContent()}
+        </div>
+      );
+    }
+
+    // Standard two-column layout
+    return (
+      <div
+        className="w-full flex flex-col lg:flex-row items-start"
+        style={{ gap: '80px' }}
+      >
+        {/* Left Pane */}
+        <div
+          className={`flex flex-col gap-4 ${data.leftPane.description ? 'flex-1 w-full' : 'w-full lg:w-auto lg:flex-shrink-0'}`}
+          style={{
+            maxWidth: '616px'
+          }}
+        >
+          {data.leftPane.tagline && (
+            <span
+              style={{
+                fontFamily: 'Avenir Next, sans-serif',
+                fontSize: '14px',
+                fontWeight: 600,
+                color: data.leftPane.taglineColor || '#B8860B',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase'
+              }}
+            >
+              {data.leftPane.tagline}
+            </span>
+          )}
+
+          <h2
+            className="text-black"
+            style={{
+              fontFamily: 'Optima, Georgia, serif',
+              fontWeight: 550,
+              fontSize: 'clamp(28px, 4vw, 48px)',
+              lineHeight: data.leftPane.titleLineHeight || '125%',
+              letterSpacing: '-0.02em',
+              ...(!data.leftPane.description && { width: 'clamp(300px, 50vw, 616px)' })
+            }}
+          >
+            {data.leftPane.title}
+          </h2>
+
+        {data.leftPane.description && (
+          <p 
+            className="text-gray-700"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif',
+              fontSize: '16px',
+              lineHeight: '150%',
+              color: '#4A5568'
+            }}
+          >
+            {data.leftPane.description}
+          </p>
+        )}
+
+        {/* Buttons */}
+        {data.leftPane.buttons && data.leftPane.buttons.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-4 mt-2">
+            {data.leftPane.buttons.slice(0, 2).map((button, index) => (
+              <a
+                key={index}
+                href={button.url}
+                className="px-6 py-3 rounded-lg font-medium text-center transition-opacity hover:opacity-90"
+                style={{
+                  fontFamily: 'Avenir Next, sans-serif',
+                  fontSize: '16px',
+                  backgroundColor: button.variant === 'primary' ? '#7D1A13' : '#FFFFFF',
+                  color: button.variant === 'primary' ? '#FFFFFF' : '#7D1A13',
+                  border: button.variant === 'secondary' ? '2px solid #7D1A13' : 'none'
+                }}
+              >
+                {button.text}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
-  );
+
+        {/* Right Pane */}
+        <div
+          className="w-full flex flex-col"
+          style={{
+            maxWidth: '616px',
+            gap: data.rightPane.gap || '32px'
+          }}
+        >
+          {renderRightPaneContent()}
+        </div>
+      </div>
+    );
+  };
 
   const mediaPosition = data.mediaPosition || 'top';
 
   return (
-    <section 
+    <section
       className="relative w-full flex flex-col items-center overflow-hidden py-16 lg:py-28 px-4 lg:px-16"
       style={{
         backgroundColor: data.backgroundColor || '#FAF8F1'
       }}
     >
-      {/* Background Elements */}
-      {data.backgroundElements?.map((element, index) => (
-        <div key={index}>
-          {element.desktop && (
-            <div
-              className="absolute hidden lg:block pointer-events-none"
-              style={{
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
-                backgroundImage: element.desktop.background 
-                  ? `${element.desktop.background}, url(${element.image})`
-                  : `url(${element.image})`,
-                ...element.desktop,
-                background: undefined
-              }}
-            />
-          )}
-          {element.mobile && (
-            <div
-              className="absolute lg:hidden pointer-events-none overflow-hidden"
-              style={{
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
-                backgroundImage: element.mobile.background
-                  ? `${element.mobile.background}, url(${element.image})`
-                  : `url(${element.image})`,
-                ...element.mobile,
-                background: undefined
-              }}
-            />
-          )}
-        </div>
-      ))}
-
       {/* Main Container */}
-      <div 
-        className="w-full flex flex-col items-center relative z-10"
-        style={{ maxWidth: '1312px', gap: '80px' }}
+      <div
+        className="w-full flex flex-col items-center relative"
+        style={{ maxWidth: '1312px' }}
       >
+        {/* Background Elements - positioned relative to content container */}
+        {data.backgroundElements?.map((element, index) => (
+          <div key={index}>
+            {element.desktop && (
+              <div
+                className="absolute hidden lg:block pointer-events-none"
+                style={{
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  backgroundImage: element.desktop.background
+                    ? `${element.desktop.background}, url(${element.image})`
+                    : `url(${element.image})`,
+                  ...element.desktop,
+                  background: undefined,
+                  zIndex: 0
+                }}
+              />
+            )}
+            {element.mobile && (
+              <div
+                className="absolute lg:hidden pointer-events-none overflow-hidden"
+                style={{
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  backgroundImage: element.mobile.background
+                    ? `${element.mobile.background}, url(${element.image})`
+                    : `url(${element.image})`,
+                  ...element.mobile,
+                  background: undefined,
+                  zIndex: 0
+                }}
+              />
+            )}
+          </div>
+        ))}
+
+        {/* Content wrapper with higher z-index */}
+        <div className="relative z-10 w-full flex flex-col items-center" style={{ gap: data.hugging ? '32px' : '80px' }}>
         {/* Conditional rendering based on mediaPosition */}
         {mediaPosition === 'top' && <MediaComponent />}
         <ContentComponent />
         {mediaPosition === 'bottom' && <MediaComponent />}
+        </div>
       </div>
     </section>
   );

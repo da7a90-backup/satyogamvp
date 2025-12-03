@@ -59,7 +59,7 @@ const RelatedProgramsSection = ({ data }: { data: RelatedProgramsData }) => {
         </div>
 
         {/* Desktop: Grid Layout */}
-        <div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-5xl">
           {data.programs.map((program, index) => (
             <div
               key={index}

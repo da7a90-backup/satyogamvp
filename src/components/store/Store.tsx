@@ -46,17 +46,17 @@ interface FilterOptions {
 
 const StandardSection = ({ data }: { data: StandardSectionData }) => {
   return (
-    <section 
+    <section
       className="relative w-full flex flex-col items-center py-16 lg:py-28 px-4 lg:px-16"
       style={{ backgroundColor: '#FAF8F1' }}
     >
-      <div 
+      <div
         className="w-full flex flex-col items-center text-center"
-        style={{ maxWidth: '1000px', gap: '32px' }}
+        style={{ maxWidth: '1200px', gap: '32px' }}
       >
         {data.tagline && (
           <div className="flex items-center">
-            <span 
+            <span
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
                 fontSize: '14px',
@@ -73,7 +73,7 @@ const StandardSection = ({ data }: { data: StandardSectionData }) => {
         )}
 
         {data.title && (
-          <h2 
+          <h2
             className="text-black text-center"
             style={{
               fontFamily: 'Optima, Georgia, serif',
@@ -88,15 +88,15 @@ const StandardSection = ({ data }: { data: StandardSectionData }) => {
         )}
 
         {data.description && (
-          <p 
+          <p
             className="text-center"
             style={{
               fontFamily: 'Avenir Next, sans-serif',
               fontSize: '18px',
               lineHeight: '156%',
-              color: '#384250',
-              fontWeight: 400,
-              maxWidth: '800px'
+              color: '#414651',
+              fontWeight: 500,
+              width: '100%'
             }}
           >
             {data.description}
@@ -111,53 +111,72 @@ const StandardSection = ({ data }: { data: StandardSectionData }) => {
 // FEATURED PRODUCT COMPONENT
 // ============================================================================
 
-const FeaturedProduct = ({ product, onSave, isLoggedIn }: { 
-  product: Product; 
+const FeaturedProduct = ({ product, onSave, isLoggedIn }: {
+  product: Product;
   onSave: () => void;
   isLoggedIn: boolean;
 }) => {
   return (
-    <div 
-      className="flex flex-col lg:flex-row items-start w-full rounded-2xl overflow-hidden"
+    <div
+      className="flex flex-row items-center overflow-hidden mx-auto"
       style={{
-        backgroundColor: '#E9EAEB',
-        gap: '32px',
-        padding: 'clamp(24px, 4vw, 40px)'
+        width: '923px',
+        maxWidth: '100%',
+        height: '337px',
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #D2D6DB',
+        borderRadius: '8px',
+        padding: '0px',
+        isolation: 'isolate'
       }}
     >
       {/* Image */}
-      <div 
-        className="relative w-full lg:w-auto flex-shrink-0"
-        style={{ 
-          width: '100%',
-          maxWidth: '280px',
-          aspectRatio: '3/4'
+      <div
+        className="relative flex-shrink-0"
+        style={{
+          width: '310px',
+          height: '337px',
+          backgroundColor: '#E4DBCD',
+          borderRadius: '8px'
         }}
       >
         <img
           src={product.image}
           alt={product.title}
-          className="w-full h-full object-cover rounded-xl"
+          className="w-full h-full object-cover"
+          style={{ borderRadius: '8px' }}
         />
-        
+
         {/* Heart Icon */}
         <button
           onClick={onSave}
-          className="absolute top-3 right-3 w-10 h-10 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
+          className="absolute top-4 right-4 flex items-center justify-center hover:opacity-90 transition-all"
+          style={{
+            width: '48px',
+            height: '48px',
+            background: 'rgba(0, 0, 0, 0.1)',
+            borderRadius: '80px'
+          }}
         >
-          <Heart size={20} color="#000" />
+          <Heart size={16} color="#FFFFFF" strokeWidth={1.5} />
         </button>
 
         {/* Tags */}
-        <div className="absolute bottom-3 left-3 flex gap-2">
-          {product.tags.map((tag, index) => (
+        <div className="absolute bottom-4 left-2 flex gap-2">
+          {product.tags.slice(0, 1).map((tag, index) => (
             <span
               key={index}
-              className="px-2 py-1 rounded text-xs font-semibold"
+              className="px-3 py-1 text-center"
               style={{
-                backgroundColor: tag.color,
-                color: '#FFFFFF',
-                fontFamily: 'Avenir Next, sans-serif'
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #D5D7DA',
+                boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)',
+                borderRadius: '8px',
+                color: '#414651',
+                fontFamily: 'Avenir Next, sans-serif',
+                fontSize: '14px',
+                fontWeight: 500,
+                lineHeight: '20px'
               }}
             >
               {tag.label}
@@ -167,14 +186,24 @@ const FeaturedProduct = ({ product, onSave, isLoggedIn }: {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col" style={{ gap: '16px' }}>
+      <div
+        className="flex flex-col justify-center items-start"
+        style={{
+          width: '613px',
+          height: '337px',
+          padding: '24px',
+          gap: '24px',
+          isolation: 'isolate'
+        }}
+      >
         <h3
           style={{
-            fontFamily: 'Optima, Georgia, serif',
-            fontSize: 'clamp(24px, 3vw, 36px)',
-            fontWeight: 600,
-            lineHeight: '125%',
-            color: '#000000'
+            fontFamily: 'Optima',
+            fontSize: '24px',
+            fontWeight: 700,
+            lineHeight: '32px',
+            color: '#000000',
+            margin: 0
           }}
         >
           {product.title}
@@ -184,22 +213,25 @@ const FeaturedProduct = ({ product, onSave, isLoggedIn }: {
           <p
             style={{
               fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '16px',
-              lineHeight: '24px',
-              color: '#384250',
-              maxWidth: '600px'
+              fontSize: '18px',
+              lineHeight: '28px',
+              color: '#414651',
+              fontWeight: 500,
+              margin: 0,
+              flexGrow: 1
             }}
           >
             {product.description}
           </p>
         )}
 
-        <div className="flex items-center gap-4 mt-4">
+        <div className="flex items-center justify-between w-full" style={{ gap: '16px' }}>
           <span
             style={{
-              fontFamily: 'Optima, Georgia, serif',
-              fontSize: '28px',
+              fontFamily: 'Roboto',
+              fontSize: '20px',
               fontWeight: 600,
+              lineHeight: '150%',
               color: '#000000'
             }}
           >
@@ -214,15 +246,18 @@ const FeaturedProduct = ({ product, onSave, isLoggedIn }: {
               flexDirection: 'row',
               justifyContent: 'center',
               alignItems: 'center',
-              padding: '10px 20px',
-              background: '#7D1A13',
+              padding: '10px 14px',
+              gap: '4px',
+              width: '105px',
+              height: '40px',
+              background: '#FFFFFF',
+              border: '1px solid #D5D7DA',
               boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
               borderRadius: '8px',
-              border: 'none',
               fontFamily: 'Avenir Next, sans-serif',
               fontSize: '14px',
               fontWeight: 600,
-              color: '#FFFFFF',
+              color: '#414651',
               cursor: 'pointer'
             }}
           >

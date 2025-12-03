@@ -39,7 +39,7 @@ export default function PhotoGallerySection({ data }: PhotoGallerySectionProps) 
               position: 'relative',
               overflow: 'hidden',
               borderRadius: '8px',
-              aspectRatio: index % 3 === 0 ? '4/3' : index % 3 === 1 ? '16/9' : '1/1',
+              aspectRatio: '4/3',
               cursor: 'pointer',
               transition: 'transform 0.3s ease'
             }}

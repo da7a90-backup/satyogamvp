@@ -194,7 +194,7 @@ export default function StorePage() {
         <div className="text-center mb-8">
           <p className="text-sm tracking-[0.2em] text-[#8B7355] mb-4">STORE</p>
           <h1 className="text-4xl md:text-5xl font-serif mb-4">The Dharma Bandhara</h1>
-          <p className="max-w-3xl mx-auto text-gray-700 leading-relaxed">
+          <p className="w-full text-gray-700 leading-relaxed">
             The Sat Yoga Online Store is a treasure trove of life-altering knowledge, in the form of unrepeatable retreats,
             paradigm-shifting books, beautiful guided meditations, as well as the popular Reading the Sages audio collections.
           </p>
@@ -202,15 +202,26 @@ export default function StorePage() {
 
         {/* Featured Product */}
         {featuredProduct && (
-          <div className="mb-12 bg-white rounded-lg overflow-hidden shadow-lg">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="relative aspect-square bg-[#E4DBCD]">
+          <div
+            className="mb-12 mx-auto overflow-hidden bg-white flex flex-row items-center"
+            style={{
+              width: '923px',
+              maxWidth: '100%',
+              height: '337px',
+              borderRadius: '8px',
+              border: '1px solid #D2D6DB',
+              boxShadow: '0px 1px 3px rgba(16, 24, 40, 0.1)'
+            }}
+          >
+            <div className="relative flex-shrink-0" style={{ width: '310px', height: '337px' }}>
+              <div className="relative w-full h-full bg-[#E4DBCD]" style={{ borderRadius: '8px 0 0 8px' }}>
                 {featuredProduct.featured_image ? (
                   <Image
                     src={featuredProduct.featured_image}
                     alt={featuredProduct.title}
                     fill
                     className="object-cover"
+                    style={{ borderRadius: '8px 0 0 8px' }}
                     unoptimized
                   />
                 ) : (
@@ -218,36 +229,80 @@ export default function StorePage() {
                     No image
                   </div>
                 )}
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#942017] text-white px-3 py-1 text-xs font-bold rounded">
-                    FEATURED
+                <button
+                  className="absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center transition-opacity hover:opacity-90"
+                  style={{ background: 'rgba(0, 0, 0, 0.1)' }}
+                  onClick={() => handleAction('Save for later functionality under active development, try again in a couple of days!')}
+                >
+                  <Heart className="w-4 h-4 text-white" strokeWidth={1.5} />
+                </button>
+                <div className="absolute bottom-4 left-2">
+                  <span className="bg-white border border-[#D5D7DA] px-3 py-1 text-sm font-medium rounded-lg" style={{ boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)' }}>
+                    {getTypeBadges(featuredProduct.type)[0]}
                   </span>
                 </div>
               </div>
-              <div className="p-8 flex flex-col justify-center">
-                <div className="flex gap-2 mb-2">
-                  {getTypeBadges(featuredProduct.type).map((badge, index) => (
-                    <span key={index} className="text-sm font-bold text-[#942017] uppercase tracking-wide">
-                      {badge}
-                    </span>
-                  ))}
-                </div>
-                <h2 className="text-3xl font-bold mb-4">{featuredProduct.title}</h2>
-                <p className="text-gray-600 mb-6 line-clamp-3">{featuredProduct.short_description || featuredProduct.description}</p>
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl font-bold">${Number(featuredProduct.price).toFixed(2)}</span>
-                  <Button
-                    onClick={() => handleAction('Add to cart functionality under active development, try again in a couple of days!')}
-                    className="bg-[#942017] hover:bg-[#942017]/90 text-white"
-                  >
-                    Add to cart
-                  </Button>
-                  <Link href={`/store/${featuredProduct.slug}`}>
-                    <Button variant="outline">
-                      View Details
-                    </Button>
-                  </Link>
-                </div>
+            </div>
+            <div className="flex flex-col justify-center" style={{ width: '613px', padding: '24px', gap: '24px' }}>
+              <h2 style={{
+                fontFamily: 'Optima',
+                fontSize: '24px',
+                fontWeight: 700,
+                lineHeight: '32px',
+                color: '#000000',
+                margin: 0
+              }}>
+                {featuredProduct.title}
+              </h2>
+              <p style={{
+                fontFamily: 'Avenir Next, sans-serif',
+                fontSize: '18px',
+                lineHeight: '28px',
+                color: '#414651',
+                fontWeight: 500,
+                margin: 0,
+                flexGrow: 1,
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}>
+                {featuredProduct.short_description || featuredProduct.description}
+              </p>
+              <div className="flex items-center justify-between w-full" style={{ gap: '16px' }}>
+                <span style={{
+                  fontFamily: 'Roboto',
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  lineHeight: '150%',
+                  color: '#000000'
+                }}>
+                  ${Number(featuredProduct.price).toFixed(2)}
+                </span>
+                <button
+                  onClick={() => handleAction('Add to cart functionality under active development, try again in a couple of days!')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '10px 14px',
+                    gap: '4px',
+                    width: '105px',
+                    height: '40px',
+                    background: '#FFFFFF',
+                    border: '1px solid #D5D7DA',
+                    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+                    borderRadius: '8px',
+                    fontFamily: 'Avenir Next, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#414651',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Add to cart
+                </button>
               </div>
             </div>
           </div>

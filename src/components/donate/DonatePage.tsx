@@ -263,7 +263,7 @@ const GeneralFundSection = () => {
             </div>
 
             {/* Donation Form */}
-            <div className="w-full max-w-[628px] flex flex-col gap-6">
+            <div className="w-full max-w-[800px] flex flex-col gap-6">
               {/* Suggested Amounts Label */}
               <p
                 className="text-center text-gray-700"
@@ -273,7 +273,7 @@ const GeneralFundSection = () => {
               </p>
 
               {/* Preset Amount Buttons */}
-              <div className="flex flex-wrap justify-center gap-2">
+              <div className="flex justify-center gap-2">
                 {presetAmounts.map((amount) => (
                   <button
                     key={amount}

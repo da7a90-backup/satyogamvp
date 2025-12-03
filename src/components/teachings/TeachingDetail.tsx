@@ -236,8 +236,8 @@ export default function TeachingDetailPage({
                 <div className="flex-1">
                   <div className="flex gap-3 items-center mb-3">
                     <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{
-                      background: data.accessType === 'free' ? '#D1FAE5' : data.accessType === 'preview' ? '#DBEAFE' : '#FEE2E2',
-                      color: data.accessType === 'free' ? '#065F46' : data.accessType === 'preview' ? '#1E40AF' : '#991B1B'
+                      background: data.accessType === 'free' ? '#D1FAE5' : data.accessType === 'preview' ? '#FEF3C7' : '#FEE2E2',
+                      color: data.accessType === 'free' ? '#065F46' : data.accessType === 'preview' ? '#92400E' : '#991B1B'
                     }}>
                       {data.accessType === 'free' ? 'Free' : data.accessType === 'preview' ? 'Preview' : 'Membership'}
                     </span>
@@ -332,7 +332,7 @@ export default function TeachingDetailPage({
                   )}
 
                   {/* Audio Player (shows alongside video or standalone) */}
-                  {hasAudio && (
+                  {hasAudio && (!hasVideo || isGuidedMeditation) && (
                     <div className={hasVideo ? "mt-4" : ""}>
                       <AudioPlayer
                         podbeanId={podbeanId!}
@@ -350,11 +350,11 @@ export default function TeachingDetailPage({
 
               {/* Preview Mode Banner */}
               {isPreviewMode && !isEssay && (
-                <div className="flex items-center gap-3 p-4 bg-[#DBEAFE] border border-[#3B82F6] rounded-lg mb-8">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="#3B82F6">
+                <div className="flex items-center gap-3 p-4 rounded-lg mb-8" style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B', borderWidth: '1px' }}>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="#F59E0B">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
-                  <p className="text-sm text-[#1E40AF]">
+                  <p className="text-sm" style={{ color: '#92400E' }}>
                     <strong>Preview Mode:</strong> You're watching a preview.{' '}
                     <span onClick={onSignupClick} className="underline cursor-pointer hover:no-underline">Sign up free</span> to access the full teaching.
                   </p>
@@ -386,7 +386,7 @@ export default function TeachingDetailPage({
                     </button>
                   )}
 
-                  {hasAudio && !isGuidedMeditation && (
+                  {hasAudio && hasVideo && !isGuidedMeditation && (
                     <button
                       onClick={() => setActiveTab('audio')}
                       className={`pb-3 px-1 border-b-2 transition-colors ${
@@ -607,16 +607,17 @@ const VideoPlayer: React.FC<{
   return (
     <div className="relative">
       {isPreviewMode && playbackTime > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B', borderWidth: '1px' }}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-blue-800 text-sm font-medium">
+            <p className="text-sm font-medium" style={{ color: '#92400E' }}>
               Preview: {Math.floor(playbackTime / 60)}:{(Math.floor(playbackTime % 60)).toString().padStart(2, '0')} / {Math.floor(previewDuration / 60)}:{(Math.floor(previewDuration % 60)).toString().padStart(2, '0')}
             </p>
           </div>
-          <div className="w-full bg-blue-200 rounded-full h-2">
+          <div className="w-full rounded-full h-2" style={{ backgroundColor: '#FDE68A' }}>
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="h-2 rounded-full transition-all duration-300"
               style={{
+                backgroundColor: '#F59E0B',
                 width: `${Math.min((playbackTime / previewDuration) * 100, 100)}%`
               }}
             ></div>
@@ -799,15 +800,16 @@ const AudioPlayer: React.FC<{
         {isPreviewMode && playbackTime > 0 && (
           <div className="mt-3">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-yellow-400 text-sm font-medium">
+              <p className="text-sm font-medium" style={{ color: '#F59E0B' }}>
                 Preview: {formatTime(playbackTime)} / {formatTime(previewDuration)}
               </p>
             </div>
             <div className="w-full bg-gray-600 rounded-full h-2">
-              <div 
-                className="bg-yellow-500 h-2 rounded-full transition-all duration-300" 
-                style={{ 
-                  width: `${Math.min((playbackTime / previewDuration) * 100, 100)}%` 
+              <div
+                className="h-2 rounded-full transition-all duration-300"
+                style={{
+                  backgroundColor: '#F59E0B',
+                  width: `${Math.min((playbackTime / previewDuration) * 100, 100)}%`
                 }}
               ></div>
             </div>

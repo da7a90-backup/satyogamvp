@@ -135,7 +135,7 @@ const StoreProductSection = ({ data }: { data: PastRetreatsData }) => {
     >
       <div className="max-w-7xl mx-auto">
         {/* Top Header Section */}
-        <div className="w-full flex flex-col items-center text-center mb-12">
+        <div className="w-full flex flex-col items-start text-left mb-12">
           <p
             className="mb-4"
             style={{
@@ -323,7 +323,7 @@ const ProductCard = ({ product, onAction }: { product: Product; onAction: (messa
       </div>
 
       {/* Content */}
-      <div className="p-6 flex flex-col gap-3 flex-grow">
+      <div className="py-6 flex flex-col gap-3 flex-grow">
         {/* Category & Price */}
         <div className="flex justify-between items-start">
           <span

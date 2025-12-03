@@ -32,34 +32,36 @@ const ShunyamurtiSection = ({
         paddingBottom: '64px'
       }}
     >
-      {/* Background Decorative Element */}
-      <div
-        className="absolute hidden lg:block"
-        style={{
-          right: '-120px',
-          top: '-150px',
-          width: '389px',
-          height: '389px',
-          backgroundImage: `url(${backgroundDecoration})`,
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          zIndex: 0,
-          opacity: 0.3
-        }}
-      />
-
       {/* Flex Container for Content and Image */}
-      <div className="relative z-10 flex flex-col md:items-center lg:items-start lg:flex-row justify-between" style={{ gap: '80px', maxWidth: '1440px', margin: '0 auto' }}>
+      <div className="relative flex flex-col md:items-center lg:items-start lg:flex-row justify-between" style={{ gap: '80px', maxWidth: '1440px', margin: '0 auto' }}>
+        {/* Background Decorative Element - positioned relative to content container */}
+        <div
+          className="absolute hidden lg:block"
+          style={{
+            right: '-120px',
+            top: '-120px',
+            width: '389px',
+            height: '389px',
+            backgroundImage: `url(${backgroundDecoration})`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            zIndex: 1,
+            opacity: 0.3
+          }}
+        />
         {/* Content Container - Left side on desktop */}
         <div
-          className="order-2 lg:order-1 flex flex-col w-full md:w-auto md:max-w-[616px]"
+          className="order-2 lg:order-1 flex flex-col w-full md:w-auto"
           style={{
-            paddingTop: '41px',
-            flex: 1
+            width: '616px',
+            height: '622px',
+            gap: '32px',
+            opacity: 1,
+            zIndex: 5
           }}
         >
-          {/* Eyebrow - positioned 41px from top of image / 153px from top of section */}
-          <div className="mb-6">
+          {/* Eyebrow */}
+          <div>
             <span
               className="uppercase"
               style={{
@@ -77,20 +79,21 @@ const ShunyamurtiSection = ({
 
           {/* Quote as Heading */}
           <blockquote
-            className="text-black mb-8"
+            className="text-black"
             style={{
               fontFamily: 'Optima, Georgia, serif',
               fontSize: '48px',
               fontWeight: 550,
               lineHeight: '60px',
-              letterSpacing: '-2%'
+              letterSpacing: '-2%',
+              marginTop: '-16px'
             }}
           >
             "{quote}"
           </blockquote>
 
           {/* Description Paragraphs */}
-          <div className="space-y-6 mb-8">
+          <div className="space-y-6">
             {content.map((paragraph, index) => (
               <p
                 key={index}
@@ -128,7 +131,7 @@ const ShunyamurtiSection = ({
         </div>
 
         {/* Image Container - Right side on desktop */}
-        <div className="order-1 lg:order-2 flex-shrink-0 w-full md:w-auto md:max-w-[616px]">
+        <div className="order-1 lg:order-2 flex-shrink-0 w-full md:w-auto" style={{ zIndex: 10 }}>
           <img
             src={image}
             alt={imageAlt}
@@ -137,6 +140,7 @@ const ShunyamurtiSection = ({
               width: '616px',
               height: '640px',
               borderRadius: '12px',
+              opacity: 1,
               boxShadow: `2px 5px 11px 0px #0000001A,
                           8px 18px 20px 0px #00000017,
                           19px 41px 27px 0px #0000000D,

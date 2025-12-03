@@ -106,7 +106,7 @@ const LearnOnlineSection = ({
           }}
         />
 
-        <div className="py-6 px-6 mb-6">
+        <div className="mb-2">
           <span
             className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
             style={{
@@ -118,7 +118,7 @@ const LearnOnlineSection = ({
           </span>
         </div>
 
-        <h2 
+        <h2
           className="text-black text-center mb-6"
           style={{
             fontFamily: 'Optima, Georgia, serif',
@@ -134,15 +134,15 @@ const LearnOnlineSection = ({
 
         <div className="text-center space-y-6">
           {description.map((paragraph, index) => (
-            <p 
+            <p
               key={index}
-              className="text-gray-700"
               style={{
                 fontFamily: 'Avenir Next, sans-serif',
                 fontSize: '18px',
                 fontWeight: 500,
                 lineHeight: '28px',
-                color: '#384250',
+                letterSpacing: '0%',
+                color: '#4A5568',
                 maxWidth: '648px'
               }}
             >
@@ -207,7 +207,7 @@ const LearnOnlineSection = ({
             className="flex flex-col justify-center items-start flex-1"
             key={`content-${activeTab}`}
             style={{
-              maxWidth: '568px',
+              maxWidth: '520px',
               gap: '32px',
               animation: 'fadeIn 0.3s ease-in-out'
             }}
@@ -232,18 +232,20 @@ const LearnOnlineSection = ({
                   fontSize: '36px',
                   fontWeight: 550,
                   lineHeight: '44px',
-                  letterSpacing: '-0.02em'
+                  letterSpacing: '-0.02em',
+                  marginTop: '-16px'
                 }}
               >
                 {currentTab.title}
               </h3>
 
               <p
-                className="text-gray-700"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '16px',
-                  lineHeight: '24px',
+                  fontWeight: 500,
+                  fontSize: '18px',
+                  lineHeight: '28px',
+                  letterSpacing: '0%',
                   color: '#4A5568'
                 }}
               >
@@ -349,8 +351,8 @@ const LearnOnlineSection = ({
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <span 
+                <div className="mb-2">
+                  <span
                     className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
@@ -361,7 +363,7 @@ const LearnOnlineSection = ({
                   </span>
                 </div>
 
-                <h3 
+                <h3
                   className="text-black mb-4"
                   style={{
                     fontFamily: 'Optima, Georgia, serif',

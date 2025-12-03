@@ -17,29 +17,37 @@ const IntroSection = ({ backgroundImage, heading }: IntroSectionProps) => {
       }}
     >
       <div
-        className="absolute inset-0 flex items-center justify-center"
+        className="relative w-full flex items-center justify-center"
         style={{
-          zIndex: 0,
-          overflow: 'hidden'
-        }}
-      >
-        <img
-          src={backgroundImage}
-          alt="Nataraja"
-          className="w-64 h-64 md:w-96 md:h-96 lg:w-[514px] lg:h-[519px] object-contain opacity-40"
-        />
-      </div>
-
-      <div
-        className="relative z-10 text-center px-4"
-        style={{
-          zIndex: 1,
-          maxWidth: '876px',
-          minHeight: '192px',
+          maxWidth: '1312px',
           margin: '0 auto',
-          width: '100%'
+          minHeight: '816px'
         }}
       >
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            zIndex: 0,
+            overflow: 'hidden'
+          }}
+        >
+          <img
+            src={backgroundImage}
+            alt="Nataraja"
+            className="w-64 h-64 md:w-96 md:h-96 lg:w-[514px] lg:h-[519px] object-contain opacity-40"
+          />
+        </div>
+
+        <div
+          className="relative z-10 text-center px-4"
+          style={{
+            zIndex: 1,
+            maxWidth: '876px',
+            minHeight: '192px',
+            margin: '0 auto',
+            width: '100%'
+          }}
+        >
         <h2
           className="text-white"
           style={{
@@ -53,6 +61,7 @@ const IntroSection = ({ backgroundImage, heading }: IntroSectionProps) => {
         >
           {heading}
         </h2>
+      </div>
       </div>
     </section>
   );

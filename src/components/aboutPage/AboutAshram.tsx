@@ -59,6 +59,7 @@ export default function AboutAshramPage({ data }: any) {
     // Map shunyamurti video section
     const shunyamurtiVideoData = data.shunyamurtiVideo ? {
         mediaPosition: 'top' as const,
+        hugging: true,
         topMedia: {
             type: 'video' as const,
             src: data.shunyamurtiVideo.videoUrl || 'https://www.youtube.com/embed/1z4ryQt0duM?feature=shared',

@@ -176,8 +176,8 @@ const WhatWillYouEncounterSection = ({ galleries }: WhatWillYouEncounterProps) =
       case 'Kitchen':
         return (
           <div className="w-full flex flex-col items-center gap-8">
-            <div className="text-center max-w-4xl px-4">
-              <h3 
+            <div className="text-center w-full px-4">
+              <h3
                 className="mb-4"
                 style={{
                   fontFamily: 'Optima, sans-serif',
@@ -188,7 +188,7 @@ const WhatWillYouEncounterSection = ({ galleries }: WhatWillYouEncounterProps) =
               >
                 Ruchira – Our Ashram Kitchen
               </h3>
-              <p 
+              <p
                 className="mb-6"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
@@ -216,8 +216,8 @@ const WhatWillYouEncounterSection = ({ galleries }: WhatWillYouEncounterProps) =
       case 'Accommodations':
         return (
           <div className="w-full flex flex-col items-center gap-8">
-            <div className="text-center max-w-4xl px-4">
-              <h3 
+            <div className="text-center w-full px-4">
+              <h3
                 className="mb-4"
                 style={{
                   fontFamily: 'Optima, sans-serif',
@@ -228,7 +228,7 @@ const WhatWillYouEncounterSection = ({ galleries }: WhatWillYouEncounterProps) =
               >
                 Accommodations – Nature is Our Neighbor
               </h3>
-              <p 
+              <p
                 className="mb-6"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
@@ -246,8 +246,8 @@ const WhatWillYouEncounterSection = ({ galleries }: WhatWillYouEncounterProps) =
       case 'Community':
         return (
           <div className="w-full flex flex-col items-center gap-8">
-            <div className="text-center max-w-4xl px-4">
-              <h3 
+            <div className="text-center w-full px-4">
+              <h3
                 className="mb-4"
                 style={{
                   fontFamily: 'Optima, sans-serif',
@@ -258,7 +258,7 @@ const WhatWillYouEncounterSection = ({ galleries }: WhatWillYouEncounterProps) =
               >
                 Connect with the Community – A Tribal Gathering
               </h3>
-              <p 
+              <p
                 className="mb-6"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',

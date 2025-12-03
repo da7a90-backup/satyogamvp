@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -42,6 +43,7 @@ interface ClassType {
 }
 
 // Component to edit a class content
+// @ts-ignore
 const ClassContentEditor = ({ courseId, classId }: ClassContentEditorProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);

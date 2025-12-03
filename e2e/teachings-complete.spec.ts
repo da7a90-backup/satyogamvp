@@ -188,7 +188,7 @@ test.describe('Teachings Complete Flow', () => {
     await page.waitForTimeout(2000);
 
     const originalTitle = await page.locator('h1').first().textContent();
-    console.log('Original teaching:', original Title);
+    console.log('Original teaching:', originalTitle);
 
     // Click first related teaching if available
     const firstRelated = page.locator('aside').locator('a[href*="/teachings/"]').first();
