@@ -240,7 +240,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   );
 
   return (
-    <header className="sticky top-0 z-30 font-sans">
+    <header className="sticky top-0 z-[200] font-sans">
       {/* Promotional Banner */}
       {showBanner && (
         <div
