@@ -411,6 +411,37 @@ class MembershipDiscountItem(Base):
     feature = relationship("MembershipFeature", back_populates="discount_items")
 
 
+class MembershipBenefits(Base):
+    """Membership benefits page configuration"""
+    __tablename__ = "membership_benefits"
+
+    id = Column(Integer, primary_key=True)
+    background_color = Column(String(50), default='#FAF8F1')
+    left_pane_title = Column(String(200), nullable=False)
+    left_pane_description = Column(Text, nullable=False)
+    left_pane_buttons = Column(JSONB)  # Array of button objects
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    accordion_items = relationship("MembershipBenefitItem", back_populates="benefits_config", order_by="MembershipBenefitItem.order_index", cascade="all, delete-orphan")
+
+
+class MembershipBenefitItem(Base):
+    """Individual benefit accordion items"""
+    __tablename__ = "membership_benefit_items"
+
+    id = Column(Integer, primary_key=True)
+    benefits_id = Column(Integer, ForeignKey("membership_benefits.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(500), nullable=False)
+    content = Column(Text, nullable=False)
+    order_index = Column(Integer, nullable=False)
+
+    # Relationships
+    benefits_config = relationship("MembershipBenefits", back_populates="accordion_items")
+
+
 class DonationProject(Base):
     """Donation projects"""
     __tablename__ = "donation_projects"

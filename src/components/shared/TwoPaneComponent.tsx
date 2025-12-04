@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // ============================================================================
 // TYPES
@@ -83,6 +83,14 @@ interface TwoPaneData {
 const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
   const [openAccordion, setOpenAccordion] = useState(0);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [, forceRender] = useState({});
+
+  // Force re-render when background elements change during navigation
+  useEffect(() => {
+    if (data.backgroundElements && data.backgroundElements.length > 0) {
+      forceRender({});
+    }
+  }, [data.backgroundElements]);
 
   const handleAccordionToggle = (id: number) => {
     setOpenAccordion(openAccordion === id ? -1 : id);
@@ -620,18 +628,19 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
       >
         {/* Background Elements - positioned relative to content container */}
         {data.backgroundElements?.map((element, index) => (
-          <div key={index}>
+          <div key={element.image || index}>
             {element.desktop && (
               <div
-                className="absolute hidden lg:block pointer-events-none"
+                className="absolute pointer-events-none"
                 style={{
+                  display: 'block',
+                  ...element.desktop,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center',
                   backgroundImage: element.desktop.background
                     ? `${element.desktop.background}, url(${element.image})`
                     : `url(${element.image})`,
-                  ...element.desktop,
                   background: undefined,
                   zIndex: 0
                 }}
@@ -641,13 +650,13 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
               <div
                 className="absolute lg:hidden pointer-events-none overflow-hidden"
                 style={{
+                  ...element.mobile,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center',
                   backgroundImage: element.mobile.background
                     ? `${element.mobile.background}, url(${element.image})`
                     : `url(${element.image})`,
-                  ...element.mobile,
                   background: undefined,
                   zIndex: 0
                 }}

@@ -120,10 +120,9 @@ const BooksSection = ({ books: apiBooks }: { books: Book[] }) => {
         }}
       >
         {/* Section Title */}
-        <div 
+        <div
           className="w-full flex flex-col justify-center items-center mx-auto"
           style={{
-            maxWidth: '768px',
             gap: '16px'
           }}
         >

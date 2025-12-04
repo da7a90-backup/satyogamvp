@@ -99,20 +99,21 @@ const ImageCarouselSection = ({data}: {data: CarouselImage[]}) => {
         </div>
 
         {/* Mobile Carousel - Single Image */}
-        <div className="lg:hidden">
+        <div className="lg:hidden w-full px-4">
           <div className="relative w-full max-w-md mx-auto overflow-hidden rounded-xl">
-            <div 
+            <div
               className="flex transition-transform duration-300 ease-in-out"
               style={{
                 transform: `translateX(-${currentSlide * 100}%)`,
               }}
             >
               {data.map((item, index) => (
-                <div 
+                <div
                   key={index}
                   className="w-full flex-shrink-0"
+                  style={{ minWidth: '100%' }}
                 >
-                  <div 
+                  <div
                     className="w-full rounded-xl overflow-hidden"
                     style={{ aspectRatio: '4/3', backgroundColor: '#f3f4f6' }}
                   >

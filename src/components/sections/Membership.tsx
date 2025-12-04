@@ -80,10 +80,10 @@ const MembershipSection = ({
                 {description}
               </p>
 
-              <div className="flex flex-col lg:flex-row gap-4 mt-2">
+              <div className="flex flex-col lg:flex-row gap-4 mt-2 w-full lg:w-auto">
                 <Link
                   href={buttonLink}
-                  className="inline-flex items-center justify-center px-4 py-2 lg:px-6 lg:py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                  className="w-full lg:w-auto flex lg:inline-flex items-center justify-center px-4 py-2 lg:px-6 lg:py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
                     fontSize: '14px',

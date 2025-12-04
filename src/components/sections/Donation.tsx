@@ -26,7 +26,7 @@ const DonationSection = ({
       }}
     >
       <div
-        className="relative w-full bg-white border border-gray-300 rounded-2xl overflow-hidden p-8 lg:p-28 min-h-[280px] lg:min-h-[400px]"
+        className="relative w-full bg-white border border-gray-300 rounded-2xl overflow-hidden p-6 lg:p-28 min-h-[240px] lg:min-h-[400px]"
         style={{
           boxShadow: '0px 94px 38px rgba(111, 62, 21, 0.01), 0px 53px 32px rgba(111, 62, 21, 0.05), 0px 24px 24px rgba(111, 62, 21, 0.09), 0px 6px 13px rgba(111, 62, 21, 0.1)',
           borderRadius: '16px',
@@ -66,8 +66,8 @@ const DonationSection = ({
           }}
         />
         
-        <div 
-          className="relative z-10 flex flex-col items-center justify-center gap-4 lg:gap-6 h-full"
+        <div
+          className="relative z-10 flex flex-col items-center justify-center gap-3 lg:gap-6 h-full"
           style={{
             maxWidth: '560px',
             margin: '0 auto'
@@ -110,10 +110,10 @@ const DonationSection = ({
             {description}
           </p>
 
-          <div className="flex justify-center mt-4 lg:mt-6">
+          <div className="flex justify-center mt-2 lg:mt-6 w-full">
             <Link
               href={buttonLink}
-              className="inline-flex items-center px-6 py-3 lg:px-8 lg:py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
+              className="w-full lg:w-auto flex lg:inline-flex items-center justify-center px-6 py-3 lg:px-8 lg:py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
               style={{
                 backgroundColor: '#7D1A13',
                 fontFamily: 'Avenir Next, sans-serif',

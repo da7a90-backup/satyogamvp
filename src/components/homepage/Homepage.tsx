@@ -12,15 +12,26 @@ import PlatformSection from '../sections/Platform';
 import MembershipSection from '../sections/Membership';
 import DonationSection from '../sections/Donation';
 
-import { homePageData, type HomePageData } from '@/lib/hpdata';
+// Define the expected data structure type
+type HomePageData = {
+  hero: { videoUrl: string; logoUrl: string; logoAlt: string; subtitle: string };
+  intro: { backgroundImage: string; heading: string };
+  whoWeAre: { eyebrow: string; heading: string; content: string[]; buttonText: string; buttonLink: string; image: string; imageAlt: string; backgroundDecoration: string };
+  shunyamurti: { eyebrow: string; quote: string; content: string[]; buttonText: string; buttonLink: string; image: string; imageAlt: string; backgroundDecoration: string };
+  learnOnline: { eyebrow: string; heading: string; description: string[]; tabs: any[]; backgroundDecorations: string[] };
+  ashram: { eyebrow: string; heading: string; content: string[]; buttonText: string; buttonLink: string; images: { main: string; secondary: string[] } };
+  platform: { eyebrow: string; heading: string; content: string[]; buttonText: string; buttonLink: string; image: string; imageAlt: string; backgroundDecoration: string };
+  membership: { eyebrow: string; heading: string; description: string; buttonText: string; buttonLink: string; backgroundImage: string };
+  donation: { eyebrow: string; heading: string; description: string; buttonText: string; buttonLink: string; backgroundDecoration: string };
+};
 
 interface HomePageProps {
-  data?: HomePageData; // Optional - will use default if not provided
+  data: HomePageData; // Required - no fallback
 }
 
 export default function HomePage({ data }: HomePageProps) {
-  // Use provided data or fall back to default
-  const pageData = data || homePageData;
+  // Use data directly from backend API - no fallback
+  const pageData = data;
 
   const [introRevealed, setIntroRevealed] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);

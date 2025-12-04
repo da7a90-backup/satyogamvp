@@ -5,7 +5,6 @@ import BooksSection from "../about/aboutShunyamurti/Books";
 import OnlineRetreatsSection from "../about/aboutShunyamurti/OnlineRetreats";
 import FreeTeachingsSection from "../about/aboutSatyoga/Teachings";
 import TwoPaneComponent from "../shared/TwoPaneComponent";
-import { onlineRetreatsData } from "@/lib/data";
 import QuoteSection from "../shared/Quote";
 import StandardHeroSection from "../shared/Hero";
 import EncountersSection from '../about/aboutShunyamurti/Testimonial';
@@ -13,9 +12,10 @@ import EncountersSection from '../about/aboutShunyamurti/Testimonial';
 interface AboutShunyaPageProps {
   data: any;
   books: any[];
+  onlineRetreatsData?: { retreats: any[], total: number };
 }
 
-export default function AboutShunyaPage({ data, books }: AboutShunyaPageProps) {
+export default function AboutShunyaPage({ data, books, onlineRetreatsData = { retreats: [], total: 0 } }: AboutShunyaPageProps) {
   // Map API data to component structure
   const heroData = data.hero ? {
     tagline: data.hero.tagline || "About",
@@ -91,14 +91,32 @@ export default function AboutShunyaPage({ data, books }: AboutShunyaPageProps) {
   // Sri Ramana data
   const sriRamanaBackground = data.sriRamana?.backgroundImage;
 
+  // Create a unique key for curriculum vitae based on background elements
+  const cvKey = curriculumVitaeData?.backgroundElements?.[0]?.image
+    ? `curriculum-vitae-${curriculumVitaeData.backgroundElements[0].image.split('/').pop()}`
+    : 'curriculum-vitae';
+
+  // Map online retreat from API to expected format
+  const upcomingRetreat = onlineRetreatsData.retreats.length > 0 ? {
+    slug: onlineRetreatsData.retreats[0].slug,
+    title: onlineRetreatsData.retreats[0].title,
+    heroBackground: onlineRetreatsData.retreats[0].hero_background || "",
+    bookingTagline: onlineRetreatsData.retreats[0].booking_tagline || "ONLINE RETREAT",
+    fixedDate: onlineRetreatsData.retreats[0].fixed_date,
+    location: onlineRetreatsData.retreats[0].location || "Online Retreat",
+    basePrice: onlineRetreatsData.retreats[0].price,
+    images: onlineRetreatsData.retreats[0].images || [],
+    intro1Content: onlineRetreatsData.retreats[0].intro1_content || [],
+  } : null;
+
   return (
     <>
       <StandardHeroSection data={heroData} />
-      {whatIsShunyamurtiData && <TwoPaneComponent data={whatIsShunyamurtiData} />}
-      {qnaData && <TwoPaneComponent data={qnaData} />}
+      {whatIsShunyamurtiData && <TwoPaneComponent key="what-is-shunyamurti" data={whatIsShunyamurtiData} />}
+      {qnaData && <TwoPaneComponent key="qna" data={qnaData} />}
       <QuoteSection data={quoteText} backgroundDecoration={quoteDecoration} />
       <BooksSection books={books} />
-      {curriculumVitaeData && <TwoPaneComponent data={curriculumVitaeData} />}
+      {curriculumVitaeData && <TwoPaneComponent key={cvKey} data={curriculumVitaeData} />}
 
       {/* Encounters Section */}
       {encountersData.encounters.length > 0 && (
@@ -109,7 +127,7 @@ export default function AboutShunyaPage({ data, books }: AboutShunyaPageProps) {
       )}
 
       <SriRamanaConnectionSection backgroundImage={sriRamanaBackground} />
-      {onlineRetreatsData.length > 0 && <OnlineRetreatsSection retreat={onlineRetreatsData[0] as any} />}
+      {upcomingRetreat && <OnlineRetreatsSection retreat={upcomingRetreat as any} totalRetreats={onlineRetreatsData.total} />}
     </>
   );
 }

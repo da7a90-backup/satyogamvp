@@ -54,6 +54,7 @@ async def get_online_retreats(
             "booking_tagline": retreat.booking_tagline,
             "hero_background": retreat.hero_background,
             "images": retreat.images or [],
+            "intro1_content": retreat.intro1_content or [],  # Add description for cards
             "video_url": retreat.video_url,
             "video_thumbnail": retreat.video_thumbnail,
             "video_type": retreat.video_type,

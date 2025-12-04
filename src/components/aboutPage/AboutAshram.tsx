@@ -39,8 +39,21 @@ export default function AboutAshramPage({ data }: any) {
             content: data.ashramEndTime.content || []
         },
         backgroundElements: (data.ashramEndTime.backgroundElements ?
-            Object.values(data.ashramEndTime.backgroundElements) as BackgroundElement[] : [])
+            Object.values(data.ashramEndTime.backgroundElements).map((element: any) => ({
+                ...element,
+                desktop: element.desktop ? {
+                    ...element.desktop,
+                    top: element.desktop.top ? `${parseInt(element.desktop.top) - 40}px` : element.desktop.top
+                } : undefined,
+                mobile: element.mobile ? {
+                    ...element.mobile,
+                    top: element.mobile.top ? `${parseInt(element.mobile.top) - 40}px` : element.mobile.top
+                } : undefined
+            })) as BackgroundElement[] : [])
     } : null;
+
+    // Create a unique key for ashram end time that changes on each render to force remount
+    const ashramKey = `ashram-end-time-${Date.now()}`;
 
     // Quote text
     const quoteText = data.quote?.quote || "Living in a serious transformational community is a great privilege and opportunity . . . and perhaps the ultimate rite of passage.";
@@ -80,11 +93,11 @@ export default function AboutAshramPage({ data }: any) {
     return (
         <>
             <StandardHeroSection data={heroData} />
-            {ashramEndTimeData && <TwoPaneComponent data={ashramEndTimeData}/>}
+            {ashramEndTimeData && <TwoPaneComponent key={ashramKey} data={ashramEndTimeData}/>}
             <ImageCarouselSection data={images}/>
             <QuoteSection data={quoteText} />
-            {spiritualTribeData && <TwoPaneComponent data={spiritualTribeData}/>}
-            {shunyamurtiVideoData && <TwoPaneComponent data={shunyamurtiVideoData}/>}
+            {spiritualTribeData && <TwoPaneComponent key="spiritual-tribe" data={spiritualTribeData}/>}
+            {shunyamurtiVideoData && <TwoPaneComponent key="shunyamurti-video" data={shunyamurtiVideoData}/>}
             <BlogSection/>
             <AshramRetreatsSection/>
         </>

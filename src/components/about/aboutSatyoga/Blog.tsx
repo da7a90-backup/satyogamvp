@@ -39,8 +39,8 @@ const BlogSection = () => {
     fetchBlogPosts();
   }, []);
 
-  const slidesPerView = isMobile ? 1 : 3;
-  const maxSlides = isMobile ? blogPosts.length : Math.max(1, blogPosts.length - slidesPerView + 1);
+  const slidesPerView = isMobile ? 1 : 3.5;
+  const maxSlides = isMobile ? blogPosts.length : Math.max(1, Math.ceil(blogPosts.length - slidesPerView + 1));
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % maxSlides);
@@ -71,10 +71,10 @@ const BlogSection = () => {
         }}
       >
         {/* Section Title */}
-        <div 
+        <div
           className="w-full flex flex-col justify-center items-center mx-auto"
           style={{
-            maxWidth: '768px',
+            maxWidth: '1000px',
             gap: '16px'
           }}
         >
@@ -125,10 +125,11 @@ const BlogSection = () => {
         </div>
 
         {/* Blog Count and View All */}
-        <div 
+        <div
           className="w-full flex flex-row justify-between items-end"
           style={{
-            gap: '40px'
+            gap: '40px',
+            padding: isMobile ? '0' : '0 16px'
           }}
         >
           {/* Blog Count */}
@@ -195,7 +196,7 @@ const BlogSection = () => {
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{
-                    transform: `translateX(-${currentSlide * (isMobile ? 100 : 33.33)}%)`,
+                    transform: `translateX(-${currentSlide * (isMobile ? 100 : 28.57)}%)`,
                   }}
                 >
               {blogPosts.map((post, index) => (
@@ -203,7 +204,7 @@ const BlogSection = () => {
                   key={post.id}
                   className="flex-shrink-0"
                   style={{
-                    width: isMobile ? '100%' : '33.33%',
+                    width: isMobile ? '100%' : '28.57%',
                     padding: isMobile ? '0' : '0 16px'
                   }}
                 >
@@ -319,32 +320,35 @@ const BlogSection = () => {
                       </p>
 
                       {/* Author Info */}
-                      <div 
-                        className="flex flex-row items-start mt-auto"
+                      <div
+                        className="flex flex-row items-center mt-auto"
                         style={{
-                          gap: '8px',
-                          height: '47px'
+                          gap: '8px'
                         }}
                       >
                         {/* Author Avatar */}
-                        {post.author_image && (
-                          <div
-                            className="relative w-8 h-8 rounded-full flex-shrink-0"
-                            style={{
-                              border: '0.75px solid rgba(0, 0, 0, 0.08)',
-                              borderRadius: '200px'
-                            }}
-                          >
+                        <div
+                          className="relative w-8 h-8 rounded-full flex-shrink-0 overflow-hidden"
+                          style={{
+                            border: '0.75px solid rgba(0, 0, 0, 0.08)',
+                            borderRadius: '200px',
+                            backgroundColor: '#E5E7EB'
+                          }}
+                        >
+                          {post.author_image ? (
                             <img
                               src={post.author_image}
                               alt={post.author_name || 'Author'}
                               className="w-full h-full rounded-full object-cover"
-                              onError={(e:any) => {
-                                e.target.style.display = 'none';
-                              }}
                             />
-                          </div>
-                        )}
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 8a4 4 0 100 8 4 4 0 000-8zM16 18c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z" fill="#9CA3AF"/>
+                              </svg>
+                            </div>
+                          )}
+                        </div>
 
                         {/* Author Name */}
                         {post.author_name && (
@@ -429,15 +433,14 @@ const BlogSection = () => {
           </div>
 
           {/* Navigation Controls */}
-          <div 
-            className="flex items-center"
-            style={{ 
-              gap: '24px',
-              marginLeft: isMobile ? 0 : '16px' // Align dots under first image
+          <div
+            className="flex items-center justify-between w-full"
+            style={{
+              padding: isMobile ? '0' : '0 16px'
             }}
           >
-            {/* Slider Dots */}
-            <div 
+            {/* Slider Dots - Left Side */}
+            <div
               className="flex flex-row items-center"
               style={{
                 gap: '8px'
@@ -455,8 +458,8 @@ const BlogSection = () => {
               ))}
             </div>
 
-            {/* Navigation Buttons */}
-            <div 
+            {/* Navigation Buttons - Right Side */}
+            <div
               className="flex flex-row items-center"
               style={{
                 gap: '12px'

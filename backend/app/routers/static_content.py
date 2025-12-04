@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.static_content import (
     FAQCategory, FAQ, ContactInfo, FormField,
-    MembershipPricing, DonationProject
+    MembershipPricing, MembershipBenefits, DonationProject
 )
 from app.services.media_service import MediaService
 from typing import Dict, Any, List, Optional
@@ -190,6 +190,21 @@ async def get_membership_pricing(db: Session = Depends(get_db)) -> List[Dict[str
 
     result = []
     for tier in tiers:
+        features_list = []
+        for feature in tier.features:
+            feature_data = {
+                "type": feature.feature_type,
+                "title": feature.title,
+                "content": feature.content
+            }
+            # Include discount items if this is a discount feature
+            if feature.feature_type == "discount" and feature.discount_items:
+                feature_data["discountItems"] = [
+                    {"itemText": item.item_text}
+                    for item in feature.discount_items
+                ]
+            features_list.append(feature_data)
+
         tier_data = {
             "name": tier.tier_name,
             "slug": tier.tier_slug,
@@ -201,14 +216,7 @@ async def get_membership_pricing(db: Session = Depends(get_db)) -> List[Dict[str
             "recommended": tier.recommended,
             "yearlyOnly": tier.yearly_only,
             "highlightBox": tier.highlight_box,
-            "features": [
-                {
-                    "type": feature.feature_type,
-                    "title": feature.title,
-                    "content": feature.content
-                }
-                for feature in tier.features
-            ]
+            "features": features_list
         }
         result.append(tier_data)
 
@@ -230,6 +238,21 @@ async def get_tier_pricing(
     if not tier:
         raise HTTPException(status_code=404, detail=f"Tier '{tier_slug}' not found")
 
+    features_list = []
+    for feature in tier.features:
+        feature_data = {
+            "type": feature.feature_type,
+            "title": feature.title,
+            "content": feature.content
+        }
+        # Include discount items if this is a discount feature
+        if feature.feature_type == "discount" and feature.discount_items:
+            feature_data["discountItems"] = [
+                {"itemText": item.item_text}
+                for item in feature.discount_items
+            ]
+        features_list.append(feature_data)
+
     return {
         "name": tier.tier_name,
         "slug": tier.tier_slug,
@@ -241,14 +264,7 @@ async def get_tier_pricing(
         "recommended": tier.recommended,
         "yearlyOnly": tier.yearly_only,
         "highlightBox": tier.highlight_box,
-        "features": [
-            {
-                "type": feature.feature_type,
-                "title": feature.title,
-                "content": feature.content
-            }
-            for feature in tier.features
-        ]
+        "features": features_list
     }
 
 
@@ -280,6 +296,38 @@ async def get_membership_hero(db: Session = Depends(get_db)) -> Dict[str, Any]:
             }
         ],
         "mockupImage": media_service.resolve_url("/FrameDevices.png")
+    }
+
+
+@membership_router.get("/benefits")
+async def get_membership_benefits(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Get membership benefits page configuration with accordion items"""
+
+    benefits = db.query(MembershipBenefits).filter(
+        MembershipBenefits.is_active == True
+    ).first()
+
+    if not benefits:
+        raise HTTPException(status_code=404, detail="Membership benefits not found")
+
+    return {
+        "backgroundColor": benefits.background_color,
+        "leftPane": {
+            "title": benefits.left_pane_title,
+            "description": benefits.left_pane_description,
+            "buttons": benefits.left_pane_buttons or []
+        },
+        "rightPane": {
+            "type": "accordion",
+            "content": [
+                {
+                    "id": item.order_index,
+                    "title": item.title,
+                    "content": item.content
+                }
+                for item in benefits.accordion_items
+            ]
+        }
     }
 
 

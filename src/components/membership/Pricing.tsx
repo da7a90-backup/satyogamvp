@@ -2,7 +2,29 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-// TypeScript interfaces for data structure
+// TypeScript interfaces for backend API response
+interface BackendFeature {
+  type: string;
+  title: string | null;
+  content: string;
+  discountItems?: { itemText: string }[];
+}
+
+interface BackendTier {
+  name: string;
+  slug: string;
+  monthlyPrice: number | null;
+  yearlyPrice: number;
+  yearlySavings: string;
+  description: string;
+  trialBadge?: string;
+  recommended?: boolean;
+  yearlyOnly?: boolean;
+  highlightBox?: string;
+  features: BackendFeature[];
+}
+
+// Frontend interfaces for component usage
 interface DiscountItem {
   title: string;
   items: string[];
@@ -41,8 +63,8 @@ interface PricingPageData {
   };
 }
 
-// Externalized data structure - ready for Strapi CMS
-const pricingPageData: PricingPageData = {
+// Default UI labels (static, unlikely to change)
+const defaultLabels = {
   monthlyLabel: 'Monthly',
   yearlyLabel: 'Yearly',
   yearlySavingsText: '(save 25%)',
@@ -52,110 +74,100 @@ const pricingPageData: PricingPageData = {
   signUpButton: 'Sign up',
   moreDetailsButton: 'More details',
   billedAnnuallyText: 'Billed Annually',
-  billedMonthlyText: 'Billed Monthly',
-  tiers: {
-    gyani: {
-      name: 'Gyani',
-      monthlyPrice: 20,
-      yearlyPrice: 15,
-      yearlySavings: '60$',
-      description: 'Open the Gate! Access weekly teachings, guided meditations, and meaningful connection with our global community.',
-      trialBadge: '10 days  Gyani free trial',
-      features: [
-        'Your personal dashboard, seamlessly responsive across all devices',
-        'Exclusive Wisdom Library with 1,000+ publications',
-        'New Weekly Teachings',
-        'Shunyamurti Book Study',
-        'Shunyamurti Recommendations to Deepen Your Knowledge',
-        'Community Forum',
-        'Live Sunday Group Meditation',
-        {
-          title: 'Exclusive Gyani Discounts',
-          items: ['5% off Onsite Retreats', '10% off all Digital Products']
-        }
-      ]
-    },
-    pragyani: {
-      name: 'Pragyani',
-      monthlyPrice: 100,
-      yearlyPrice: 83,
-      yearlySavings: '200$',
-      recommended: true,
-      description: 'Virtual Ashram Experience: Join live satsangs with Shunyamurti, participate in study groups, and engage deeply with a living path of wisdom.',
-      features: [
-        'Your personal dashboard, seamlessly responsive across all devices',
-        'Exclusive Wisdom Library with 1,000+ publications',
-        'New Weekly Teachings',
-        'Shunyamurti Book Study',
-        'Shunyamurti Recommendations to Deepen Your Knowledge',
-        'Community Forum',
-        'Live Sunday Group Meditation',
-        'Live Surprise Satsangs with Shunyamurti',
-        'Live Sunday Study Group with Radha Ma',
-        'Live Monthly Teaching Discussions',
-        'Book Groups',
-        'Pragyani Exclusive Teachings',
-        'Study Group Review',
-        'Ask Shunyamurti',
-        'Your Questions Prioritized during ALL live events with Shunyamurti',
-        {
-          title: 'Exclusive Pragyani Discounts',
-          items: ['30% off all Digital Products', '10% off Onsite Retreats']
-        }
-      ]
-    },
-    pragyaniPlus: {
-      name: 'Pragyani+',
-      monthlyPrice: null,
-      yearlyPrice: 142,
-      yearlySavings: '1170$',
-      yearlyOnly: true,
-      description: 'Activate the Full Transmission: Lifetime access to all online retreats and direct guidance from Shunyamurti on the journey to Self-realization.',
-      features: [
-        'Custom dashboard available on your phone, tablet and desktop',
-        'Exclusive Wisdom Library with 1,000+ publications',
-        'New Weekly Teachings',
-        'Shunyamurti Book Study',
-        'Shunyamurti Recommendations to Deepen Your Knowledge',
-        'Community Forum',
-        'Live Sunday Group Meditation',
-        'Live Surprise Satsangs with Shunyamurti',
-        'Live Sunday Study Group with Radha Ma',
-        'Live Monthly Teaching Discussions',
-        'Book Groups',
-        'Pragyani Exclusive Teachings',
-        'Study Group Review',
-        'Ask Shunyamurti',
-        'Your Questions Prioritized during ALL live events with Shunyamurti',
-        {
-          title: 'Exclusive Pragyani Discounts',
-          items: ['30% off all Digital Products', '10% off Onsite Retreats']
-        }
-      ],
-      highlightBox: 'Lifetime VIP Access to All Online Retreats led by Shunyamurti (Valued at $1,970 per year)'
-    }
-  }
+  billedMonthlyText: 'Billed Monthly'
 };
 
-interface PricingComparisonProps {
-  data?: PricingPageData;
+// Helper function to transform backend data to frontend format
+function transformBackendTier(backendTier: BackendTier): PricingTierData {
+  const features: FeatureItem[] = [];
+
+  for (const feature of backendTier.features) {
+    if (feature.type === 'discount' && feature.discountItems && feature.discountItems.length > 0) {
+      features.push({
+        title: feature.title || 'Discounts',
+        items: feature.discountItems.map(item => item.itemText)
+      });
+    } else if ((feature.type === 'standard' || !feature.type) && feature.content) {
+      // Include features with type 'standard' OR null/empty type
+      features.push(feature.content);
+    }
+  }
+
+  return {
+    name: backendTier.name,
+    monthlyPrice: backendTier.monthlyPrice,
+    yearlyPrice: backendTier.yearlyPrice,
+    yearlySavings: backendTier.yearlySavings,
+    description: backendTier.description,
+    trialBadge: backendTier.trialBadge,
+    recommended: backendTier.recommended,
+    yearlyOnly: backendTier.yearlyOnly,
+    features,
+    highlightBox: backendTier.highlightBox
+  };
 }
 
-export default function PricingComparison({ data = pricingPageData }: PricingComparisonProps) {
+interface PricingComparisonProps {}
+
+export default function PricingComparison({}: PricingComparisonProps) {
+  const [pricingData, setPricingData] = useState<PricingPageData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [isYearly, setIsYearly] = useState<boolean>(true);
   const [currentSlide, setCurrentSlide] = useState<number>(1); // Start at pragyani (most recommended)
   const [touchStart, setTouchStart] = useState<number>(0);
   const [touchEnd, setTouchEnd] = useState<number>(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const tiers = [
-    { key: 'gyani', data: data.tiers.gyani },
-    { key: 'pragyani', data: data.tiers.pragyani },
-    { key: 'pragyaniPlus', data: data.tiers.pragyaniPlus }
-  ];
+  // Fetch pricing data from backend API
+  useEffect(() => {
+    const fetchPricing = async () => {
+      try {
+        setLoading(true);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${API_URL}/api/membership/pricing`, {
+          cache: 'no-store'
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch pricing: ${response.statusText}`);
+        }
+
+        const backendTiers: BackendTier[] = await response.json();
+
+        // Transform backend data to frontend format
+        const transformedData: PricingPageData = {
+          ...defaultLabels,
+          tiers: {
+            gyani: transformBackendTier(backendTiers.find(t => t.slug === 'gyani')!),
+            pragyani: transformBackendTier(backendTiers.find(t => t.slug === 'pragyani')!),
+            pragyaniPlus: transformBackendTier(backendTiers.find(t => t.slug === 'pragyani-plus')!)
+          }
+        };
+
+        setPricingData(transformedData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching pricing data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load pricing data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPricing();
+  }, []);
+
+  const tiers = pricingData ? [
+    { key: 'gyani', data: pricingData.tiers.gyani },
+    { key: 'pragyani', data: pricingData.tiers.pragyani },
+    { key: 'pragyaniPlus', data: pricingData.tiers.pragyaniPlus }
+  ] : [];
 
   // Auto-slide effect for mobile
   useEffect(() => {
+    if (tiers.length === 0) return;
+
     const autoSlide = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % tiers.length);
     }, 5000); // 5 seconds
@@ -477,6 +489,34 @@ export default function PricingComparison({ data = pricingPageData }: PricingCom
       </div>
     );
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <p style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '20px', color: '#414651' }}>
+          Loading pricing information...
+        </p>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !pricingData) {
+    return (
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <p style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '20px', color: '#ef4444', marginBottom: '16px' }}>
+          Error loading pricing data
+        </p>
+        <p style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', color: '#414651' }}>
+          {error || 'Please try again later or contact support.'}
+        </p>
+      </div>
+    );
+  }
+
+  // At this point, pricingData is guaranteed to be non-null
+  const data = pricingData;
 
   return (
     <div style={{ background: '#FAF8F1', padding: '80px 16px' }}>

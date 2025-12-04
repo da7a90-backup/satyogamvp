@@ -80,10 +80,10 @@ const PlatformSection = ({
           </p>
         </div>
 
-        <div className="text-center lg:text-left">
+        <div className="text-center lg:text-left w-full">
           <Link
             href={buttonLink}
-            className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
+            className="w-full lg:w-auto flex lg:inline-flex items-center justify-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
             style={{
               backgroundColor: '#7D1A13',
               fontFamily: 'Avenir Next, sans-serif',
@@ -97,18 +97,16 @@ const PlatformSection = ({
       </div>
 
       <div
-        className="order-1 lg:order-2 flex-shrink-0 w-full md:w-auto md:max-w-[616px]"
+        className="order-1 lg:order-2 flex-shrink-0 w-full md:w-auto md:max-w-[616px] -mt-40 -mb-28 -ml-6 lg:-mt-[60px] lg:mb-0 lg:ml-0"
         style={{
           maxWidth: '616px',
-          position: 'relative',
-          marginTop: '-60px'
+          position: 'relative'
         }}
       >
         <div
-          className="relative flex items-center justify-center"
+          className="relative flex items-center justify-center lg:h-[704px]"
           style={{
-            width: '100%',
-            height: '704px'
+            width: '100%'
           }}
         >
           <div
@@ -134,9 +132,8 @@ const PlatformSection = ({
             <img
               src={image}
               alt={imageAlt}
-              className="w-max h-auto object-contain max-w-[726px] lg:max-w-[988px]"
+              className="w-[398px] h-[436px] lg:w-max lg:h-auto object-contain max-w-[726px] lg:max-w-[988px] lg:pr-[20%]"
               style={{
-                paddingRight: '20%',
                 filter: 'drop-shadow(33px 73px 32px rgba(0, 0, 0, 0.01)) drop-shadow(19px 41px 27px rgba(0, 0, 0, 0.05)) drop-shadow(8px 18px 20px rgba(0, 0, 0, 0.09)) drop-shadow(2px 5px 11px rgba(0, 0, 0, 0.1))'
               }}
             />

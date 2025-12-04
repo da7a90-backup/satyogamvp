@@ -15,7 +15,7 @@ function transformPostsForBlogPage(posts: any[]) {
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt || '',
-    date: post.published_at || post.created_at,
+    publishedAt: post.published_at || post.created_at,
     author: {
       name: post.author_name || 'Sat Yoga',
       imageUrl: post.author_image || ''

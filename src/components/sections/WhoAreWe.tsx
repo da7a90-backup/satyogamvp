@@ -130,10 +130,10 @@ const WhoWeAreSection = ({
           </div>
 
           {/* Action Button */}
-          <div className="text-left">
+          <div className="text-left w-full">
             <Link
               href={buttonLink}
-              className="inline-flex items-center px-6 py-3 text-white rounded-lg transition-all duration-300 hover:opacity-90"
+              className="w-full lg:w-auto flex lg:inline-flex items-center justify-center px-6 py-3 text-white rounded-lg transition-all duration-300 hover:opacity-90"
               style={{
                 backgroundColor: '#7D1A13',
                 fontFamily: 'Avenir Next, sans-serif',

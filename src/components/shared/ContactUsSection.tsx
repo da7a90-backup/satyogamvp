@@ -24,21 +24,21 @@ const ContactUsSection = () => {
       }}
     >
       {/* Content Container */}
-      <div 
+      <div
         className="w-full flex flex-col items-center"
         style={{
           maxWidth: '1312px',
-          gap: '80px'
+          gap: isMobile ? '20px' : '80px'
         }}
       >
         {/* Contact Card */}
-        <div 
-          className="relative w-full flex flex-col justify-center items-center p-8 lg:p-16 rounded-2xl border overflow-hidden"
+        <div
+          className="relative w-full flex flex-col justify-center items-center p-6 lg:p-16 rounded-2xl border overflow-hidden"
           style={{
             background: '#FFFFFF',
             borderColor: '#C7C7C7',
             boxShadow: '0px 94px 38px rgba(111, 62, 21, 0.01), 0px 53px 32px rgba(111, 62, 21, 0.05), 0px 24px 24px rgba(111, 62, 21, 0.09), 0px 6px 13px rgba(111, 62, 21, 0.1)',
-            gap: isMobile ? '40px' : '23px',
+            gap: isMobile ? '16px' : '23px',
             isolation: 'isolate'
           }}
         >
@@ -174,13 +174,13 @@ const ContactUsSection = () => {
           />
 
           {/* Mobile Decorative Labyrinth */}
-          <div 
+          <div
             className="absolute lg:hidden"
             style={{
-              width: '399px',
-              height: '399px',
-              left: '-200px',
-              top: '-259px',
+              width: '250px',
+              height: '250px',
+              left: '-125px',
+              top: '-150px',
               backgroundImage: 'url(https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/44f9856a-562e-4a8c-12db-2406b65c4400/public)',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',

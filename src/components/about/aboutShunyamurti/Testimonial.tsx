@@ -75,24 +75,30 @@ const EncountersSection = ({
   }
 
   return (
-    <section 
-      className="relative w-full flex flex-col lg:flex-row items-center py-16 lg:py-28 px-8 lg:px-16"
+    <section
+      className="relative w-full flex flex-col items-center py-16 lg:py-28 px-8 lg:px-16"
       style={{
-        backgroundColor: '#FAF8F1',
-        gap: '80px'
+        backgroundColor: '#FAF8F1'
       }}
     >
-      <div 
-        className={`w-full flex flex-col lg:flex-row items-center ${!hasMedia ? 'justify-center' : ''}`}
+      <div
+        className="w-full flex flex-col"
         style={{
           maxWidth: '1312px',
           margin: '0 auto',
-          gap: '80px'
+          gap: '40px'
         }}
       >
+        {/* Main Content Row */}
+        <div
+          className={`w-full flex flex-col lg:flex-row items-center ${!hasMedia ? 'justify-center' : ''}`}
+          style={{
+            gap: '80px'
+          }}
+        >
         {/* Left Column - Media */}
         {hasMedia && currentEncounter.media && (
-          <div 
+          <div
             className="flex-1 w-full"
             style={{
               maxWidth: '616px'
@@ -100,7 +106,7 @@ const EncountersSection = ({
           >
             {/* Image Type */}
             {currentEncounter.media.type === 'image' && (
-              <div 
+              <div
                 className="relative w-full overflow-hidden"
                 style={{
                   aspectRatio: '616/400',
@@ -114,7 +120,7 @@ const EncountersSection = ({
 
             {/* Video Type */}
             {currentEncounter.media.type === 'video' && (
-              <div 
+              <div
                 className="relative w-full overflow-hidden"
                 style={{
                   aspectRatio: '616/400',
@@ -127,7 +133,7 @@ const EncountersSection = ({
                     onClick={() => handleVideoClick(currentEncounter.id)}
                     className="relative w-full h-full cursor-pointer"
                     style={{
-                      backgroundImage: videoThumbnail 
+                      backgroundImage: videoThumbnail
                         ? `url(${videoThumbnail})`
                         : 'linear-gradient(61.31deg, rgba(0, 0, 0, 0.3) 14.27%, rgba(0, 0, 0, 0.2) 56.93%)',
                       backgroundSize: 'cover',
@@ -136,7 +142,7 @@ const EncountersSection = ({
                     }}
                   >
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div 
+                      <div
                         className="flex items-center justify-center w-20 h-20 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all duration-300"
                         style={{
                           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
@@ -249,58 +255,62 @@ const EncountersSection = ({
               </span>
             </div>
           </div>
+        </div>
+        </div>
 
-          <div 
-            className="flex items-center justify-between w-full"
+        {/* Navigation Row - Dots on left, Controls on right */}
+        <div
+          className="w-full flex items-center justify-between"
+          style={{
+            gap: '80px'
+          }}
+        >
+          {/* Dots Navigation */}
+          <div
+            className="flex items-center"
             style={{
-              marginTop: '24px'
+              gap: '8px'
             }}
           >
-            <div 
-              className="flex items-center"
-              style={{
-                gap: '8px'
-              }}
-            >
-              {encounters.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={(e) => goToSlide(index, e)}
-                  className={`w-2 h-2 rounded-full transition-colors duration-300 cursor-pointer ${
-                    currentSlide === index ? 'bg-gray-800' : 'bg-gray-300'
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                  type="button"
-                />
-              ))}
-            </div>
-
-            <div 
-              className="flex items-center"
-              style={{
-                gap: '12px'
-              }}
-            >
+            {encounters.map((_, index) => (
               <button
-                onClick={prevSlide}
-                className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
-                aria-label="Previous slide"
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M12.5 15l-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+                key={index}
+                onClick={(e) => goToSlide(index, e)}
+                className={`w-2 h-2 rounded-full transition-colors duration-300 cursor-pointer ${
+                  currentSlide === index ? 'bg-gray-800' : 'bg-gray-300'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+                type="button"
+              />
+            ))}
+          </div>
 
-              <button
-                onClick={nextSlide}
-                className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
-                aria-label="Next slide"
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M7.5 15l5-5-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
+          {/* Navigation Controls */}
+          <div
+            className="flex items-center"
+            style={{
+              gap: '12px'
+            }}
+          >
+            <button
+              onClick={prevSlide}
+              className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
+              aria-label="Previous slide"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M12.5 15l-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            <button
+              onClick={nextSlide}
+              className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors duration-300"
+              aria-label="Next slide"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M7.5 15l5-5-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>

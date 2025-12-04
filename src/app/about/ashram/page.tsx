@@ -6,6 +6,7 @@ import { staticContentAPI } from '@/lib/static-content-api';
 // This is a server component that fetches data
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 export default async function AboutAshram() {
   try {
     console.log("Fetching about/ashram data from backend API...");

@@ -10,7 +10,7 @@ import ContactUsSection from "../shared/ContactUsSection";
 import TestimonialCarousel from "../shared/Testimonial";
 import StandardHeroSection from "../shared/Hero";
 
-export default function AshramStayPage({ data, onlineRetreats = [] }: any) {
+export default function AshramStayPage({ data, onlineRetreatsData = { retreats: [], total: 0 } }: any) {
   // Map What Will You Encounter galleries from API
   const encounterGalleries = data?.whatWillYouEncounter?.content?.galleries || [];
 
@@ -63,17 +63,17 @@ export default function AshramStayPage({ data, onlineRetreats = [] }: any) {
   const testimonials = data?.testimonials?.content || [];
 
   // Map online retreats from API to expected format
-  const upcomingRetreat = onlineRetreats.length > 0 ? {
-    slug: onlineRetreats[0].slug,
-    title: onlineRetreats[0].title,
-    heroBackground: onlineRetreats[0].hero_background || "",
-    bookingTagline: onlineRetreats[0].booking_tagline || "ONLINE RETREAT",
-    fixedDate: onlineRetreats[0].fixed_date,
-    location: onlineRetreats[0].location || "Online Retreat",
-    basePrice: onlineRetreats[0].price,
-    images: onlineRetreats[0].images || [],
-    intro1Content: onlineRetreats[0].intro1_content || [],
-    buttonUrl: `/retreats/online/${onlineRetreats[0].slug}`
+  const upcomingRetreat = onlineRetreatsData.retreats.length > 0 ? {
+    slug: onlineRetreatsData.retreats[0].slug,
+    title: onlineRetreatsData.retreats[0].title,
+    heroBackground: onlineRetreatsData.retreats[0].hero_background || "",
+    bookingTagline: onlineRetreatsData.retreats[0].booking_tagline || "ONLINE RETREAT",
+    fixedDate: onlineRetreatsData.retreats[0].fixed_date,
+    location: onlineRetreatsData.retreats[0].location || "Online Retreat",
+    basePrice: onlineRetreatsData.retreats[0].price,
+    images: onlineRetreatsData.retreats[0].images || [],
+    intro1Content: onlineRetreatsData.retreats[0].intro1_content || [],
+    buttonUrl: `/retreats/online/${onlineRetreatsData.retreats[0].slug}`
   } : null;
 
   return (
@@ -89,7 +89,7 @@ export default function AshramStayPage({ data, onlineRetreats = [] }: any) {
         testimonials={testimonials}
       />
       <ContactUsSection/>
-      {upcomingRetreat && <OnlineRetreatsSection retreat={upcomingRetreat as any} />}
+      {upcomingRetreat && <OnlineRetreatsSection retreat={upcomingRetreat as any} totalRetreats={onlineRetreatsData.total} />}
     </>
   )
 }

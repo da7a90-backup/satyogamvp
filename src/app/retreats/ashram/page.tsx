@@ -18,13 +18,13 @@ async function getOnlineRetreats() {
     });
     if (!res.ok) {
       console.error('Failed to fetch online retreats:', res.status);
-      return [];
+      return { retreats: [], total: 0 };
     }
     const data = await res.json();
-    return data.retreats || [];
+    return { retreats: data.retreats || [], total: data.total || 0 };
   } catch (error) {
     console.error('Error fetching online retreats:', error);
-    return [];
+    return { retreats: [], total: 0 };
   }
 }
 
@@ -40,10 +40,10 @@ export default async function AshramRetreat() {
     ]);
 
     console.log("Retreats/ashram data loaded successfully:", Object.keys(pageData));
-    console.log("Online retreats loaded:", onlineRetreats.length);
+    console.log("Online retreats loaded:", onlineRetreats.total);
 
     // Pass the data to your client component
-    return <AshramStayPage data={pageData} onlineRetreats={onlineRetreats} />;
+    return <AshramStayPage data={pageData} onlineRetreatsData={onlineRetreats} />;
   } catch (error) {
     console.error("Error loading retreats page data:", error);
 

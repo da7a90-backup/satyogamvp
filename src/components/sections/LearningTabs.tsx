@@ -36,18 +36,15 @@ const LearnOnlineSection = ({
 }: LearnOnlineSectionProps) => {
   const [activeTab, setActiveTab] = useState(0);
 
-  useEffect(() => {
-    const isMobile = window.innerWidth < 1024;
-    if (!isMobile) return;
-
-    const interval = setInterval(() => {
-      setActiveTab((current) => (current + 1) % tabs.length);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [tabs.length]);
-
   const currentTab = tabs[activeTab];
+
+  const nextSlide = () => {
+    setActiveTab((prev) => (prev + 1) % tabs.length);
+  };
+
+  const prevSlide = () => {
+    setActiveTab((prev) => (prev - 1 + tabs.length) % tabs.length);
+  };
 
   return (
     <>
@@ -179,7 +176,7 @@ const LearnOnlineSection = ({
                 willChange: 'background-color, border-bottom'
               }}
             >
-              <span 
+              <span
                 className={`text-center ${activeTab === index ? 'font-semibold' : 'font-normal'}`}
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
@@ -307,25 +304,25 @@ const LearnOnlineSection = ({
       </div>
 
       {/* Mobile Carousel */}
-      <div className="lg:hidden w-full max-w-sm mx-auto">
+      <div className="lg:hidden w-full max-w-sm mx-auto relative">
         <div className="overflow-hidden rounded-xl">
-          <div 
+          <div
             className="flex transition-transform duration-300 ease-in-out"
             style={{
               transform: `translateX(-${activeTab * 100}%)`
             }}
           >
             {tabs.map((tab) => (
-              <div 
+              <div
                 key={tab.id}
-                className="w-full flex-shrink-0 bg-white p-8 border border-gray-200"
-                style={{ minWidth: '100%' }}
+                className="w-full flex-shrink-0 bg-white p-8 border border-gray-200 flex flex-col"
+                style={{ minWidth: '100%', height: '650px', overflow: 'hidden' }}
               >
-                <div 
-                  className="relative mb-6 flex items-center justify-center"
-                  style={{ height: '280px' }}
+                <div
+                  className="relative mb-6 flex items-center justify-center flex-shrink-0"
+                  style={{ height: '240px' }}
                 >
-                  <div 
+                  <div
                     className="absolute inset-0"
                     style={{
                       backgroundImage: `url(${backgroundDecorations.imageTraced})`,
@@ -335,7 +332,7 @@ const LearnOnlineSection = ({
                       zIndex: 0
                     }}
                   />
-                  
+
                   <div
                     className="relative z-10 w-full h-full flex items-center justify-center"
                     style={{
@@ -351,7 +348,7 @@ const LearnOnlineSection = ({
                   </div>
                 </div>
 
-                <div className="mb-2">
+                <div className="mb-2 flex-shrink-0">
                   <span
                     className="text-yellow-600 uppercase tracking-wide text-sm font-medium"
                     style={{
@@ -364,7 +361,7 @@ const LearnOnlineSection = ({
                 </div>
 
                 <h3
-                  className="text-black mb-4"
+                  className="text-black mb-4 flex-shrink-0"
                   style={{
                     fontFamily: 'Optima, Georgia, serif',
                     fontSize: 'clamp(1.5rem, 4vw, 2rem)',
@@ -376,22 +373,23 @@ const LearnOnlineSection = ({
                   {tab.title}
                 </h3>
 
-                <p 
-                  className="text-gray-700 mb-6"
+                <p
+                  className="text-gray-700 mb-6 flex-1"
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
                     fontSize: '16px',
                     lineHeight: '150%',
-                    color: '#4A5568'
+                    color: '#4A5568',
+                    overflow: 'hidden'
                   }}
                 >
                   {tab.description}
                 </p>
 
-                <div className="text-center">
+                <div className="text-center w-full flex-shrink-0">
                   <Link
                     href={tab.buttonLink}
-                    className="inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
+                    className="w-full flex items-center justify-center px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 hover:opacity-90"
                     style={{
                       backgroundColor: '#7D1A13',
                       fontFamily: 'Avenir Next, sans-serif',
@@ -406,15 +404,38 @@ const LearnOnlineSection = ({
             ))}
           </div>
         </div>
-        
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-2 bg-white bg-opacity-90 rounded-full p-3 shadow-lg hover:bg-opacity-100 transition-all duration-200 z-10"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        <button
+          onClick={nextSlide}
+          className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-2 bg-white bg-opacity-90 rounded-full p-3 shadow-lg hover:bg-opacity-100 transition-all duration-200 z-10"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Dots Indicator */}
         <div className="flex justify-center mt-6 space-x-2">
           {tabs.map((_, index) => (
             <button
               key={index}
               onClick={() => setActiveTab(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                activeTab === index ? 'bg-[#7D1A13]' : 'bg-gray-300'
+              className={`h-2 rounded-full transition-all duration-200 ${
+                activeTab === index ? 'w-6' : 'w-2 hover:bg-gray-600'
               }`}
+              style={{
+                backgroundColor: activeTab === index ? '#7D1A13' : '#9CA3AF'
+              }}
               aria-label={`Go to tab ${index + 1}`}
             />
           ))}

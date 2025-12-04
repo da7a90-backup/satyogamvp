@@ -5,9 +5,10 @@ import { OnlineRetreat } from '@/lib/data';
 
 interface OnlineRetreatsSectionProps {
   retreat: OnlineRetreat;
+  totalRetreats?: number;
 }
 
-const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
+const OnlineRetreatsSection = ({ retreat, totalRetreats = 0 }: OnlineRetreatsSectionProps) => {
   // Don't render if no retreat data
   if (!retreat || !retreat.fixedDate) {
     return null;
@@ -56,7 +57,7 @@ const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
       >
         {/* Section Header */}
         <div
-          className="w-full flex flex-col justify-center items-center mx-auto max-w-3xl"
+          className="w-full flex flex-col items-start"
           style={{
             gap: '16px'
           }}
@@ -80,7 +81,7 @@ const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
 
           {/* Main Title */}
           <h2
-            className="text-black text-center w-full"
+            className="text-black w-full"
             style={{
               fontFamily: 'Optima, Georgia, serif',
               fontWeight: 550,
@@ -94,7 +95,7 @@ const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
 
           {/* Description */}
           <p
-            className="text-center w-full"
+            className="w-full"
             style={{
               fontFamily: 'Avenir Next, sans-serif',
               fontSize: '16px',
@@ -105,6 +106,56 @@ const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
           >
             Shunyamurti offers a number of yearly livestreamed retreats. Each one is a stunning and unique event—always more powerful than the last, always relevant and geopolitically informed, and always paradigm-shifting, ego-busting, and shakti-filled. Priceless direct guidance in real time—including the opportunity to pose urgent questions to Shunyamurti live—makes these events imperative for serious seekers.
           </p>
+        </div>
+
+        {/* Retreat Count and View All */}
+        <div
+          className="w-full flex flex-row justify-between items-end"
+          style={{
+            gap: '40px'
+          }}
+        >
+          {/* Retreat Count */}
+          <span
+            style={{
+              fontFamily: 'Avenir Next, sans-serif',
+              fontSize: '18px',
+              fontWeight: 600,
+              lineHeight: '28px',
+              color: '#111927'
+            }}
+          >
+            {totalRetreats} Online Retreat{totalRetreats !== 1 ? 's' : ''}
+          </span>
+
+          {/* View All Button */}
+          <Link
+            href="/retreats/online"
+            style={{
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '10px 16px',
+              gap: '6px',
+              width: '94px',
+              height: '44px',
+              background: '#7D1A13',
+              boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
+              borderRadius: '8px',
+              border: 'none',
+              fontFamily: 'Avenir Next, sans-serif',
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '20px',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              textDecoration: 'none'
+            }}
+          >
+            View all
+          </Link>
         </div>
 
         {/* Event Card */}
@@ -251,7 +302,7 @@ const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
               </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-10">
               {/* Event Details Row */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 {/* Date */}
@@ -303,7 +354,7 @@ const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
               </div>
 
               {/* Content */}
-              <div className="space-y-3">
+              <div className="space-y-6">
                 {/* Category/Tagline */}
                 <span
                   style={{
@@ -333,6 +384,7 @@ const OnlineRetreatsSection = ({ retreat }: OnlineRetreatsSectionProps) => {
 
                 {/* Description */}
                 <p
+                  className="py-2"
                   style={{
                     fontFamily: 'Avenir Next, sans-serif',
                     fontSize: '16px',
