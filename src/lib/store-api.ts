@@ -129,7 +129,7 @@ export const productsApi = {
       });
     }
 
-    const url = `${API_URL}/api/products?${params.toString()}`;
+    const url = `${API_URL}/api/products/?${params.toString()}`;
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -143,7 +143,7 @@ export const productsApi = {
    * Get a single product by slug
    */
   async getProduct(slug: string): Promise<Product> {
-    const response = await fetch(`${API_URL}/api/products/${slug}`);
+    const response = await fetch(`${API_URL}/api/products/${slug}/`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -159,7 +159,7 @@ export const productsApi = {
    * Get all categories
    */
   async getCategories(): Promise<Category[]> {
-    const response = await fetch(`${API_URL}/api/products/categories`);
+    const response = await fetch(`${API_URL}/api/products/categories/`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch categories: ${response.statusText}`);
@@ -172,7 +172,7 @@ export const productsApi = {
    * Get featured products
    */
   async getFeaturedProducts(limit: number = 10): Promise<Product[]> {
-    const response = await fetch(`${API_URL}/api/products/featured?limit=${limit}`);
+    const response = await fetch(`${API_URL}/api/products/featured/?limit=${limit}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch featured products: ${response.statusText}`);
@@ -186,7 +186,7 @@ export const productsApi = {
    */
   async getRetreatPackages(skip: number = 0, limit: number = 20): Promise<Product[]> {
     const response = await fetch(
-      `${API_URL}/api/products/retreat-packages?skip=${skip}&limit=${limit}`
+      `${API_URL}/api/products/retreat-packages/?skip=${skip}&limit=${limit}`
     );
 
     if (!response.ok) {
