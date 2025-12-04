@@ -9,6 +9,44 @@ import QuoteSection from '@/components/shared/Quote';
 const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
 // ============================================================================
+// TYPES FOR PAGE DATA
+// ============================================================================
+
+interface PageData {
+  hero?: {
+    heading: string;
+    tagline: string;
+    description: string;
+    backgroundImage: string;
+  };
+  givingFromHeart?: {
+    eyebrow: string;
+    heading: string;
+    gap: string;
+    accordionItems: Array<{
+      id: number;
+      title: string;
+      content: string;
+    }>;
+  };
+  generalFund?: {
+    eyebrow: string;
+    heading: string;
+    description: string;
+    content: {
+      presetAmounts: number[];
+      suggestedText: string;
+      orText: string;
+      supportingText: string;
+      donationTypes: string[];
+    };
+  };
+  quote?: {
+    quote: string;
+  };
+}
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -203,13 +241,15 @@ const DonationProjectsSection = () => {
 };
 
 // General Fund Donation Section
-const GeneralFundSection = () => {
+const GeneralFundSection = ({ data }: { data?: PageData['generalFund'] }) => {
   const router = useRouter();
   const [donationAmount, setDonationAmount] = useState('');
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [donationType, setDonationType] = useState('one-time');
 
-  const presetAmounts = [25, 77, 108, 250, 500, 1000];
+  if (!data) return null;
+
+  const presetAmounts = data.content.presetAmounts || [25, 77, 108, 250, 500, 1000];
 
   const handlePresetClick = (amount: number) => {
     setSelectedPreset(amount);
@@ -244,21 +284,19 @@ const GeneralFundSection = () => {
                 className="text-[#942017] font-bold"
                 style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px' }}
               >
-                Custom
+                {data.eyebrow}
               </span>
               <h2
                 className="text-5xl font-medium"
                 style={{ fontFamily: 'Optima, Georgia, serif' }}
               >
-                Donate to the general fund
+                {data.heading}
               </h2>
               <p
                 className="text-gray-700 max-w-[836px]"
                 style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', lineHeight: '24px' }}
               >
-                Your contribution to the General Fund supports the lifeblood of the Ashram—helping us meet immediate needs, sustain daily operations, and remain responsive and resilient in these times of rapid change. This fund ensures that the whole organism of our community can continue to thrive, serve, and radiate peace to the world.
-                <br /><br />
-                We thank you for your generosity, and we know that it will bring you many blessings.
+                {data.description}
               </p>
             </div>
 
@@ -269,7 +307,7 @@ const GeneralFundSection = () => {
                 className="text-center text-gray-700"
                 style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px' }}
               >
-                Suggested donations:
+                {data.content.suggestedText}
               </p>
 
               {/* Preset Amount Buttons */}
@@ -297,7 +335,7 @@ const GeneralFundSection = () => {
                   className="text-gray-700"
                   style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px' }}
                 >
-                  Or
+                  {data.content.orText}
                 </span>
                 <div className="flex-1 h-px bg-gray-300" />
               </div>
@@ -307,7 +345,7 @@ const GeneralFundSection = () => {
                 className="text-center text-gray-700"
                 style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', lineHeight: '24px' }}
               >
-                Or become a sustaining supporter. Set up a monthly donation of any amount and help us build lasting strength and stability.
+                {data.content.supportingText}
               </p>
 
               {/* Custom Amount Input */}
@@ -340,9 +378,11 @@ const GeneralFundSection = () => {
                   className="px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  <option value="one-time">One time</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
+                  {data.content.donationTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type === 'one-time' ? 'One time' : type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
                 </select>
 
                 {/* Accept Button */}
@@ -364,23 +404,24 @@ const GeneralFundSection = () => {
 
 // Main Donate Page Component
 const DonatePage = () => {
-  const [heroBackground, setHeroBackground] = useState<string>('');
-  const [heroLoading, setHeroLoading] = useState(true);
+  const [pageData, setPageData] = useState<PageData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${FASTAPI_URL}/api/donations/hero`)
+    // Fetch all page content from the backend
+    fetch(`${FASTAPI_URL}/api/pages/donate`)
       .then(res => res.json())
       .then(data => {
-        setHeroBackground(data.heroBackground);
-        setHeroLoading(false);
+        setPageData(data);
+        setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load hero background:', err);
-        setHeroLoading(false);
+        console.error('Failed to load donate page content:', err);
+        setLoading(false);
       });
   }, []);
 
-  if (heroLoading) {
+  if (loading) {
     return (
       <main className="w-full flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#942017]"></div>
@@ -388,48 +429,55 @@ const DonatePage = () => {
     );
   }
 
+  if (!pageData) {
+    return (
+      <main className="w-full flex justify-center items-center min-h-screen">
+        <div className="text-center text-gray-700">Failed to load page content</div>
+      </main>
+    );
+  }
+
   return (
     <main className="w-full">
       {/* Hero Section */}
-      <StandardHeroSection
-        data={{
-          tagline: 'SUPPORT THE SAT YOGA MISSION',
-          heading: 'Help Bring a New World into Being',
-          subtext: 'If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.',
-          background: heroBackground
-        }}
-      />
+      {pageData.hero && (
+        <StandardHeroSection
+          data={{
+            tagline: pageData.hero.tagline,
+            heading: pageData.hero.heading,
+            subtext: pageData.hero.description,
+            background: pageData.hero.backgroundImage
+          }}
+        />
+      )}
 
       {/* Giving from the Heart Section */}
-      <TwoPaneComponent
-        data={{
-          backgroundColor: '#FAF8F1',
-          leftPane: {
-            tagline: 'A SPIRITUAL TITHE',
-            taglineColor: '#9C7520',
-            title: 'Giving from the Heart: Supporting a Spiritual Community & Serving a New World',
-            description: 'If you recognize the urgency to create a more spiritual and ecological culture, and if you want to be part of the process of human and planetary rebirth, please support this unique and vital project.'
-          },
-          rightPane: {
-            type: 'paragraphs',
-            content: [
-              'By contributing financially, you join a valued group of visionary leaders who are ensuring this new model of a peaceful world can be fully realized. You enable us to offer more scholarships to needy students, to reach out to more people within Costa Rica and throughout Latin America, and to guide more people to have better lives and raise their children to be healthy, awakened, and prepared for the future.',
-              'As a Friend of Sat Yoga, you will be directly benefiting the people of Costa Rica and the world as a whole. Right now, we have an urgent need for your assistance. Your generosity makes all the difference in creating a sustainable spiritual refuge that can weather these uncertain times and continue offering transformative teachings to all who seek them.'
-            ]
-          }
-        }}
-      />
+      {pageData.givingFromHeart && (
+        <TwoPaneComponent
+          data={{
+            backgroundColor: '#FAF8F1',
+            leftPane: {
+              tagline: pageData.givingFromHeart.eyebrow,
+              taglineColor: '#9C7520',
+              title: pageData.givingFromHeart.heading
+            },
+            rightPane: {
+              type: 'bulletaccordion',
+              content: pageData.givingFromHeart.accordionItems,
+              gap: pageData.givingFromHeart.gap
+            }
+          }}
+        />
+      )}
 
       {/* Donation Projects Section */}
       <DonationProjectsSection />
 
       {/* General Fund Section */}
-      <GeneralFundSection />
+      {pageData.generalFund && <GeneralFundSection data={pageData.generalFund} />}
 
       {/* Quote Section */}
-      <QuoteSection
-        data="The joy of sharing and serving, living on simplicity, brings abundance. Help us demonstrate solutions that can be emulated globally to co-create our harmony with Nature."
-      />
+      {pageData.quote && <QuoteSection data={pageData.quote.quote} />}
     </main>
   );
 };
