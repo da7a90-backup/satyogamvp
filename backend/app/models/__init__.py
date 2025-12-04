@@ -44,6 +44,8 @@ from .static_content import (
     MembershipPricing,
     MembershipFeature,
     MembershipDiscountItem,
+    MembershipBenefits,
+    MembershipBenefitItem,
     DonationProject,
     CoursePageSection,
 )
@@ -112,6 +114,8 @@ __all__ = [
     "MembershipPricing",
     "MembershipFeature",
     "MembershipDiscountItem",
+    "MembershipBenefits",
+    "MembershipBenefitItem",
     "DonationProject",
     "CoursePageSection",
 ]
