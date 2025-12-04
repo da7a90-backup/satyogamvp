@@ -51,10 +51,9 @@ const ShunyamurtiSection = ({
         />
         {/* Content Container - Left side on desktop */}
         <div
-          className="order-2 lg:order-1 flex flex-col w-full md:w-auto"
+          className="order-2 lg:order-1 flex flex-col w-full lg:w-auto"
           style={{
-            width: '616px',
-            height: '622px',
+            maxWidth: '616px',
             gap: '32px',
             opacity: 1,
             zIndex: 5
@@ -112,10 +111,10 @@ const ShunyamurtiSection = ({
           </div>
 
           {/* Action Button */}
-          <div className="text-left">
+          <div className="text-left w-full">
             <Link
               href={buttonLink}
-              className="inline-flex items-center px-6 py-3 text-white rounded-lg transition-all duration-300 hover:opacity-90"
+              className="w-full lg:w-auto flex lg:inline-flex items-center justify-center px-6 py-3 text-white rounded-lg transition-all duration-300 hover:opacity-90"
               style={{
                 backgroundColor: '#7D1A13',
                 fontFamily: 'Avenir Next, sans-serif',
@@ -131,13 +130,12 @@ const ShunyamurtiSection = ({
         </div>
 
         {/* Image Container - Right side on desktop */}
-        <div className="order-1 lg:order-2 flex-shrink-0 w-full md:w-auto" style={{ zIndex: 10 }}>
+        <div className="order-1 lg:order-2 w-full lg:flex-1" style={{ zIndex: 10 }}>
           <img
             src={image}
             alt={imageAlt}
-            className="object-cover"
+            className="object-cover w-full"
             style={{
-              width: '616px',
               height: '640px',
               borderRadius: '12px',
               opacity: 1,

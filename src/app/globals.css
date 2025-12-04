@@ -27,6 +27,13 @@ body {
   font-family: var(--font-avenir);
 }
 
+/* Desktop zoom - 80% scale (min-width: 1024px excludes tablets/mobile)*/
+@media (min-width: 1024px) {
+  html {
+    zoom: 0.8;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
