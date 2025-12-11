@@ -70,6 +70,17 @@ export default function FAQSection({ data }: FAQSectionProps) {
   return (
     <>
       <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .faq-section-container {
           background: #FAF8F1;
           padding: 112px 64px;
@@ -272,8 +283,10 @@ export default function FAQSection({ data }: FAQSectionProps) {
               {/* Answer */}
               {openItemIndex === index && (
                 <div
+                  key={index}
                   style={{
-                    paddingBottom: '24px'
+                    paddingBottom: '24px',
+                    animation: 'fadeInUp 0.3s ease-out'
                   }}
                 >
                   <div

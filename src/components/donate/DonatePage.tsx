@@ -22,6 +22,7 @@ interface PageData {
   givingFromHeart?: {
     eyebrow: string;
     heading: string;
+    description: string;
     gap: string;
     accordionItems: Array<{
       id: number;
@@ -73,6 +74,14 @@ const DonationProjectsSection = () => {
   const [donationAmount, setDonationAmount] = useState('45.00');
   const [donationProjects, setDonationProjects] = useState<DonationProject[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const nextSlide = () => {
+    setActiveTab((prev) => (prev + 1) % donationProjects.length);
+  };
+
+  const prevSlide = () => {
+    setActiveTab((prev) => (prev - 1 + donationProjects.length) % donationProjects.length);
+  };
 
   useEffect(() => {
     fetch(`${FASTAPI_URL}/api/donations/projects`)
@@ -131,8 +140,14 @@ const DonationProjectsSection = () => {
             A NEW AGE OF BEAUTY, TRUTH, AND DIVINE LOVE IS BEING BORN
           </span>
           <h2
-            className="text-4xl lg:text-5xl font-medium text-center"
-            style={{ fontFamily: 'Optima, Georgia, serif' }}
+            className="text-center"
+            style={{
+              fontFamily: 'Optima, Georgia, serif',
+              fontSize: 'clamp(28px, 4vw, 48px)',
+              fontWeight: 550,
+              lineHeight: '125%',
+              letterSpacing: '-0.02em'
+            }}
           >
             Many Projects, One Vision
           </h2>
@@ -147,9 +162,9 @@ const DonationProjectsSection = () => {
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-8 overflow-x-auto">
-          <div className="flex gap-3 min-w-max">
+        {/* Tabs - Desktop */}
+        <div className="hidden lg:block border-b border-gray-200 mb-8">
+          <div className="flex gap-3">
             {donationProjects.map((project, index) => (
               <button
                 key={project.id}
@@ -167,70 +182,145 @@ const DonationProjectsSection = () => {
           </div>
         </div>
 
-        {/* Project Content Card */}
-        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden grid md:grid-cols-2">
-          {/* Image */}
-          <div
-            className="h-[400px] md:h-[640px] bg-gray-200"
-            style={{
-              backgroundImage: `url(${activeProject.image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-
-          {/* Content */}
-          <div className="p-12 flex flex-col justify-center gap-8">
-            <div className="flex flex-col gap-6">
-              <h3
-                className="text-5xl font-bold"
-                style={{ fontFamily: 'Optima, Georgia, serif' }}
-              >
-                {activeProject.title}
-              </h3>
-              <p
-                className="text-gray-700 leading-relaxed"
-                style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', lineHeight: '24px' }}
-              >
-                {activeProject.description}
-              </p>
-            </div>
-
-            {/* Donation Amount Input */}
-            <div className="flex flex-col gap-3">
-              <label
-                className="font-bold text-lg"
-                style={{ fontFamily: 'Roboto, sans-serif' }}
-              >
-                Insert amount
-              </label>
-              <div className="flex gap-2">
-                {/* Currency + Amount Input */}
-                <div className="flex-1 flex border border-gray-300 rounded-lg overflow-hidden">
-                  <select
-                    className="px-4 py-3 border-r border-gray-300 bg-white focus:outline-none"
+        {/* Tabs - Mobile with Carousel */}
+        <div className="lg:hidden relative mb-8">
+          <div className="overflow-hidden">
+            <div
+              className="flex transition-transform duration-300 ease-in-out"
+              style={{
+                transform: `translateX(-${activeTab * 100}%)`
+              }}
+            >
+              {donationProjects.map((project, index) => (
+                <div
+                  key={project.id}
+                  className="w-full flex-shrink-0 flex justify-center"
+                  style={{ minWidth: '100%' }}
+                >
+                  <span
+                    className="px-4 py-3 font-semibold text-sm text-[#7D1A13]"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    <option value="USD">USD</option>
-                  </select>
-                  <input
-                    type="text"
-                    value={donationAmount}
-                    onChange={(e) => setDonationAmount(e.target.value)}
-                    placeholder="$45.00"
-                    className="flex-1 px-4 py-3 focus:outline-none"
-                    style={{ fontFamily: 'Inter, sans-serif' }}
-                  />
+                    {project.name}
+                  </span>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Accept Button */}
+          {/* Navigation Arrows */}
+          {donationProjects.length > 1 && (
+            <>
+              <button
+                onClick={prevSlide}
+                className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-2 bg-white bg-opacity-90 rounded-full p-2 shadow-lg hover:bg-opacity-100 transition-all duration-200 z-10"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18L9 12L15 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              <button
+                onClick={nextSlide}
+                className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-2 bg-white bg-opacity-90 rounded-full p-2 shadow-lg hover:bg-opacity-100 transition-all duration-200 z-10"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18L15 12L9 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* Dots Indicator */}
+          {donationProjects.length > 1 && (
+            <div className="flex justify-center mt-4 space-x-2">
+              {donationProjects.map((_, index) => (
                 <button
-                  onClick={handleAccept}
-                  className="px-6 py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 shadow-sm"
-                  style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                  key={index}
+                  onClick={() => setActiveTab(index)}
+                  className={`h-2 rounded-full transition-all duration-200 ${
+                    activeTab === index ? 'w-6' : 'w-2 hover:bg-gray-600'
+                  }`}
+                  style={{
+                    backgroundColor: activeTab === index ? '#7D1A13' : '#9CA3AF'
+                  }}
+                  aria-label={`Go to tab ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Project Content Card */}
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
+          <div className="flex flex-col lg:flex-row">
+            {/* Image */}
+            <div
+              className="w-full lg:w-1/2 h-[300px] lg:h-[640px] bg-gray-200"
+              style={{
+                backgroundImage: `url(${activeProject.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            />
+
+            {/* Content */}
+            <div className="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col justify-center gap-6 lg:gap-8">
+              <div className="flex flex-col gap-4 lg:gap-6">
+                <h3
+                  className="font-bold"
+                  style={{
+                    fontFamily: 'Optima, Georgia, serif',
+                    fontSize: 'clamp(28px, 4vw, 48px)',
+                    lineHeight: '125%'
+                  }}
                 >
-                  Accept
-                </button>
+                  {activeProject.title}
+                </h3>
+                <p
+                  className="text-gray-700 leading-relaxed"
+                  style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', lineHeight: '24px' }}
+                >
+                  {activeProject.description}
+                </p>
+              </div>
+
+              {/* Donation Amount Input */}
+              <div className="flex flex-col gap-3">
+                <label
+                  className="font-bold text-base lg:text-lg"
+                  style={{ fontFamily: 'Roboto, sans-serif' }}
+                >
+                  Insert amount
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Currency + Amount Input */}
+                  <div className="flex-1 flex border border-gray-300 rounded-lg overflow-hidden">
+                    <select
+                      className="px-3 lg:px-4 py-2 lg:py-3 border-r border-gray-300 bg-white focus:outline-none text-sm lg:text-base"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      <option value="USD">USD</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={donationAmount}
+                      onChange={(e) => setDonationAmount(e.target.value)}
+                      placeholder="$45.00"
+                      className="flex-1 px-3 lg:px-4 py-2 lg:py-3 focus:outline-none text-sm lg:text-base"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    />
+                  </div>
+
+                  {/* Accept Button */}
+                  <button
+                    onClick={handleAccept}
+                    className="px-6 py-2 lg:py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 shadow-sm text-sm lg:text-base"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                  >
+                    Accept
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -273,22 +363,27 @@ const GeneralFundSection = ({ data }: { data?: PageData['generalFund'] }) => {
   };
 
   return (
-    <section className="w-full bg-[#FAF8F1] py-20 px-4 lg:px-16">
+    <section className="w-full bg-[#FAF8F1] py-12 lg:py-20 px-4 lg:px-16">
       <div className="max-w-[1312px] mx-auto">
         {/* Card */}
-        <div className="bg-white border border-gray-300 rounded-lg p-12 shadow-lg">
-          <div className="max-w-[836px] mx-auto flex flex-col items-center gap-8">
+        <div className="bg-white border border-gray-300 rounded-lg p-6 lg:p-12 shadow-lg">
+          <div className="max-w-[836px] mx-auto flex flex-col items-center gap-6 lg:gap-8">
             {/* Header */}
             <div className="flex flex-col gap-3 text-center">
               <span
-                className="text-[#942017] font-bold"
-                style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px' }}
+                className="text-[#942017] font-bold text-sm lg:text-base"
+                style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {data.eyebrow}
               </span>
               <h2
-                className="text-5xl font-medium"
-                style={{ fontFamily: 'Optima, Georgia, serif' }}
+                className="font-medium"
+                style={{
+                  fontFamily: 'Optima, Georgia, serif',
+                  fontSize: 'clamp(28px, 4vw, 48px)',
+                  lineHeight: '125%',
+                  letterSpacing: '-0.02em'
+                }}
               >
                 {data.heading}
               </h2>
@@ -311,7 +406,7 @@ const GeneralFundSection = ({ data }: { data?: PageData['generalFund'] }) => {
               </p>
 
               {/* Preset Amount Buttons */}
-              <div className="flex justify-center gap-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 {presetAmounts.map((amount) => (
                   <button
                     key={amount}
@@ -349,11 +444,11 @@ const GeneralFundSection = ({ data }: { data?: PageData['generalFund'] }) => {
               </p>
 
               {/* Custom Amount Input */}
-              <div className="flex gap-2">
+              <div className="flex flex-col lg:flex-row gap-2">
                 {/* Currency + Amount Input */}
                 <div className="flex-1 flex border border-gray-300 rounded-lg overflow-hidden">
                   <select
-                    className="px-4 py-3 border-r border-gray-300 bg-white focus:outline-none"
+                    className="px-3 lg:px-4 py-2 lg:py-3 border-r border-gray-300 bg-white focus:outline-none text-sm lg:text-base"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     <option value="USD">USD</option>
@@ -366,7 +461,7 @@ const GeneralFundSection = ({ data }: { data?: PageData['generalFund'] }) => {
                       setSelectedPreset(null);
                     }}
                     placeholder="Type your amount"
-                    className="flex-1 px-4 py-3 focus:outline-none"
+                    className="flex-1 px-3 lg:px-4 py-2 lg:py-3 focus:outline-none text-sm lg:text-base"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   />
                 </div>
@@ -375,7 +470,7 @@ const GeneralFundSection = ({ data }: { data?: PageData['generalFund'] }) => {
                 <select
                   value={donationType}
                   onChange={(e) => setDonationType(e.target.value)}
-                  className="px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none"
+                  className="px-3 lg:px-4 py-2 lg:py-3 border border-gray-300 rounded-lg bg-white focus:outline-none text-sm lg:text-base"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {data.content.donationTypes.map((type) => (
@@ -388,7 +483,7 @@ const GeneralFundSection = ({ data }: { data?: PageData['generalFund'] }) => {
                 {/* Accept Button */}
                 <button
                   onClick={handleAccept}
-                  className="px-6 py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 shadow-sm"
+                  className="px-6 py-2 lg:py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 shadow-sm text-sm lg:text-base whitespace-nowrap"
                   style={{ fontFamily: 'Avenir Next, sans-serif' }}
                 >
                   Accept
@@ -459,7 +554,8 @@ const DonatePage = () => {
             leftPane: {
               tagline: pageData.givingFromHeart.eyebrow,
               taglineColor: '#9C7520',
-              title: pageData.givingFromHeart.heading
+              title: pageData.givingFromHeart.heading,
+              description: pageData.givingFromHeart.description
             },
             rightPane: {
               type: 'bulletaccordion',

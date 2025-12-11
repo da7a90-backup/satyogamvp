@@ -385,24 +385,39 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
 
       {/* Dropdown Menu */}
       {activeDropdown && (
-        <div className="absolute left-0 right-0 bg-white z-10 dropdown-container" style={{ top: '100%' }}>
+        <div
+          className="absolute left-0 right-0 bg-white z-10 dropdown-container"
+          style={{
+            top: '100%',
+            animation: 'slideDown 0.2s ease-out'
+          }}
+        >
           <div className="pt-8 px-4 md:px-8 lg:px-16 max-w-screen-2xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 mb-8">
+            <div
+              key={activeDropdown}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 mb-8"
+              style={{
+                animation: 'fadeIn 0.25s ease-out'
+              }}
+            >
               {navItems.find(item => item.label === activeDropdown)?.children?.map((child, index) => (
-                <Link 
-                  key={index} 
+                <Link
+                  key={index}
                   href={child.url}
                   className="no-underline block hover:opacity-80 transition-opacity"
                   onClick={handleDropdownLinkClick}
+                  style={{
+                    animation: `fadeInUp 0.3s ease-out ${index * 0.05}s both`
+                  }}
                 >
                   <div className="py-2">
-                    <h3 
+                    <h3
                       className="text-base font-semibold text-black m-0 mb-1 leading-6"
                       style={{ fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif' }}
                     >
                       {child.title}
                     </h3>
-                    <p 
+                    <p
                       className="text-sm font-normal text-black m-0 leading-5"
                       style={{ fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segue UI, sans-serif' }}
                     >
@@ -413,6 +428,36 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
               ))}
             </div>
           </div>
+          <style jsx>{`
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            @keyframes fadeIn {
+              from {
+                opacity: 0;
+              }
+              to {
+                opacity: 1;
+              }
+            }
+            @keyframes fadeInUp {
+              from {
+                opacity: 0;
+                transform: translateY(10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
           
           {/* Newsletter Banner in Dropdown */}
           {/* <div 
@@ -455,7 +500,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                     <button
                       onClick={() => handleDropdownToggle(item.label)}
                       className="flex items-center justify-between w-full px-4 py-3 bg-transparent border-none text-base font-semibold text-left cursor-pointer hover:opacity-80 transition-opacity"
-                      style={{ 
+                      style={{
                         color: '#181D27',
                         fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
                       }}
@@ -463,14 +508,19 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                       {item.label}
                       <ChevronDownIcon isOpen={activeDropdown === item.label} />
                     </button>
-                    {activeDropdown === item.label && (
+                    <div
+                      className="overflow-hidden transition-all duration-300 ease-in-out"
+                      style={{
+                        maxHeight: activeDropdown === item.label ? `${item.children.length * 60}px` : '0px'
+                      }}
+                    >
                       <div className="pb-5">
                         {item.children.map((child, childIndex) => (
                           <Link
                             key={childIndex}
                             href={child.url}
                             className="block px-4 py-3 text-base font-medium no-underline hover:opacity-80 transition-opacity"
-                            style={{ 
+                            style={{
                               color: '#404040',
                               fontFamily: 'Avenir Next, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
                             }}
@@ -480,7 +530,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                           </Link>
                         ))}
                       </div>
-                    )}
+                    </div>
                   </>
                 ) : (
                   <Link

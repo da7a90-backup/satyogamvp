@@ -17,13 +17,57 @@ interface HeroSectionData {
 
 const StandardHeroSection = ({ data }: { data: HeroSectionData }) => {
   return (
-    <section 
-      className="relative w-full flex items-end overflow-hidden bg-cover bg-center h-[55vh] lg:h-screen"
+    <section
+      className="relative w-full flex items-end overflow-hidden h-[55vh] lg:h-screen"
       style={{
-        minHeight: '400px',
-        backgroundImage: `url(${data.background})`
+        minHeight: '400px'
       }}
     >
+      {/* Desktop: Blurred background layer to fill space */}
+      <div
+        className="absolute inset-0 hidden lg:block"
+        style={{
+          backgroundImage: `url(${data.background})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(40px)',
+          transform: 'scale(1.1)' // Scale up slightly to hide blur edges
+        }}
+      />
+
+      {/* Desktop: Sharp foreground image (contain to show full image) */}
+      <div
+        className="absolute inset-0 hidden lg:block"
+        style={{
+          backgroundImage: `url(${data.background})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
+
+      {/* Mobile: Blurred background layer to fill space */}
+      <div
+        className="absolute inset-0 lg:hidden"
+        style={{
+          backgroundImage: `url(${data.background})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(20px)',
+          transform: 'scale(1.1)' // Scale up slightly to hide blur edges
+        }}
+      />
+
+      {/* Mobile: Sharp foreground image (contain to show full image) */}
+      <div
+        className="absolute inset-0 lg:hidden"
+        style={{
+          backgroundImage: `url(${data.background})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
       {/* Very subtle vignette for text readability */}
       <div 
         className="absolute inset-0"

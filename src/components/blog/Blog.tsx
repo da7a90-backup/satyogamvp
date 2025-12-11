@@ -46,111 +46,120 @@ export const FeaturedBlog: React.FC<FeaturedBlogProps> = ({ post }) => {
   if (!post) return null;
 
   return (
-    <div className="flex flex-col md:flex-row overflow-hidden rounded-lg border border-[#D2D6DB] bg-white mb-12 shadow-sm hover:shadow-md transition-shadow">
-      {/* Image Section */}
-      <div className="relative bg-gray-100 w-full md:w-1/2 h-[300px] md:h-[500px]">
-        {/* Featured Badge */}
-        <div className="absolute top-4 left-4 z-10">
-          <span
-            className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium border"
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderColor: '#D5D7DA',
-              color: '#414651',
-              ...avenirNext
-            }}
-          >
-            Featured blog
-          </span>
-        </div>
+    <div
+      className="mb-12 mx-auto overflow-hidden rounded-lg border border-[#D2D6DB] bg-white shadow-sm hover:shadow-md transition-shadow"
+      style={{
+        width: '923px',
+        maxWidth: '100%',
+        aspectRatio: '923 / 337'
+      }}
+    >
+      <div className="flex flex-col md:flex-row h-full">
+        {/* Image Section */}
+        <div className="relative bg-gray-100 w-full md:w-[33.6%] h-[200px] md:h-full">
+          {/* Featured Badge */}
+          <div className="absolute top-4 left-4 z-10">
+            <span
+              className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium border"
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderColor: '#D5D7DA',
+                color: '#414651',
+                ...avenirNext
+              }}
+            >
+              Featured blog
+            </span>
+          </div>
 
-        {/* Heart Icon */}
-        <button
-          className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors z-10"
-          aria-label="Favorite"
-        >
-          <svg
-            className="w-4 h-4 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+          {/* Heart Icon */}
+          <button
+            className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors z-10"
+            aria-label="Favorite"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
-        </button>
-
-        {post.featuredImage ? (
-          <Image
-            src={post.featuredImage}
-            alt={post.title}
-            fill
-            className="object-cover"
-            priority
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
             <svg
-              className="h-24 w-24 text-gray-300"
+              className="w-4 h-4 text-white"
               fill="none"
-              viewBox="0 0 24 24"
               stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={1}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                strokeWidth={1.5}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
               />
             </svg>
-          </div>
-        )}
-      </div>
+          </button>
 
-      {/* Content Section */}
-      <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-        <div className="mb-4">
-          <span
-            className="text-sm font-semibold"
-            style={{ color: '#000000', ...avenirNext }}
-          >
-            {post.readTime} min read
-          </span>
+          {post.featuredImage ? (
+            <Image
+              src={post.featuredImage}
+              alt={post.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <svg
+                className="h-24 w-24 text-gray-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+          )}
         </div>
 
-        <h2
-          className="text-3xl md:text-4xl font-bold mb-4 leading-tight"
-          style={{ ...optima }}
-        >
+        {/* Content Section */}
+        <div className="w-full md:w-[66.4%] p-6 md:p-8 lg:p-12 flex flex-col justify-center">
+          <div className="mb-4">
+            <span
+              className="text-sm font-semibold"
+              style={{ color: '#000000', ...avenirNext }}
+            >
+              {post.readTime} min read
+            </span>
+          </div>
+
+          <h2
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 leading-tight"
+            style={{ ...optima }}
+          >
+            <Link
+              href={`/blog/${post.slug}`}
+              className="hover:text-[#7D1A13] transition-colors"
+            >
+              {post.title}
+            </Link>
+          </h2>
+
+          <p
+            className="text-base md:text-lg mb-6 leading-relaxed line-clamp-2"
+            style={{ color: '#414651', ...avenirNext }}
+          >
+            {post.excerpt}
+          </p>
+
           <Link
             href={`/blog/${post.slug}`}
-            className="hover:text-[#7D1A13] transition-colors"
+            className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white rounded-lg w-fit transition-all hover:shadow-lg"
+            style={{
+              backgroundColor: '#7D1A13',
+              ...avenirNext
+            }}
           >
-            {post.title}
+            Read more
           </Link>
-        </h2>
-
-        <p
-          className="text-base md:text-lg mb-6 leading-relaxed"
-          style={{ color: '#414651', ...avenirNext }}
-        >
-          {post.excerpt}
-        </p>
-
-        <Link
-          href={`/blog/${post.slug}`}
-          className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white rounded-lg w-fit transition-all hover:shadow-lg"
-          style={{
-            backgroundColor: '#7D1A13',
-            ...avenirNext
-          }}
-        >
-          Read more
-        </Link>
+        </div>
       </div>
     </div>
   );

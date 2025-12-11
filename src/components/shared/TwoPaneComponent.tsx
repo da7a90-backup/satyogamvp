@@ -83,14 +83,6 @@ interface TwoPaneData {
 const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
   const [openAccordion, setOpenAccordion] = useState(0);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [, forceRender] = useState({});
-
-  // Force re-render when background elements change during navigation
-  useEffect(() => {
-    if (data.backgroundElements && data.backgroundElements.length > 0) {
-      forceRender({});
-    }
-  }, [data.backgroundElements]);
 
   const handleAccordionToggle = (id: number) => {
     setOpenAccordion(openAccordion === id ? -1 : id);
@@ -221,9 +213,10 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                     {item.title}
                   </h3>
                   <div
-                    className="ml-4 transition-transform duration-300"
                     style={{
-                      transform: openAccordion === item.id ? 'rotate(180deg)' : 'rotate(0deg)'
+                      marginLeft: '16px',
+                      transform: openAccordion === item.id ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease-in-out'
                     }}
                   >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -231,13 +224,14 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                     </svg>
                   </div>
                 </button>
-                <div
-                  className="overflow-hidden transition-all duration-300 ease-in-out"
-                  style={{
-                    maxHeight: openAccordion === item.id ? '1000px' : '0px'
-                  }}
-                >
-                  <div className="pb-6">
+                {openAccordion === item.id && (
+                  <div
+                    key={item.id}
+                    style={{
+                      paddingBottom: '24px',
+                      animation: 'fadeInUp 0.3s ease-out'
+                    }}
+                  >
                     <p
                       style={{
                         fontFamily: 'Avenir Next, sans-serif',
@@ -249,9 +243,21 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                       {item.content}
                     </p>
                   </div>
-                </div>
+                )}
               </div>
             ))}
+            <style jsx>{`
+              @keyframes fadeInUp {
+                from {
+                  opacity: 0;
+                  transform: translateY(10px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+            `}</style>
           </div>
         )}
 
@@ -461,9 +467,10 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                       {item.title}
                     </h3>
                     <div
-                      className="ml-4 transition-transform duration-300"
                       style={{
-                        transform: openAccordion === item.id ? 'rotate(180deg)' : 'rotate(0deg)'
+                        marginLeft: '16px',
+                        transform: openAccordion === item.id ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease-in-out'
                       }}
                     >
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -471,13 +478,14 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                       </svg>
                     </div>
                   </button>
-                  <div
-                    className="overflow-hidden transition-all duration-300 ease-in-out"
-                    style={{
-                      maxHeight: openAccordion === item.id ? '1000px' : '0px'
-                    }}
-                  >
-                    <div className="pb-6">
+                  {openAccordion === item.id && (
+                    <div
+                      key={item.id}
+                      style={{
+                        paddingBottom: '24px',
+                        animation: 'fadeInUp 0.3s ease-out'
+                      }}
+                    >
                       <p
                         style={{
                           fontFamily: 'Avenir Next, sans-serif',
@@ -489,7 +497,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
                         {item.content}
                       </p>
                     </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -628,12 +636,11 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
       >
         {/* Background Elements - positioned relative to content container */}
         {data.backgroundElements?.map((element, index) => (
-          <div key={element.image || index}>
+          <div key={`${element.image}-${index}`}>
             {element.desktop && (
               <div
-                className="absolute pointer-events-none"
+                className="absolute pointer-events-none hidden lg:block"
                 style={{
-                  display: 'block',
                   ...element.desktop,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
@@ -648,7 +655,7 @@ const TwoPaneComponent = ({ data }: { data: TwoPaneData }) => {
             )}
             {element.mobile && (
               <div
-                className="absolute lg:hidden pointer-events-none overflow-hidden"
+                className="absolute lg:hidden pointer-events-none"
                 style={{
                   ...element.mobile,
                   backgroundSize: 'contain',

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { productsApi, type Product } from '@/lib/store-api';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Heart, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ShoppingCart, Bookmark, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 const CATEGORIES = [
   'All products',
@@ -234,7 +234,7 @@ export default function StorePage() {
                   style={{ background: 'rgba(0, 0, 0, 0.1)' }}
                   onClick={() => handleAction('Save for later functionality under active development, try again in a couple of days!')}
                 >
-                  <Heart className="w-4 h-4 text-white" strokeWidth={1.5} />
+                  <Bookmark className="w-4 h-4 text-white" strokeWidth={1.5} />
                 </button>
                 <div className="absolute bottom-4 left-2">
                   <span className="bg-white border border-[#D5D7DA] px-3 py-1 text-sm font-medium rounded-lg" style={{ boxShadow: '0px 1px 2px rgba(10, 13, 18, 0.05)' }}>
@@ -373,7 +373,7 @@ export default function StorePage() {
                         src={product.featured_image}
                         alt={product.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover"
                         unoptimized
                       />
                     ) : (
@@ -388,7 +388,7 @@ export default function StorePage() {
                         handleAction('Save for later functionality under active development, try again in a couple of days!');
                       }}
                     >
-                      <Heart className="w-4 h-4 text-white" />
+                      <Bookmark className="w-4 h-4 text-white" />
                     </button>
                     <div className="absolute bottom-3 left-3 flex gap-2">
                       {getTypeBadges(product.type).map((badge, index) => (

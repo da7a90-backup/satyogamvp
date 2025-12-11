@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = "sqlite:///./satyoga.db"
+    DATABASE_URL: str
 
     # Auth
     JWT_SECRET: str
@@ -49,8 +49,9 @@ class Settings(BaseSettings):
     BEEFREE_CLIENT_ID: Optional[str] = None
     BEEFREE_CLIENT_SECRET: Optional[str] = None
 
-    # Cloudflare Stream
+    # Cloudflare Stream & Images
     CLOUDFLARE_ACCOUNT_ID: Optional[str] = None
+    CLOUDFLARE_ACCOUNT_HASH: Optional[str] = None  # For Cloudflare Images
     CLOUDFLARE_API_TOKEN: Optional[str] = None
 
     # YouTube
