@@ -44,10 +44,10 @@ const MembershipSection = ({
         >
           <div className="flex flex-col lg:flex-row items-end gap-4 lg:gap-20">
             <div className="flex flex-col justify-center items-start gap-3 lg:gap-8 max-w-4xl">
-              <span 
-                className="text-white uppercase tracking-wide text-xs lg:text-base font-bold"
+              <span
+                className="text-white uppercase tracking-wide text-sm font-medium"
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: 'Avenir Next, sans-serif',
                   lineHeight: '150%'
                 }}
               >
@@ -67,12 +67,12 @@ const MembershipSection = ({
                 {heading}
               </h2>
 
-              <p 
+              <p
                 className="text-white"
                 style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: 'clamp(12px, 3vw, 18px)',
-                  lineHeight: '1.4',
+                  fontSize: '16px',
+                  lineHeight: '150%',
                   color: 'rgba(255, 255, 255, 0.9)',
                   maxWidth: '840px'
                 }}

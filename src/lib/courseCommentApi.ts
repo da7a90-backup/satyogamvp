@@ -1,133 +1,96 @@
-"use client";
+/**
+ * Course Comment API - FastAPI Backend Integration
+ * User comments on courses and classes
+ */
 
-// Helper to get the JWT token
-const getToken = (): string | null => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("jwt");
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+
+// Helper to get auth token
+const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token') || localStorage.getItem('jwt');
 };
 
-// Base API URL
-const API_URL =
-  process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337";
+// Helper to make authenticated requests
+const fetchAPI = async (endpoint: string, options: RequestInit = {}, requireAuth: boolean = true) => {
+  const token = getAuthToken();
+
+  if (requireAuth && !token) {
+    throw new Error('User not authenticated');
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${FASTAPI_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Request failed' }));
+    throw new Error(error.detail || `API error: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 export const courseCommentApi = {
   /**
-   * Get comments for a specific section of a course
+   * Get comments for a course or specific class
    * @param courseId - The ID of the course
-   * @param sectionType - Type of section (video, additionalMaterials, testimonial)
-   * @param classIndex - The index of the class (optional, for video and additionalMaterials only)
+   * @param classId - Optional: The ID of a specific class
    */
   getComments: async (
     courseId: string,
-    sectionType: "video" | "additionalMaterials" | "testimonial",
-    classIndex?: number
+    classId?: string
   ) => {
     try {
-      const token = getToken();
-
-      // Build filter parameters
-      let filterParams = `filters[course][id][$eq]=${courseId}&filters[sectionType][$eq]=${sectionType}`;
-
-      // Add classIndex filter if provided
-      if (classIndex !== undefined) {
-        filterParams += `&filters[classIndex][$eq]=${classIndex}`;
-      } else {
-        // For testimonials ensure classIndex is null
-        filterParams += `&filters[classIndex][$null]=true`;
+      const params = new URLSearchParams();
+      if (classId) {
+        params.append('class_id', classId);
       }
 
-      // Sort by creation date (newest first) and populate user data
-      const url = `${API_URL}/api/course-comments?${filterParams}&sort=createdAt:desc&populate=user`;
+      const queryString = params.toString();
+      const url = `/api/courses/${courseId}/comments${queryString ? `?${queryString}` : ''}`;
 
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      // Add authorization header if token exists
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(url, { headers });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      return await response.json();
+      const data = await fetchAPI(url, {}, false); // Comments can be viewed by non-authenticated users
+      return data;
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error('Error fetching comments:', error);
       throw error;
     }
   },
 
   /**
-   * Add a new comment
+   * Add a new comment to a course or class
    * @param courseId - The ID of the course
-   * @param sectionType - Type of section (video, additionalMaterials, testimonial)
    * @param comment - The comment text
-   * @param classIndex - The index of the class (optional, for video and additionalMaterials only)
+   * @param classId - Optional: The ID of a specific class
    */
   addComment: async (
     courseId: string,
-    sectionType: "video" | "additionalMaterials" | "testimonial",
     comment: string,
-    classIndex?: number
+    classId?: string
   ) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("User not authenticated");
-      }
-
-      // First, get the current user's ID
-      const userResponse = await fetch(`${API_URL}/api/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const data = await fetchAPI(`/api/courses/${courseId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({
+          course_id: courseId,
+          class_id: classId || null,
+          content: comment,
+        }),
       });
-
-      if (!userResponse.ok) {
-        throw new Error("Failed to get current user data");
-      }
-
-      const userData = await userResponse.json();
-      const userId = userData.id;
-
-      // Now create comment with explicit user relation
-      const commentData = {
-        data: {
-          comment: comment,
-          course: courseId,
-          sectionType: sectionType,
-          classIndex: classIndex || null,
-          user: userId, // Explicitly set the user ID
-        },
-      };
-
-      console.log("Submitting comment with data:", JSON.stringify(commentData));
-
-      const response = await fetch(`${API_URL}/api/course-comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(commentData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response from API:", errorData);
-        throw new Error(
-          errorData.error?.message ||
-            `Failed to create comment: ${response.status}`
-        );
-      }
-
-      return await response.json();
+      return data;
     } catch (error) {
-      console.error("Error creating comment:", error);
+      console.error('Error creating comment:', error);
       throw error;
     }
   },
@@ -139,72 +102,31 @@ export const courseCommentApi = {
    */
   updateComment: async (commentId: string, comment: string) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("User not authenticated");
-      }
-
-      const commentData = {
-        data: {
-          comment: comment,
-        },
-      };
-
-      const response = await fetch(
-        `${API_URL}/api/course-comments/${commentId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(commentData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error?.message ||
-            `Failed to update comment: ${response.status}`
-        );
-      }
-
-      return await response.json();
+      const data = await fetchAPI(`/api/courses/comments/${commentId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          content: comment,
+        }),
+      });
+      return data;
     } catch (error) {
-      console.error("Error updating comment:", error);
+      console.error('Error updating comment:', error);
       throw error;
     }
   },
 
   /**
-   * Delete a comment (for admins or comment owners)
+   * Delete a comment (owner or admin only)
    * @param commentId - The ID of the comment to delete
    */
   deleteComment: async (commentId: string) => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("User not authenticated");
-      }
-
-      const response = await fetch(
-        `${API_URL}/api/course-comments/${commentId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete comment: ${response.status}`);
-      }
-
-      return await response.json();
+      const data = await fetchAPI(`/api/courses/comments/${commentId}`, {
+        method: 'DELETE',
+      });
+      return data;
     } catch (error) {
-      console.error("Error deleting comment:", error);
+      console.error('Error deleting comment:', error);
       throw error;
     }
   },
@@ -214,24 +136,16 @@ export const courseCommentApi = {
    */
   getCurrentUser: async () => {
     try {
-      const token = getToken();
+      const token = getAuthToken();
       if (!token) {
         return null;
       }
 
-      const response = await fetch(`${API_URL}/api/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch user data");
-      }
-
-      return await response.json();
+      // Use the user endpoint to get current user data
+      const data = await fetchAPI('/api/users/me');
+      return data;
     } catch (error) {
-      console.error("Error fetching current user:", error);
+      console.error('Error fetching current user:', error);
       return null;
     }
   },

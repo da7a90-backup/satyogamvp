@@ -1,0 +1,49 @@
+{
+  "instructors": [
+    {
+      "name": "John Doe",
+      "bio": "Expert meditation teacher",
+      "photo_url": "https://example.com/photo.jpg",
+      "email": "john@example.com"
+    }
+  ],
+  "courses": [
+    {
+      "slug": "introduction-to-meditation",
+      "title": "Introduction to Meditation",
+      "description": "Learn the basics of meditation",
+      "price": 0.0,
+      "instructor_name": "John Doe",
+      "thumbnail_url": "https://example.com/thumb.jpg",
+      "cloudflare_image_id": "abc123",
+      "is_published": true,
+      "difficulty_level": "beginner",
+      "classes": [
+        {
+          "title": "Getting Started",
+          "description": "Your first meditation session",
+          "order_index": 1,
+          "video_url": null,
+          "duration": 1200,
+          "materials": "Optional reading materials",
+          "components": [
+            {
+              "type": "video",
+              "title": "Welcome Video",
+              "content": null,
+              "cloudflare_stream_uid": "xyz789",
+              "duration": 300,
+              "order_index": 1
+            },
+            {
+              "type": "text",
+              "title": "Introduction Text",
+              "content": "Welcome to the course!",
+              "order_index": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

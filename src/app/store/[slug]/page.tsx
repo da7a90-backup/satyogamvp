@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { productsApi, type Product } from '@/lib/store-api';
-import { ChevronLeft, ChevronDown, Heart, X } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Bookmark, X } from 'lucide-react';
 import TestimonialCarouselTertiary from '@/components/shared/TestimonialTertiary';
 
 // Modal Component
@@ -192,7 +192,7 @@ export default function ProductDetailPage() {
                   className="object-cover"
                   unoptimized
                 />
-                {/* Heart Icon */}
+                {/* Bookmark Icon */}
                 <button
                   className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors backdrop-blur-sm"
                   onClick={(e) => {
@@ -200,7 +200,7 @@ export default function ProductDetailPage() {
                     handleAction('Save for later functionality under active development, try again in a couple of days!');
                   }}
                 >
-                  <Heart className="w-4 h-4 text-white" />
+                  <Bookmark className="w-4 h-4 text-white" />
                 </button>
               </div>
 

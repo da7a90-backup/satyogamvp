@@ -47,6 +47,7 @@ class Course(Base):
     price = Column(Numeric(10, 2), nullable=True)
     instructor_id = Column(UUID_TYPE, ForeignKey("instructors.id"), nullable=True)
     thumbnail_url = Column(String(500), nullable=True)
+    cloudflare_image_id = Column(String(255), nullable=True)  # Cloudflare Images ID for thumbnail
     is_published = Column(Boolean, default=False, nullable=False)
     difficulty_level = Column(String(50), nullable=True)  # beginner, intermediate, advanced
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -86,6 +87,8 @@ class CourseComponent(Base):
     type = Column(Enum(ComponentType), nullable=False)
     title = Column(String(500), nullable=False)
     content = Column(Text, nullable=True)  # URL for video/audio, markdown for text, etc.
+    cloudflare_stream_uid = Column(String(255), nullable=True)  # Cloudflare Stream UID for video components
+    duration = Column(Integer, nullable=True)  # Duration in seconds for video/audio
     order_index = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -120,6 +123,7 @@ class CourseProgress(Base):
     component_id = Column(UUID_TYPE, ForeignKey("course_components.id", ondelete="CASCADE"), nullable=True)
     completed = Column(Boolean, default=False, nullable=False)
     progress_percentage = Column(Integer, default=0, nullable=False)  # 0-100
+    video_timestamp = Column(Integer, default=0, nullable=False)  # Video timestamp in seconds for resume functionality
     last_accessed = Column(DateTime, default=datetime.utcnow, nullable=False)
     time_spent = Column(Integer, default=0, nullable=False)  # seconds
 

@@ -105,9 +105,6 @@ const SocialAuthButton: React.FC<SocialAuthButtonProps> = ({ provider, onClick }
         {icon}
         <span className="text-sm">{text}</span>
       </button>
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-        Temporarily disabled
-      </div>
     </div>
   );
 };
@@ -129,11 +126,41 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/dashboar
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Disabled for now
+    setError('');
+    setIsLoading(true);
+
+    try {
+      // Use NextAuth signIn with credentials provider
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false, // Don't redirect automatically
+      });
+
+      if (result?.error) {
+        throw new Error('Invalid email or password');
+      }
+
+      if (!result?.ok) {
+        throw new Error('Login failed');
+      }
+
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      // Redirect to dashboard or specified path
+      router.push(redirectTo);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during login');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialLogin = async (provider: 'google' | 'facebook' | 'apple') => {
-    // Disabled for now
+    // OAuth not yet configured
   };
 
   return (
@@ -210,20 +237,15 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/dashboar
                 </Link>
               </div>
 
-              {/* Disabled Login Button with Tooltip */}
-              <div className="relative group">
-                <button
-                  type="button"
-                  disabled
-                  className="w-full bg-[#F5F5F5] border border-[#E9EAEB] rounded-lg px-4 py-2 font-semibold text-[#A4A7AE] cursor-not-allowed shadow-[0px_1px_2px_rgba(10,13,18,0.05)]"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  Login
-                </button>
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                  Temporarily disabled
-                </div>
-              </div>
+              {/* Login Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#942017] hover:bg-[#7d1a13] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold shadow-[0px_1px_2px_rgba(10,13,18,0.05)] transition-colors"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {isLoading ? 'Logging in...' : 'Login'}
+              </button>
             </form>
 
             {/* Separator */}

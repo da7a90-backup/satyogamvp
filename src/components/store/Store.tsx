@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react';
-import { Heart, X, Search } from 'lucide-react';
+import { Bookmark, X, Search } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -147,7 +147,7 @@ const FeaturedProduct = ({ product, onSave, isLoggedIn }: {
           style={{ borderRadius: '8px' }}
         />
 
-        {/* Heart Icon */}
+        {/* Bookmark Icon */}
         <button
           onClick={onSave}
           className="absolute top-4 right-4 flex items-center justify-center hover:opacity-90 transition-all"
@@ -158,7 +158,7 @@ const FeaturedProduct = ({ product, onSave, isLoggedIn }: {
             borderRadius: '80px'
           }}
         >
-          <Heart size={16} color="#FFFFFF" strokeWidth={1.5} />
+          <Bookmark size={16} color="#FFFFFF" strokeWidth={1.5} />
         </button>
 
         {/* Tags */}
@@ -296,12 +296,12 @@ const ProductCard = ({ product, onSave, isLoggedIn }: {
           className="w-full h-full object-cover"
         />
         
-        {/* Heart Icon */}
+        {/* Bookmark Icon */}
         <button
           onClick={onSave}
           className="absolute top-3 right-3 w-8 h-8 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
         >
-          <Heart size={16} color="#000" />
+          <Bookmark size={16} color="#000" />
         </button>
 
         {/* Tags */}

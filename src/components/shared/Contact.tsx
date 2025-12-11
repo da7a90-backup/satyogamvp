@@ -165,14 +165,14 @@ export default function ContactSection({ data, initialTopic }: ContactSectionPro
     const hasError = !!errors[field.id];
     const errorBorderColor = hasError ? '#DC2626' : '#D5D7DA';
 
-    const gridColumnStyle = field.gridColumn === '1/3' 
-      ? { gridColumn: '1 / 3' } 
-      : field.gridColumn === '2' 
-      ? { gridColumn: '2' } 
-      : { gridColumn: '1' };
+    const gridColumnClass = field.gridColumn === '1/3'
+      ? 'col-span-1 md:col-span-2'
+      : field.gridColumn === '2'
+      ? 'col-span-1 md:col-start-2'
+      : 'col-span-1';
 
     const fieldWrapper = (
-      <div style={{ ...gridColumnStyle, marginBottom: '16px' }}>
+      <div className={`${gridColumnClass} mb-4`}>
         {field.type !== 'checkbox' && (
           <label
             style={{
@@ -324,18 +324,14 @@ export default function ContactSection({ data, initialTopic }: ContactSectionPro
 
   return (
     <div
+      className="px-4 py-12 md:px-8 md:py-16 lg:px-16 lg:py-20"
       style={{
-        background: '#FAF8F1',
-        padding: '80px 64px'
+        background: '#FAF8F1'
       }}
     >
       <div
+        className="max-w-[1312px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20"
         style={{
-          maxWidth: '1312px',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '80px',
           alignItems: 'start'
         }}
       >
@@ -357,10 +353,10 @@ export default function ContactSection({ data, initialTopic }: ContactSectionPro
           </p>
 
           <h2
+            className="text-3xl md:text-4xl lg:text-5xl"
             style={{
               fontFamily: 'Optima, serif',
-              fontSize: '48px',
-              fontWeight: 700,
+              fontWeight: 550,
               lineHeight: '1.2',
               color: '#000000',
               marginTop: '16px',
@@ -432,7 +428,7 @@ export default function ContactSection({ data, initialTopic }: ContactSectionPro
 
         {/* Right Column - Contact Form */}
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.formFields.map(field => (
               <React.Fragment key={field.id}>
                 {renderField(field)}

@@ -66,6 +66,9 @@ export function Contact({data}:any){
     const [mapImage, setMapImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [initialTopic, setInitialTopic] = useState<string>('');
+    const [isDragging, setIsDragging] = useState(false);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
       // Read queryType from URL parameter
@@ -210,6 +213,60 @@ export function Contact({data}:any){
       fetchContactData();
     }, []);
 
+    // Drag handlers for map image
+    const handleMouseDown = (e: React.MouseEvent) => {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+      setIsDragging(true);
+      const touch = e.touches[0];
+      setDragStart({
+        x: touch.clientX - position.x,
+        y: touch.clientY - position.y
+      });
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+
+      // Calculate new position
+      let newX = touch.clientX - dragStart.x;
+      let newY = touch.clientY - dragStart.y;
+
+      // The image is 200% size, centered at -50%, so it extends 50% beyond container on each side
+      // Maximum drag distance is 50% of container size in each direction
+      const maxDragX = window.innerWidth * 0.25; // 50% of container width / 2
+      const maxDragY = 250; // Approximately 50% of mobile container height
+
+      // Clamp the position within bounds
+      newX = Math.max(-maxDragX, Math.min(maxDragX, newX));
+      newY = Math.max(-maxDragY, Math.min(maxDragY, newY));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleTouchEnd = () => {
+      setIsDragging(false);
+    };
+
     const heroData = {tagline:"", background: heroImage, heading: "Contact Us", subtext: ""}
 
     // Don't block rendering - show default data while loading
@@ -292,8 +349,55 @@ export function Contact({data}:any){
         <StandardHeroSection data={heroData}/>
         <ContactSection data={displayData} initialTopic={initialTopic}/>
         {mapImage && (
-          <div className="w-full flex justify-center items-center px-16 pb-[220px]" style={{ background: '#FAF8F1' }}>
-            <div className="relative w-full max-w-[1312px] h-[657px] rounded-lg overflow-hidden" style={{ border: '1px solid #AFA7A7' }}>
+          <div className="w-full flex justify-center items-center px-4 md:px-8 lg:px-16 pb-12 md:pb-32 lg:pb-[220px]" style={{ background: '#FAF8F1' }}>
+            {/* Mobile: Draggable map */}
+            <div
+              className="relative w-full max-w-[1312px] h-[400px] md:h-[500px] rounded-lg overflow-hidden select-none lg:hidden"
+              style={{
+                border: '1px solid #AFA7A7',
+                cursor: isDragging ? 'grabbing' : 'grab'
+              }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '200%',
+                  height: '200%',
+                  left: '-50%',
+                  top: '-50%',
+                  transform: `translate(${position.x}px, ${position.y}px)`,
+                  transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+                }}
+              >
+                <Image
+                  src={mapImage}
+                  alt="Location map showing Sat Yoga Institute in Costa Rica - Drag to explore"
+                  fill
+                  className="object-contain pointer-events-none"
+                  unoptimized
+                  draggable={false}
+                />
+              </div>
+
+              {/* Hint indicator */}
+              {!isDragging && position.x === 0 && position.y === 0 && (
+                <div
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white px-4 py-2 rounded-full text-sm"
+                  style={{
+                    fontFamily: 'Avenir Next, sans-serif',
+                    pointerEvents: 'none'
+                  }}
+                >
+                  👆 Drag to explore the map
+                </div>
+              )}
+            </div>
+
+            {/* Desktop: Static map */}
+            <div className="relative w-full max-w-[1312px] h-[657px] rounded-lg overflow-hidden hidden lg:block" style={{ border: '1px solid #AFA7A7' }}>
               <Image
                 src={mapImage}
                 alt="Location map showing Sat Yoga Institute in Costa Rica"

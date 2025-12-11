@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { X, ShoppingCart, Heart } from 'lucide-react';
+import { X, ShoppingCart, Bookmark } from 'lucide-react';
 
 interface Book {
   id: string;
@@ -257,7 +257,7 @@ const BooksSection = ({ books: apiBooks }: { books: Book[] }) => {
                     handleBookmark();
                   }}
                 >
-                  <Heart className="w-4 h-4 text-white" />
+                  <Bookmark className="w-4 h-4 text-white" />
                 </button>
 
                 {/* Book Cover Image */}
@@ -487,7 +487,7 @@ const BooksSection = ({ books: apiBooks }: { books: Book[] }) => {
                           handleBookmark();
                         }}
                       >
-                        <Heart className="w-4 h-4 text-white" />
+                        <Bookmark className="w-4 h-4 text-white" />
                       </button>
 
                       {/* Book Cover */}

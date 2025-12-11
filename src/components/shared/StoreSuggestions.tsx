@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, X, ShoppingCart } from 'lucide-react';
+import { Bookmark, X, ShoppingCart } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -166,8 +166,7 @@ const StoreProductSection = ({ data }: { data: PastRetreatsData }) => {
               fontFamily: 'Avenir Next, sans-serif',
               fontSize: 'clamp(15px, 2vw, 17px)',
               color: '#535862',
-              lineHeight: '1.7',
-              maxWidth: '900px'
+              lineHeight: '1.7'
             }}
           >
             {data.description}
@@ -281,13 +280,13 @@ const ProductCard = ({ product, onAction }: { product: Product; onAction: (messa
           className="w-full h-full object-cover"
         />
 
-        {/* Heart Button */}
+        {/* Bookmark Button */}
         <button
           onClick={handleFavoriteClick}
           className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors"
           aria-label="Save for later"
         >
-          <Heart
+          <Bookmark
             className="w-5 h-5"
             fill={isFavorited ? "#7D1A13" : "none"}
             stroke={isFavorited ? "#7D1A13" : "#525252"}

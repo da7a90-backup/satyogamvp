@@ -26,7 +26,8 @@ import {
   ChatBubbleLeftRightIcon,
   InboxArrowDownIcon,
   PaperAirplaneIcon,
-  TicketIcon
+  TicketIcon,
+  NewspaperIcon
 } from '@heroicons/react/24/outline';
 
 const AdminSidebar = () => {
@@ -67,6 +68,23 @@ const AdminSidebar = () => {
       name: 'Activity Log',
       href: '/dashboard/admin/activity-log',
       icon: ClockIcon,
+    },
+    {
+      name: 'Content',
+      href: '/dashboard/admin/content',
+      icon: NewspaperIcon,
+      subItems: [
+        { name: 'Homepage', href: '/dashboard/admin/content/homepage' },
+        { name: 'About / Shunyamurti', href: '/dashboard/admin/content/about-shunyamurti' },
+        { name: 'About / Ashram', href: '/dashboard/admin/content/about-ashram' },
+        { name: 'About / Satyoga', href: '/dashboard/admin/content/about-satyoga' },
+        { name: 'Teachings Page', href: '/dashboard/admin/content/teachings' },
+        { name: 'Courses Page', href: '/dashboard/admin/content/courses' },
+        { name: 'Donate Page', href: '/dashboard/admin/content/donate' },
+        { name: 'Contact Page', href: '/dashboard/admin/content/contact' },
+        { name: 'Membership', href: '/dashboard/admin/content/membership' },
+        { name: 'FAQs', href: '/dashboard/admin/content/faqs' },
+      ]
     },
     {
       name: 'Forms',

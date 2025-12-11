@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Lock, Heart, ArrowLeft, Download, Clock } from 'lucide-react';
+import { Lock, Heart, ArrowLeft, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -52,7 +52,6 @@ export default function TeachingDetailPage({
   const [showPreviewEndModal, setShowPreviewEndModal] = useState(false);
   const [showRelatedVideoLoginModal, setShowRelatedVideoLoginModal] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [isInWatchLater, setIsInWatchLater] = useState(false);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
   const [videoStarted, setVideoStarted] = useState(false);
 
@@ -241,9 +240,33 @@ export default function TeachingDetailPage({
                     }}>
                       {data.accessType === 'free' ? 'Free' : data.accessType === 'preview' ? 'Preview' : 'Membership'}
                     </span>
-                    <span className="text-sm text-[#717680] capitalize">{data.content_type.replace('_', ' ')}</span>
+                    {data.content_type === 'videoandaudio' ? (
+                      <>
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{
+                          background: '#F3F4F6',
+                          color: '#4B5563'
+                        }}>
+                          Video
+                        </span>
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{
+                          background: '#F3F4F6',
+                          color: '#4B5563'
+                        }}>
+                          Audio
+                        </span>
+                      </>
+                    ) : (data.content_type === 'video' || data.content_type === 'audio') ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold capitalize" style={{
+                        background: '#F3F4F6',
+                        color: '#4B5563'
+                      }}>
+                        {data.content_type}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-[#717680] capitalize">{data.content_type.replace('_', ' ')}</span>
+                    )}
                   </div>
-                  <h1 className="text-4xl font-bold mb-2 text-[#000000]" style={{ fontFamily: 'Optima, serif' }}>
+                  <h1 className="mb-2 text-[#000000]" style={{ fontFamily: 'Optima, serif', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 550, lineHeight: '125%', letterSpacing: '-0.02em' }}>
                     {data.title}
                   </h1>
                   <div className="flex gap-4 text-sm text-[#717680]">
@@ -257,13 +280,6 @@ export default function TeachingDetailPage({
                     title="Add to favorites"
                   >
                     <Heart size={24} fill={isFavorited ? '#7D1A13' : 'none'} stroke={isFavorited ? '#7D1A13' : '#717680'} />
-                  </button>
-                  <button
-                    onClick={() => isAuthenticated ? setIsInWatchLater(!isInWatchLater) : onLoginClick()}
-                    className="p-3 hover:bg-gray-50 rounded-full transition-colors"
-                    title="Watch later"
-                  >
-                    <Clock size={24} fill={isInWatchLater ? '#7D1A13' : 'none'} stroke={isInWatchLater ? '#7D1A13' : '#717680'} />
                   </button>
                 </div>
               </div>
@@ -363,24 +379,24 @@ export default function TeachingDetailPage({
 
               {/* Tabs */}
               <div className="border-b border-[#E5E7EB] mb-6">
-                <div className="flex gap-8">
+                <div className="flex gap-2 md:gap-8">
                   <button
                     onClick={() => setActiveTab('description')}
                     className={`pb-3 px-1 border-b-2 transition-colors ${
                       activeTab === 'description' ? 'border-[#7D1A13] text-[#7D1A13]' : 'border-transparent text-[#717680] hover:text-[#7D1A13]'
                     }`}
-                    style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', fontWeight: 600 }}
+                    style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '12px', fontWeight: 600 }}
                   >
                     Description
                   </button>
-                  
+
                   {hasTranscription && (
                     <button
                       onClick={() => setActiveTab('transcription')}
                       className={`pb-3 px-1 border-b-2 transition-colors ${
                         activeTab === 'transcription' ? 'border-[#7D1A13] text-[#7D1A13]' : 'border-transparent text-[#717680] hover:text-[#7D1A13]'
                       }`}
-                      style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', fontWeight: 600 }}
+                      style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '12px', fontWeight: 600 }}
                     >
                       Transcription
                     </button>
@@ -392,7 +408,7 @@ export default function TeachingDetailPage({
                       className={`pb-3 px-1 border-b-2 transition-colors ${
                         activeTab === 'audio' ? 'border-[#7D1A13] text-[#7D1A13]' : 'border-transparent text-[#717680] hover:text-[#7D1A13]'
                       }`}
-                      style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', fontWeight: 600 }}
+                      style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '12px', fontWeight: 600 }}
                     >
                       Audio
                     </button>
@@ -403,7 +419,7 @@ export default function TeachingDetailPage({
                     className={`pb-3 px-1 border-b-2 transition-colors ${
                       activeTab === 'comments' ? 'border-[#7D1A13] text-[#7D1A13]' : 'border-transparent text-[#717680] hover:text-[#7D1A13]'
                     }`}
-                    style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '16px', fontWeight: 600 }}
+                    style={{ fontFamily: 'Avenir Next, sans-serif', fontSize: '12px', fontWeight: 600 }}
                   >
                     Comments
                   </button>
@@ -874,7 +890,7 @@ const RelatedVideos: React.FC<{
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">
       <h3 className="text-lg font-semibold mb-4">Related Videos</h3>
-      <div className="space-y-4 lg:space-y-4 flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-4 lg:gap-0 pb-4 lg:pb-0">
+      <div className="flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-4 pb-4 lg:pb-0">
         {teachings.map((teaching) => {
           const imageUrl = teaching.featured_media?.url || teaching.imageUrl || '';
           

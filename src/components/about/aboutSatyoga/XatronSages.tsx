@@ -60,40 +60,42 @@ const PatronSagesGallery = ({ sages: apiSages, heading, description }: PatronSag
       }}
     >
       {/* Content Container */}
-      <div 
+      <div
         className="w-full flex flex-col items-start"
         style={{
           maxWidth: '1312px',
-          margin: '0 auto',
-          gap: '80px'
+          margin: '0 auto'
         }}
       >
-        {/* Section Title */}
-        <h2
-          className="text-black w-full"
-          style={{
-            fontFamily: 'Optima, Georgia, serif',
-            fontSize: 'clamp(2rem, 4vw, 3rem)',
-            fontWeight: 550,
-            lineHeight: '125%',
-            letterSpacing: '-0.02em'
-          }}
-        >
-          {heading}
-        </h2>
-
-        {/* Description */}
-        <p
-          className="text-gray-700 w-full"
-          style={{
-            fontFamily: 'Avenir Next, sans-serif',
-            fontSize: '18px',
-            lineHeight: '156%',
-            color: '#384250'
-          }}
+        {/* Header Section with Title and Description */}
+        <div className="w-full flex flex-col mb-20" style={{ gap: '24px' }}>
+          {/* Section Title */}
+          <h2
+            className="text-black w-full"
+            style={{
+              fontFamily: 'Optima, Georgia, serif',
+              fontSize: 'clamp(2rem, 4vw, 3rem)',
+              fontWeight: 550,
+              lineHeight: '125%',
+              letterSpacing: '-0.02em'
+            }}
           >
-          {description}
-        </p>
+            {heading}
+          </h2>
+
+          {/* Description */}
+          <p
+            className="text-gray-700 w-full"
+            style={{
+              fontFamily: 'Avenir Next, sans-serif',
+              fontSize: '18px',
+              lineHeight: '156%',
+              color: '#384250'
+            }}
+            >
+            {description}
+          </p>
+        </div>
 
         {/* Gallery Container */}
         <div className="w-full flex flex-col gap-12">

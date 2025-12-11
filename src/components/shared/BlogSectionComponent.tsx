@@ -192,23 +192,6 @@ const BlogSection = ({data}: {data: any}) => {
                         className="w-full h-full object-cover"
                         style={{ backgroundColor: '#f3f4f6' }}
                       />
-                      
-                      {/* Bookmark Icon with Circular Blurry Background */}
-                      <div 
-                        className="absolute top-4 right-4 flex items-center justify-center"
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          background: 'rgba(255, 255, 255, 0.2)',
-                          backdropFilter: 'blur(8px)',
-                          borderRadius: '50%'
-                        }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M2.6665 11.9869V6.47136C2.6665 4.04912 2.6665 2.838 3.44755 2.0855C4.2286 1.33301 5.48568 1.33301 7.99984 1.33301C10.514 1.33301 11.7711 1.33301 12.5521 2.0855C13.3332 2.838 13.3332 4.04912 13.3332 6.47136V11.9869C13.3332 13.5241 13.3332 14.2927 12.8179 14.5679C11.8202 15.1006 9.94864 13.3231 9.05984 12.7879C8.54437 12.4776 8.28663 12.3224 7.99984 12.3224C7.71304 12.3224 7.45531 12.4776 6.93984 12.7879C6.05104 13.3231 4.17948 15.1006 3.18174 14.5679C2.6665 14.2927 2.6665 13.5241 2.6665 11.9869Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M2.6665 4.66602H13.3332" stroke="white" strokeWidth="1.5"/>
-                        </svg>
-                      </div>
                     </div>
 
                     {/* Card Content */}

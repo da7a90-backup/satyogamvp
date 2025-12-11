@@ -101,10 +101,10 @@ const WhoWeAreSection = ({
             className="text-black mb-6"
             style={{
               fontFamily: 'Optima, Georgia, serif',
-              fontSize: '48px',
+              fontSize: 'clamp(28px, 4vw, 48px)',
               fontWeight: 550,
-              lineHeight: '60px',
-              letterSpacing: '-2%'
+              lineHeight: '125%',
+              letterSpacing: '-0.02em'
             }}
           >
             {heading}

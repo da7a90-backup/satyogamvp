@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { X, Bookmark } from 'lucide-react';
+import { X, Heart } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -65,7 +65,7 @@ function ActionModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: (
         <div className="text-center">
           <div className="mb-4">
             <div className="w-16 h-16 bg-[#942017]/10 rounded-full flex items-center justify-center mx-auto">
-              <Bookmark className="w-8 h-8 text-[#942017]" />
+              <Heart className="w-8 h-8 text-[#942017]" />
             </div>
           </div>
           <h3 className="text-xl font-semibold mb-2">Feature Under Development</h3>
@@ -207,7 +207,7 @@ const TeachingLibrarySection = ({
         >
           <div className="flex flex-col lg:flex-row">
             {/* Featured Image */}
-            <div className="relative lg:w-[744px] h-[440px] flex-shrink-0">
+            <div className="relative lg:w-[744px] flex-shrink-0" style={{ aspectRatio: '16/9' }}>
               <img
                 src={data.featuredTeaching.thumbnail}
                 alt={data.featuredTeaching.title}
@@ -237,7 +237,7 @@ const TeachingLibrarySection = ({
                   </div>
                 </div>
               )}
-              {/* Bookmark Button */}
+              {/* Heart Button */}
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -256,7 +256,7 @@ const TeachingLibrarySection = ({
                   stroke="#FFFFFF"
                   strokeWidth="1.67"
                 >
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                 </svg>
               </button>
             </div>
@@ -775,7 +775,7 @@ const TeachingCard = ({
           </div>
         </div>
 
-        {/* Bookmark Button */}
+        {/* Heart Button */}
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -794,7 +794,7 @@ const TeachingCard = ({
             stroke="#FFFFFF"
             strokeWidth="1.67"
           >
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
         </button>
       </div>

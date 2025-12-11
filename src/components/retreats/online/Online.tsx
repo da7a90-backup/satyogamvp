@@ -179,11 +179,26 @@ export default function OnlinePage({ data, retreats = [], products = [] }: { dat
 
   // Get upcoming retreats dynamically from API data
   const iconOverlay = data?.retreatCards?.iconOverlay || ICON_OVERLAY;
-  const upcomingCards = getUpcomingRetreatCards(retreats, iconOverlay);
+  const upcomingRetreats = getUpcomingRetreats(retreats);
+
+  // Featured retreat (first/closest one)
+  const featuredRetreat = upcomingRetreats.length > 0 ? {
+    ...upcomingRetreats[0],
+    heroBackground: upcomingRetreats[0].hero_background || upcomingRetreats[0].heroBackground || upcomingRetreats[0].images?.[0]?.src || PLACEHOLDER_IMAGE,
+    bookingTagline: upcomingRetreats[0].booking_tagline || upcomingRetreats[0].bookingTagline || '',
+    fixedDate: upcomingRetreats[0].fixed_date || upcomingRetreats[0].fixedDate || '',
+    intro1Content: upcomingRetreats[0].intro1_content || upcomingRetreats[0].intro1Content || []
+  } : null;
+
+  // Next 3 retreats (excluding the featured one)
+  const nextRetreats = upcomingRetreats.slice(1, 4);
+  const upcomingCards = transformRetreatsToCards(nextRetreats, iconOverlay);
+
   const upcomingRetreatsData = {
     heading: `${upcomingCards.length} upcoming ${upcomingCards.length === 1 ? 'retreat' : 'retreats'}`,
-    viewAllLink: undefined, // No "View all" link since we're on the retreats page
-    cards: upcomingCards
+    viewAllLink: undefined,
+    cards: upcomingCards,
+    featuredRetreat: featuredRetreat
   };
 
   const testimonialSecondaryData = {

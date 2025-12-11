@@ -119,9 +119,9 @@ const LearnOnlineSection = ({
           className="text-black text-center mb-6"
           style={{
             fontFamily: 'Optima, Georgia, serif',
-            fontSize: '48px',
+            fontSize: 'clamp(28px, 4vw, 48px)',
             fontWeight: 550,
-            lineHeight: '60px',
+            lineHeight: '125%',
             letterSpacing: '-0.02em',
             maxWidth: '648px'
           }}

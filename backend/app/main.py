@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from .core.config import settings
 from .core.database import engine, Base
 from .routers import auth, users, teachings, courses, retreats, events, products, payments, email, admin, forms, blog
-from .routers import static_pages, static_content, online_retreats, faq, form_templates
+from .routers import static_pages, static_content, online_retreats, faq, form_templates, admin_static_content
 
 
 @asynccontextmanager
@@ -48,6 +48,7 @@ app.include_router(email.router, prefix="/api/email", tags=["Email Marketing"])
 app.include_router(forms.router, prefix="/api/forms", tags=["Forms"])
 app.include_router(form_templates.router, prefix="/api/form-templates", tags=["Form Templates"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(admin_static_content.router, prefix="/api/admin/content", tags=["Admin Static Content"])
 app.include_router(blog.router, prefix="/api/blog", tags=["Blog"])
 
 # Static Content APIs
