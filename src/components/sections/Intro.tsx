@@ -11,7 +11,7 @@ const IntroSection = ({ backgroundImage, heading }: IntroSectionProps) => {
       className="relative w-full flex flex-col justify-center items-center px-4 md:px-16 py-28 m-0"
       style={{
         background: 'linear-gradient(180deg, #321A1A 0%, #621712 51.46%, #4A110D 112.07%)',
-        minHeight: '816px',
+        minHeight: '80vh',
         zIndex: 20,
         overflow: 'visible'
       }}
@@ -21,7 +21,7 @@ const IntroSection = ({ backgroundImage, heading }: IntroSectionProps) => {
         style={{
           maxWidth: '1312px',
           margin: '0 auto',
-          minHeight: '816px'
+          minHeight: '80vh'
         }}
       >
         <div
