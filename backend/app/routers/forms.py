@@ -1,16 +1,17 @@
 """Forms router."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+import uuid
 
 from ..core.database import get_db
-from ..core.deps import get_optional_user
+from ..core.deps import get_optional_user, get_current_user, require_admin
 from ..models.user import User
 from ..models.forms import ContactSubmission, Application, ApplicationType, ApplicationStatus
 from ..models.email import NewsletterSubscriber, SubscriberStatus
-from ..schemas.forms import ApplicationCreate, ApplicationResponse, ContactSubmissionCreate, NewsletterSubscribeCreate, NewsletterSubscribeResponse
+from ..schemas.forms import ApplicationCreate, ApplicationResponse, ApplicationUpdate, ContactSubmissionCreate, ContactSubmissionResponse, ContactSubmissionUpdate, NewsletterSubscribeCreate, NewsletterSubscribeResponse
 from ..services import mixpanel_service
 from ..services.sendgrid_service import sendgrid_service
 
@@ -169,3 +170,176 @@ async def subscribe_to_newsletter(
             message="Thank you for subscribing to our newsletter!",
             id=subscriber.id
         )
+
+
+# ============================================================================
+# ADMIN ENDPOINTS - Applications Management
+# ============================================================================
+
+@router.get("/admin/applications", response_model=List[ApplicationResponse])
+async def get_applications(
+    status: Optional[ApplicationStatus] = None,
+    application_type: Optional[ApplicationType] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get all applications (admin only)."""
+    query = db.query(Application)
+
+    if status:
+        query = query.filter(Application.status == status)
+    if application_type:
+        query = query.filter(Application.type == application_type)
+
+    applications = query.order_by(Application.submitted_at.desc()).offset(skip).limit(limit).all()
+
+    return applications
+
+
+@router.get("/admin/applications/{application_id}", response_model=ApplicationResponse)
+async def get_application(
+    application_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get a specific application by ID (admin only)."""
+    application = db.query(Application).filter(Application.id == uuid.UUID(application_id)).first()
+
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    return application
+
+
+@router.put("/admin/applications/{application_id}", response_model=ApplicationResponse)
+async def update_application(
+    application_id: str,
+    update_data: ApplicationUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update an application (admin only)."""
+    application = db.query(Application).filter(Application.id == uuid.UUID(application_id)).first()
+
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    # Update fields
+    if update_data.status is not None:
+        application.status = update_data.status
+        if update_data.status != ApplicationStatus.PENDING:
+            application.reviewed_at = datetime.utcnow()
+            application.reviewed_by = current_user.id
+
+    if update_data.notes is not None:
+        application.notes = update_data.notes
+
+    db.commit()
+    db.refresh(application)
+
+    return application
+
+
+@router.delete("/admin/applications/{application_id}")
+async def delete_application(
+    application_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete an application (admin only)."""
+    application = db.query(Application).filter(Application.id == uuid.UUID(application_id)).first()
+
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    db.delete(application)
+    db.commit()
+
+    return {"message": "Application deleted successfully"}
+
+
+# ============================================================================
+# ADMIN ENDPOINTS - Contact Submissions Management
+# ============================================================================
+
+@router.get("/admin/contact-submissions", response_model=List[ContactSubmissionResponse])
+async def get_contact_submissions(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get all contact submissions (admin only)."""
+    submissions = (
+        db.query(ContactSubmission)
+        .order_by(ContactSubmission.submitted_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return submissions
+
+
+@router.get("/admin/contact-submissions/{submission_id}", response_model=ContactSubmissionResponse)
+async def get_contact_submission(
+    submission_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get a specific contact submission (admin only)."""
+    submission = db.query(ContactSubmission).filter(
+        ContactSubmission.id == uuid.UUID(submission_id)
+    ).first()
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="Contact submission not found")
+
+    return submission
+
+
+@router.put("/admin/contact-submissions/{submission_id}", response_model=ContactSubmissionResponse)
+async def update_contact_submission(
+    submission_id: str,
+    update_data: ContactSubmissionUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update a contact submission (admin only) - mark as responded."""
+    submission = db.query(ContactSubmission).filter(
+        ContactSubmission.id == uuid.UUID(submission_id)
+    ).first()
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="Contact submission not found")
+
+    if update_data.response is not None:
+        submission.response = update_data.response
+        submission.responded_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(submission)
+
+    return submission
+
+
+@router.delete("/admin/contact-submissions/{submission_id}")
+async def delete_contact_submission(
+    submission_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete a contact submission (admin only)."""
+    submission = db.query(ContactSubmission).filter(
+        ContactSubmission.id == uuid.UUID(submission_id)
+    ).first()
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="Contact submission not found")
+
+    db.delete(submission)
+    db.commit()
+
+    return {"message": "Contact submission deleted successfully"}

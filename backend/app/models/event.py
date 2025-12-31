@@ -17,6 +17,18 @@ class EventType(str, enum.Enum):
     COURSE = "course"
 
 
+class LocationType(str, enum.Enum):
+    ONLINE = "online"
+    ONSITE = "onsite"
+
+
+class EventStructure(str, enum.Enum):
+    """Defines how event content is organized."""
+    SIMPLE_RECURRING = "simple_recurring"  # Simple recurring events (e.g., Sunday meditation)
+    DAY_BY_DAY = "day_by_day"  # Day-by-day schedule (e.g., online retreats)
+    WEEK_BY_WEEK = "week_by_week"  # Week-by-week schedule (e.g., book groups)
+
+
 class Event(Base):
     __tablename__ = "events"
 
@@ -25,19 +37,79 @@ class Event(Base):
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     type = Column(Enum(EventType), nullable=False, index=True)
+
+    # Location
+    location_type = Column(Enum(LocationType), nullable=False, default=LocationType.ONLINE, index=True)
+    location = Column(String(255), nullable=True)  # physical address or location name
+
+    # Timing
     start_datetime = Column(DateTime, nullable=False, index=True)
     end_datetime = Column(DateTime, nullable=True)
-    location = Column(String(255), nullable=True)  # physical address or "online"
+    duration_minutes = Column(Integer, nullable=True)  # for recurring events
+
+    # Structure
+    event_structure = Column(Enum(EventStructure), nullable=False, default=EventStructure.SIMPLE_RECURRING)
+
+    # Recurring settings
     is_recurring = Column(Boolean, default=False, nullable=False)
-    recurrence_rule = Column(JSON_TYPE, nullable=True)  # iCal RRULE format
+    recurrence_rule = Column(String(500), nullable=True)  # RRULE format (e.g., "FREQ=WEEKLY;BYDAY=SU")
+
+    # Online event settings
+    zoom_link = Column(String(500), nullable=True)  # For online events
+    meeting_id = Column(String(100), nullable=True)
+    meeting_password = Column(String(100), nullable=True)
+
+    # Registration
     max_participants = Column(Integer, nullable=True)
+    registration_required = Column(Boolean, default=False, nullable=False)
+    registration_url = Column(String(500), nullable=True)
+
+    # Publishing
     is_published = Column(Boolean, default=True, nullable=False)
     thumbnail_url = Column(String(500), nullable=True)
+
+    # Metadata
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     user_calendars = relationship("UserCalendar", back_populates="event", cascade="all, delete-orphan")
+    sessions = relationship("EventSession", back_populates="event", cascade="all, delete-orphan", order_by="EventSession.session_number")
+
+
+class EventSession(Base):
+    """Individual sessions for structured events (day-by-day or week-by-week)."""
+    __tablename__ = "event_sessions"
+
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    event_id = Column(UUID_TYPE, ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Session identification
+    session_number = Column(Integer, nullable=False)  # 1, 2, 3... (day 1, week 1, etc.)
+    title = Column(String(500), nullable=False)  # e.g., "Day 1: Introduction" or "Week 1: Chapter 1"
+    description = Column(Text, nullable=True)
+
+    # Timing (for day-by-day structure)
+    session_date = Column(DateTime, nullable=True)  # specific date for this session
+    start_time = Column(String(10), nullable=True)  # e.g., "09:00" (for daily schedule)
+    duration_minutes = Column(Integer, nullable=True)
+
+    # Content
+    content = Column(Text, nullable=True)  # Full session content/notes
+    video_url = Column(String(500), nullable=True)
+    audio_url = Column(String(500), nullable=True)
+    materials_url = Column(String(500), nullable=True)  # PDF, docs, etc.
+
+    # For online sessions
+    zoom_link = Column(String(500), nullable=True)  # Can override event-level zoom link
+
+    # Metadata
+    is_published = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    event = relationship("Event", back_populates="sessions")
 
 
 class UserCalendar(Base):

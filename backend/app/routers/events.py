@@ -4,9 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+import uuid
 
 from ..core.database import get_db
-from ..models.event import Event
+from ..core.deps import require_admin
+from ..models.user import User
+from ..models.event import Event, EventType
+from ..schemas.event import EventCreate, EventUpdate, EventResponse
 from ..services.media_service import MediaService
 
 router = APIRouter()
@@ -139,3 +143,94 @@ def _calculate_duration(start_datetime: datetime, end_datetime: datetime) -> str
         return f"{hours} hour{'s' if hours > 1 else ''}"
     else:
         return "Less than 1 hour"
+
+
+# ============================================================================
+# ADMIN ENDPOINTS - Events Management
+# ============================================================================
+
+@router.post("/admin/events", response_model=EventResponse)
+async def create_event(
+    event_data: EventCreate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create a new event (admin only)."""
+    # Check if slug already exists
+    existing = db.query(Event).filter(Event.slug == event_data.slug).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Event with this slug already exists")
+
+    event = Event(**event_data.model_dump())
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+
+    return EventResponse.model_validate(event)
+
+
+@router.put("/admin/events/{event_id}", response_model=EventResponse)
+async def update_event(
+    event_id: str,
+    event_data: EventUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update an event (admin only)."""
+    event = db.query(Event).filter(Event.id == uuid.UUID(event_id)).first()
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # Update fields
+    for field, value in event_data.model_dump(exclude_unset=True).items():
+        setattr(event, field, value)
+
+    event.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(event)
+
+    return EventResponse.model_validate(event)
+
+
+@router.delete("/admin/events/{event_id}")
+async def delete_event(
+    event_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete an event (admin only)."""
+    event = db.query(Event).filter(Event.id == uuid.UUID(event_id)).first()
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    db.delete(event)
+    db.commit()
+
+    return {"message": "Event deleted successfully"}
+
+
+@router.get("/admin/events")
+async def get_all_events_admin(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    event_type: Optional[EventType] = None,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get all events including unpublished (admin only)."""
+    query = db.query(Event)
+
+    if event_type:
+        query = query.filter(Event.type == event_type)
+
+    total = query.count()
+    events = query.order_by(Event.start_datetime.desc()).offset(skip).limit(limit).all()
+
+    return {
+        "events": [EventResponse.model_validate(event) for event in events],
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }

@@ -13,12 +13,20 @@ class ApplicationCreate(BaseModel):
     user_id: Optional[UUID4] = None
 
 
+class ApplicationUpdate(BaseModel):
+    """Schema for updating an application."""
+    status: Optional[ApplicationStatus] = None
+    notes: Optional[str] = None
+
+
 class ApplicationResponse(BaseModel):
     """Schema for application response."""
     id: UUID4
     user_id: Optional[UUID4]
     type: ApplicationType
     status: ApplicationStatus
+    form_data: Optional[Dict[str, Any]] = None
+    notes: Optional[str] = None
     submitted_at: datetime
     reviewed_at: Optional[datetime] = None
 
@@ -36,6 +44,11 @@ class ContactSubmissionCreate(BaseModel):
     subscribeNewsletter: Optional[bool] = False
 
 
+class ContactSubmissionUpdate(BaseModel):
+    """Schema for updating a contact submission."""
+    response: Optional[str] = None
+
+
 class ContactSubmissionResponse(BaseModel):
     """Schema for contact submission response."""
     id: UUID4
@@ -44,6 +57,8 @@ class ContactSubmissionResponse(BaseModel):
     topic: Optional[str]
     message: str
     submitted_at: datetime
+    responded_at: Optional[datetime] = None
+    response: Optional[str] = None
 
     class Config:
         from_attributes = True
