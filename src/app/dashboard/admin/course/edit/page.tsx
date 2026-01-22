@@ -1,11 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { use } from "react"; // Import React.use
 import CourseForm from "@/components/dashboard/course/CourseForm";
 import { courseApi } from "@/lib/courseApi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface EditCoursePageProps {
@@ -16,50 +11,24 @@ interface EditCoursePageProps {
 
 export const dynamic = 'force-dynamic';
 
-export default function EditCoursePage({ params }: EditCoursePageProps) {
-  // Use React.use() to unwrap the params promise
-  const resolvedParams = use(params);
-  const { slug } = resolvedParams;
+export default async function EditCoursePage({ params }: EditCoursePageProps) {
+  const { slug } = await params;
 
-  const router = useRouter();
-  const [courseId, setCourseId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  let courseId: string | null = null;
+  let error: string | null = null;
 
   // Fetch the course ID by slug
-  useEffect(() => {
-    const fetchCourseId = async () => {
-      setIsLoading(true);
-      try {
-        // Use the courseApi utility to get course by slug
-        const response = await courseApi.getCourseBySlug(slug);
+  try {
+    const response = await courseApi.getCourseBySlug(slug);
 
-        if (!response) {
-          setError("Course not found");
-          return;
-        }
-
-        // Set the numeric ID for the CourseForm
-        setCourseId(response.id.toString());
-      } catch (err) {
-        console.error("Error fetching course:", err);
-        setError("Failed to load course details");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (slug) {
-      fetchCourseId();
+    if (!response) {
+      error = "Course not found";
+    } else {
+      courseId = response.id.toString();
     }
-  }, [slug]);
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <ArrowPathIcon className="h-8 w-8 text-purple-600 animate-spin" />
-      </div>
-    );
+  } catch (err) {
+    console.error("Error fetching course:", err);
+    error = "Failed to load course details";
   }
 
   if (error || !courseId) {
