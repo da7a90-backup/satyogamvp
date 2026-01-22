@@ -4,6 +4,8 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 function VerifyEmailContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
@@ -178,8 +180,6 @@ function VerifyEmailContent() {
     </div>
   );
 }
-
-export const dynamic = 'force-dynamic';
 
 export default function VerifyEmailPage() {
   return (
