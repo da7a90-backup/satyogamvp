@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import UserSidebar from '@/components/dashboard/UserSidebar';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import MobileSidebarDrawer from '@/components/dashboard/MobileSidebarDrawer';
@@ -19,7 +19,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <div className="flex h-screen lg:h-[125vh] gap-0">
         {/* Desktop Sidebar - Hidden on mobile */}
         <div className="hidden lg:block">
-          <UserSidebar />
+          <Suspense fallback={
+            <div className="w-64 h-screen bg-white flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7D1A13]"></div>
+            </div>
+          }>
+            <UserSidebar />
+          </Suspense>
         </div>
 
         {/* Main Content */}
