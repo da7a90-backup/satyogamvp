@@ -582,17 +582,17 @@ class AnalyticsService:
         # Users who started trial
         trials_started = db.query(func.count(Subscription.id)).filter(
             and_(
-                Subscription.trial_ends_at.between(start_date, end_date),
-                Subscription.trial_ends_at.isnot(None)
+                Subscription.trial_end_date.between(start_date, end_date),
+                Subscription.trial_end_date.isnot(None)
             )
         ).scalar() or 0
 
         # Trials converted to paid
         trials_converted = db.query(func.count(Subscription.id)).filter(
             and_(
-                Subscription.trial_ends_at.between(start_date, end_date),
+                Subscription.trial_end_date.between(start_date, end_date),
                 Subscription.status == SubscriptionStatus.ACTIVE,
-                Subscription.trial_ends_at.isnot(None)
+                Subscription.trial_end_date.isnot(None)
             )
         ).scalar() or 0
 

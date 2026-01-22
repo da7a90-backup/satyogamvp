@@ -95,7 +95,7 @@ class ForumPost(Base):
     thread = relationship("ForumThread", back_populates="posts")
     user = relationship("User", foreign_keys=[user_id])
     parent_post = relationship("ForumPost", remote_side=[id], foreign_keys=[parent_post_id])
-    replies = relationship("ForumPost", remote_side=[parent_post_id], cascade="all, delete-orphan")
+    replies = relationship("ForumPost", remote_side=[parent_post_id], cascade="all, delete-orphan", overlaps="parent_post")
     reactions = relationship("ForumPostReaction", back_populates="post", cascade="all, delete-orphan")
     attachments = relationship("ForumPostAttachment", back_populates="post", cascade="all, delete-orphan")
     reports = relationship("ForumReport", back_populates="post", cascade="all, delete-orphan")

@@ -92,6 +92,14 @@ class RecommendationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_uuid_to_str(cls, v):
+        """Convert UUID to string."""
+        if isinstance(v, uuid.UUID):
+            return str(v)
+        return v
+
     class Config:
         from_attributes = True
 
