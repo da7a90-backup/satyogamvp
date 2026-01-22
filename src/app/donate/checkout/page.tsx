@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Declare Tilopay global
 declare global {
   interface Window {
@@ -573,8 +576,6 @@ function CheckoutContent() {
   );
 }
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
 export default function CheckoutPage() {
   return (
     <>
