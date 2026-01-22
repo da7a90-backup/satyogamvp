@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import UserApplicationsClient from '@/components/dashboard/UserApplicationsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function UserApplicationsPage() {
   const session = await getServerSession(authOptions);
 

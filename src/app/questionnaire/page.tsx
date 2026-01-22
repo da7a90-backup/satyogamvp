@@ -12,6 +12,8 @@ async function QuestionnaireContent({ searchParams }: QuestionnairePageProps) {
   return <DynamicForm formSlug={formSlug} />;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function QuestionnairePage({ searchParams }: QuestionnairePageProps) {
   return (
     <main className="min-h-screen bg-background">

@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import UsersManagementClient from '@/components/dashboard/users/UsersManagementClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function UsersPage() {
   const session = await getServerSession(authOptions);
 

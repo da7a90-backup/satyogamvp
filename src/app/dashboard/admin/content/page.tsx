@@ -75,6 +75,8 @@ const contentPages = [
   },
 ];
 
+export const dynamic = 'force-dynamic';
+
 export default function ContentManagementPage() {
   return (
     <div className="p-8">

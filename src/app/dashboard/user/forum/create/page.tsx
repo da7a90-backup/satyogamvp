@@ -10,6 +10,8 @@ interface PageProps {
   searchParams: Promise<{ category?: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function CreateThreadPage({ searchParams }: PageProps) {
   const searchParamsResolved = await searchParams;
 

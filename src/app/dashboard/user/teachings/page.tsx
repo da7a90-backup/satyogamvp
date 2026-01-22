@@ -38,6 +38,8 @@ async function getTeachings() {
   }
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardTeachingsPage() {
   // Get authentication session
   const session = await getServerSession(authOptions);

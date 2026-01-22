@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import EmailCampaignsClient from '@/components/dashboard/email/EmailCampaignsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EmailCampaignsPage() {
   const session = await getServerSession(authOptions);
 

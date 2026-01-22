@@ -27,6 +27,8 @@ interface UserData {
   subscription_status?: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function BillingSettingsPage() {
   const router = useRouter();
   const { data: session } = useSession();

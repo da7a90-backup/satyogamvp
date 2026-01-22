@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Explore our collection of teachings, guided meditations, and wisdom from Shunyamurti to support your spiritual journey.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function CoursePage() {
-  // In a real implementation, you would fetch data from your API here
   return <CoursesPage />;
 }

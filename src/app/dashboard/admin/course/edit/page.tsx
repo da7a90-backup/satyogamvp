@@ -14,6 +14,8 @@ interface EditCoursePageProps {
   }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function EditCoursePage({ params }: EditCoursePageProps) {
   // Use React.use() to unwrap the params promise
   const resolvedParams = use(params);

@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: 'Log in to your Sat Yoga account to access exclusive content, courses, and community resources.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function LoginPage({
   searchParams,
 }: {

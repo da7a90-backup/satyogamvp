@@ -13,6 +13,8 @@ interface IntroductionPageProps {
   }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function IntroductionPage({ params }: IntroductionPageProps) {
   // Unwrap params using React.use()
   const resolvedParams = React.use(params);

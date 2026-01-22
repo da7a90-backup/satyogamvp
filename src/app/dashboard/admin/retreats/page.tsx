@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Manage retreats and past retreat products",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RetreatsPage() {
   return <RetreatManagement />;
 }

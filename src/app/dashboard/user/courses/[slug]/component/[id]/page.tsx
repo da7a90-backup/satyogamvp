@@ -7,6 +7,8 @@ interface ComponentPageProps {
   }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function ComponentPage({ params }: ComponentPageProps) {
   const { slug, id } = await params;
 

@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: 'Access your personal teachings library with progress tracking and continue watching.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardTeachingsPage() {
   // Get authentication session
   const session = await getServerSession(authOptions);

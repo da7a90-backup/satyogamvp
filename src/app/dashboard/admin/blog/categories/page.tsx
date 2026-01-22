@@ -5,6 +5,8 @@ export const metadata = {
   description: "Manage your blog categories",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function BlogCategoriesPage() {
   return <BlogCategories />;
 }

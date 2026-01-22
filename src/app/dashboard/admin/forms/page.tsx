@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import FormsManagementClient from '@/components/dashboard/forms/FormsManagementClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function FormsManagementPage() {
   const session = await getServerSession(authOptions);
 

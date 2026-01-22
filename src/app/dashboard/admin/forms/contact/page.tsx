@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import ContactSubmissionsClient from '@/components/dashboard/forms/ContactSubmissionsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ContactSubmissionsPage() {
   const session = await getServerSession(authOptions);
 

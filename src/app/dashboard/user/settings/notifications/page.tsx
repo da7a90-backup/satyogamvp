@@ -17,6 +17,8 @@ interface NotificationPreferences {
   sms_reminders: boolean;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function NotificationsSettingsPage() {
   const { data: session } = useSession();
   const [notifications, setNotifications] = useState<NotificationPreferences>({

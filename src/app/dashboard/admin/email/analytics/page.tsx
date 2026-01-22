@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import EmailAnalyticsClient from '@/components/dashboard/email/EmailAnalyticsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EmailAnalyticsPage() {
   const session = await getServerSession(authOptions);
 

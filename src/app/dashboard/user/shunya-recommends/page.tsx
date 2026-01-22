@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import ShunyaRecommendsClient from '@/components/dashboard/ShunyaRecommendsClient';
 import { getRecommendations } from '@/lib/recommendations-api';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ShunyaRecommendsPage() {
   const session = await getServerSession(authOptions);
 

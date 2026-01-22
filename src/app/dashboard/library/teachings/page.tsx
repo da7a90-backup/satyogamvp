@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: 'Access your teachings library and continue your learning journey.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function UserTeachingsPage() {
   // Check authentication
   const session = await getServerSession(authOptions);

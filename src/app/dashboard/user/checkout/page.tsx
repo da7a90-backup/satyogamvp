@@ -130,6 +130,8 @@ function CheckoutContentWrapper() {
   return <CheckoutClient session={session} />;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function CheckoutPage() {
   return (
     <Suspense fallback={

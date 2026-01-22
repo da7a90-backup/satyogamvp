@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Edit an existing blog post",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditBlogPostPage({
   params,
 }: {

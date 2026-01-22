@@ -675,4 +675,6 @@ const CourseDetailPage = () => {
   );
 };
 
+export const dynamic = 'force-dynamic';
+
 export default CourseDetailPage;

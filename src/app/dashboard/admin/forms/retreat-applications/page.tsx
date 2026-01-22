@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import RetreatApplicationsClient from '@/components/dashboard/forms/RetreatApplicationsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function RetreatApplicationsPage() {
   const session = await getServerSession(authOptions);
 

@@ -6,6 +6,8 @@ export const metadata = {
     "Create a new instructor profile with bio, contact information, and photo.",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function CreateInstructorPage() {
   return (
     <div>

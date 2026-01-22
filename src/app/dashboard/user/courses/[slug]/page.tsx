@@ -6,6 +6,8 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardCourseSellingPage({ params }: PageProps) {
   const { slug } = await params;
   const session = await getServerSession(authOptions);

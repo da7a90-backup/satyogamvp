@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: 'Support the Sat Yoga mission and help actualize a new way of life through your generous contribution.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function Donate() {
   return <DonatePage />;
 }

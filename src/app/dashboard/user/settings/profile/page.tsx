@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Upload } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function ProfileSettingsPage() {
   const { data: session } = useSession();
   const [formData, setFormData] = useState({

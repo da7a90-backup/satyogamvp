@@ -106,6 +106,8 @@ async function getUserBookGroupAccesses(accessToken: string): Promise<string[]> 
   }
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function BookGroupsPage() {
   const session = await getServerSession(authOptions);
 

@@ -72,6 +72,8 @@ async function getAvailableRetreats(accessToken?: string) {
   }
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function RetreatsPage() {
   const session = await getServerSession(authOptions);
 

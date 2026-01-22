@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Manage your blog posts",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function BlogIndexPage() {
   return <BlogIndex />;
 }

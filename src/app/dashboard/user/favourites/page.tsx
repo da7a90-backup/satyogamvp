@@ -41,6 +41,8 @@ async function getFavorites(token: string) {
   }
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function FavouritesPage() {
   const session = await getServerSession(authOptions);
 

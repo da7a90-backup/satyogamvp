@@ -41,6 +41,8 @@ async function getHistory(token: string) {
   }
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function HistoryPage() {
   const session = await getServerSession(authOptions);
 

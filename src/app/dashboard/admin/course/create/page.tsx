@@ -6,6 +6,8 @@ export const metadata = {
     "Create a new course with details, content structure, and instructor information.",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function CreateCoursePage() {
   return (
     <div>

@@ -65,6 +65,8 @@ function PaymentContentWrapper() {
   return <ProductPaymentClient slug={slug} session={session} />;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function ProductPaymentPage() {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
 

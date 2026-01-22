@@ -73,6 +73,8 @@ function formatRetreatDate(startDate: string, endDate: string): string {
   return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardRetreatPurchasePage(
   { params }: DashboardRetreatPurchasePageProps
 ) {

@@ -141,6 +141,8 @@ function PaymentContentWrapper() {
   return <RetreatPaymentClient slug={slug} session={session} accessType={accessType} />;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function RetreatPaymentPage() {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
 

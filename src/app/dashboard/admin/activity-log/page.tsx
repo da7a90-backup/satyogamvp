@@ -8,6 +8,8 @@ export const metadata = {
   description: 'Comprehensive audit trail of all admin actions in the system',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function ActivityLogPage() {
   const session = await getServerSession(authOptions);
 

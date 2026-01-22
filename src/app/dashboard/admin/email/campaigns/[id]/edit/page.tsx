@@ -9,6 +9,8 @@ interface PageProps {
   }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditCampaignPage({ params }: PageProps) {
   const session = await getServerSession(authOptions);
   const { id } = await params;

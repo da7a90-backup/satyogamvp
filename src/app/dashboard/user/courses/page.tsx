@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import CoursesClient from "@/components/dashboard/course/user/CoursesClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CoursesPage() {
   // Get the user session
   const session = await getServerSession(authOptions);

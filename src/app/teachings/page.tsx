@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: 'Explore a curated collection of teachings—videos, guided meditations, and essays—from our public offerings and exclusive member content.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function TeachingsPage() {
   // Get authentication session
   const session = await getServerSession(authOptions);

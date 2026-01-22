@@ -13,6 +13,8 @@ export async function generateMetadata({ params }: EditInstructorPageProps) {
   };
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function EditInstructorPage({
   params,
 }: EditInstructorPageProps) {

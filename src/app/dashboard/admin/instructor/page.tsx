@@ -6,6 +6,8 @@ export const metadata = {
     "Manage your course instructors, add new instructors, and edit existing ones.",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function InstructorsPage() {
   return (
     <div>

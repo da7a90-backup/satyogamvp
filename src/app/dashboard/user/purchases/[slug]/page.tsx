@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { PortalViewer } from '@/components/store/PortalViewer';
 import { EnhancedPortalViewer } from '@/components/retreat/EnhancedPortalViewer';
 
+export const dynamic = 'force-dynamic';
+
 export default function PortalAccessPage() {
   const params = useParams();
   const router = useRouter();

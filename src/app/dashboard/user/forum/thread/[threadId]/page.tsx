@@ -10,6 +10,8 @@ interface PageProps {
   params: Promise<{ threadId: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function ThreadDetailPage({ params }: PageProps) {
   const { threadId } = await params;
 

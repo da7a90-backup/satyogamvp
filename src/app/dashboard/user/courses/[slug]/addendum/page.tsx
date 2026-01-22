@@ -13,6 +13,8 @@ interface CourseAddendumPageProps {
   }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function CourseAddendumPage({
   params,
 }: CourseAddendumPageProps) {

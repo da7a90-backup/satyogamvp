@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: 'Create an account to access exclusive content, courses, and community resources at Sat Yoga.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function SignupPage() {
   // Check if user is already authenticated
   const session = await getServerSession(authOptions);

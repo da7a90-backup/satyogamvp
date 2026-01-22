@@ -77,6 +77,8 @@ function getTypeBadges(type: string): string[] {
   return typeMap[type] || ['Audio', 'Video'];
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function StorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [featuredProduct, setFeaturedProduct] = useState<Product | null>(null);

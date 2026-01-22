@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Manage blog comments and moderation",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function BlogCommentsPage() {
   return <BlogCommentsManagement />;
 }

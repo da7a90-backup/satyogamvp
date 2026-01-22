@@ -6,6 +6,8 @@ export const metadata = {
     "Manage your courses, add new courses, edit existing ones, and organize course content.",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function CoursesPage() {
   return (
     <div>

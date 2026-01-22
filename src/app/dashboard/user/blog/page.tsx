@@ -28,6 +28,8 @@ function transformPostsForDashboard(posts: any[]) {
 }
 
 // This is a server component that fetches blog posts and categories from the API
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardBlogPage() {
   try {
     // Blog page content

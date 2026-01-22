@@ -8,6 +8,8 @@ interface PageProps {
   params: Promise<{ submissionId: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function ApplicationPaymentPage({ params }: PageProps) {
   const session = await getServerSession(authOptions);
   const { submissionId } = await params;

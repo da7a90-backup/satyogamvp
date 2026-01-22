@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: 'Reset your Sat Yoga account password.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function ForgotPasswordPage() {
   // Check if user is already authenticated
   const session = await getServerSession(authOptions);

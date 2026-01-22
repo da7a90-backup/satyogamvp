@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import DonationsClient from '@/components/dashboard/sales/DonationsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DonationsPage() {
   const session = await getServerSession(authOptions);
 

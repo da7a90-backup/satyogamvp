@@ -21,6 +21,8 @@ const CATEGORIES = [
   'Courses',
 ];
 
+export const dynamic = 'force-dynamic';
+
 export default function PurchasesPage() {
   const { data: session } = useSession();
   const router = useRouter();

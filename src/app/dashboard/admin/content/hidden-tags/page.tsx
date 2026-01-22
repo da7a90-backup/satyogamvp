@@ -70,6 +70,8 @@ const PAGE_TAG_CONFIGS: PageTagConfig[] = [
   },
 ];
 
+export const dynamic = 'force-dynamic';
+
 export default function HiddenTagsPage() {
   const [activeTab, setActiveTab] = useState(PAGE_TAG_CONFIGS[0].id);
   const [lastUpdate, setLastUpdate] = useState(Date.now());

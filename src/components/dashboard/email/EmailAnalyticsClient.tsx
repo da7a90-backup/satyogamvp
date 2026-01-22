@@ -6,8 +6,8 @@ import {
   UserGroupIcon,
   EnvelopeOpenIcon,
   CursorArrowRaysIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   BoltIcon,
 } from '@heroicons/react/24/outline';
 
@@ -178,9 +178,9 @@ export default function EmailAnalyticsClient() {
               analytics.subscriberGrowth >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
               {analytics.subscriberGrowth >= 0 ? (
-                <TrendingUpIcon className="w-4 h-4" />
+                <ArrowTrendingUpIcon className="w-4 h-4" />
               ) : (
-                <TrendingDownIcon className="w-4 h-4" />
+                <ArrowTrendingDownIcon className="w-4 h-4" />
               )}
               {analytics.subscriberGrowth.toFixed(1)}%
             </div>

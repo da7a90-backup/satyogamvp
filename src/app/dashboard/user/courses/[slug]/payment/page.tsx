@@ -142,6 +142,8 @@ function PaymentContentWrapper() {
   return <CoursePaymentClient slug={slug} session={session} />;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function CoursePaymentPage() {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
 

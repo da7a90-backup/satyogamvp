@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getMyCalendar } from "@/lib/calendar-api";
 import UserCalendarClient from "@/components/dashboard/UserCalendarClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CalendarPage() {
   const session = await getServerSession(authOptions);
 

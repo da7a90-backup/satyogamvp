@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: 'Thank you for your generous contribution to Sat Yoga.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function ThankYouPage() {
   return (
     <div className="container mx-auto px-4 py-20 text-center">

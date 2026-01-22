@@ -6,6 +6,8 @@ export const metadata = {
   description: 'Community forum for Sat Yoga members',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function ForumPage() {
   return (
     <div className="min-h-screen bg-gray-50">

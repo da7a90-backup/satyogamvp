@@ -13,6 +13,8 @@ interface PaymentMethod {
   cardholder_name?: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function PaymentMethodsPage() {
   const { data: session } = useSession();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);

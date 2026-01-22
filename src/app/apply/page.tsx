@@ -128,6 +128,8 @@ function FormError({ message }: { message: string }) {
   );
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function ApplyPage({ searchParams }: ApplyPageProps) {
   const params = await searchParams;
   const formSlug = params.form;

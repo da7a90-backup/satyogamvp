@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import ShunyaRecommendsAdminClient from '@/components/dashboard/admin/ShunyaRecommendsAdminClient';
 import { getRecommendationsAdmin } from '@/lib/recommendations-api';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ShunyaRecommendsAdminPage() {
   const session = await getServerSession(authOptions);
 

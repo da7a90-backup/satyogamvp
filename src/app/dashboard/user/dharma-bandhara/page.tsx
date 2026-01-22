@@ -28,6 +28,8 @@ function transformProductsForDashboard(products: any[]) {
 }
 
 // This is a server component that fetches products and categories from the API
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardStorePage() {
   try {
     // Fetch store page content from static content API

@@ -3,6 +3,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import BookGroupsAdminClient from '@/components/dashboard/admin/book-groups/BookGroupsAdminClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminBookGroupsPage() {
   const session = await getServerSession(authOptions);
 

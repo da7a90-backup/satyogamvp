@@ -11,6 +11,8 @@ interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home({ searchParams }: HomeProps) {
   try {
     // Check if we're in preview mode

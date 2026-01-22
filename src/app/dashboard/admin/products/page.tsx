@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Manage store products and link to retreats",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function ProductsPage() {
   return <StoreManagement />;
 }

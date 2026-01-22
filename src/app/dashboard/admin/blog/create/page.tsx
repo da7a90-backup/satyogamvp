@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Create a new blog post",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function CreateBlogPostPage() {
   return <BlogPostForm />;
 }
