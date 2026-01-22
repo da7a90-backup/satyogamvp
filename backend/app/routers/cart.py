@@ -3,6 +3,8 @@ Cart API Router
 Handles shopping cart operations: add, update, remove items
 """
 from typing import List
+from decimal import Decimal
+from pydantic import UUID4
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -41,17 +43,15 @@ async def get_cart(
     cart = get_or_create_cart(current_user.id, db)
 
     # Calculate totals
-    subtotal = sum(item.product.price * item.quantity for item in cart.items)
-    tax = subtotal * 0.13  # Costa Rica 13% IVA
-    total = subtotal + tax
+    total = sum(item.product.price * item.quantity for item in cart.items)
+    item_count = sum(item.quantity for item in cart.items)
 
     return {
         "id": cart.id,
         "user_id": cart.user_id,
         "items": cart.items,
-        "subtotal": subtotal,
-        "tax": tax,
         "total": total,
+        "item_count": item_count,
         "created_at": cart.created_at,
         "updated_at": cart.updated_at
     }
@@ -101,7 +101,7 @@ async def add_to_cart(
 
 @router.put("/items/{item_id}", response_model=CartItemResponse)
 async def update_cart_item(
-    item_id: int,
+    item_id: UUID4,
     item_data: CartItemUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -136,7 +136,7 @@ async def update_cart_item(
 
 @router.delete("/items/{item_id}")
 async def remove_from_cart(
-    item_id: int,
+    item_id: UUID4,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

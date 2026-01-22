@@ -334,7 +334,7 @@ export default function TilopayEmbed({
 export function TilopayScript() {
   return (
     <script
-      src="https://cdn.tilopay.com/js/tilopay.min.js"
+      src="https://app.tilopay.com/sdk/v2/sdk_tpay.min.js"
       async
       defer
     />

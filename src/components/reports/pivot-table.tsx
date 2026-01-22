@@ -15,11 +15,19 @@ interface PivotTableProps {
 }
 
 export function PivotTable({ data }: PivotTableProps) {
-  const formattedData = data.map(item => ({
-    ...item.attributes,
-    id: item.id,
-    applicationDate: new Date(item.attributes.createdAt).toLocaleDateString(),
-  }))
+  // Handle both application form data and analytics data
+  const formattedData = data.map(item => {
+    // If item has attributes (application form data)
+    if (item.attributes) {
+      return {
+        ...item.attributes,
+        id: item.id,
+        applicationDate: new Date(item.attributes.createdAt).toLocaleDateString(),
+      };
+    }
+    // Otherwise, use item directly (analytics data)
+    return item;
+  });
 
   const [pivotState, setPivotState] = useState({})
 

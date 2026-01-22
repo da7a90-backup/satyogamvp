@@ -187,15 +187,9 @@ export default function HomePage({ data }: HomePageProps) {
   };
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
+    <div ref={containerRef} className="relative">
       {/* Hero Section - in normal flow */}
-      <div
-        style={{
-          height: '90vh',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
+      <div className="h-screen min-h-screen lg:h-[115vh] lg:min-h-[115vh] relative z-[1]">
         <HeroSection
           videoUrl={pageData.hero.videoUrl}
           logoUrl={pageData.hero.logoUrl}
@@ -207,13 +201,18 @@ export default function HomePage({ data }: HomePageProps) {
 
       {/* Intro Section and rest of content - slides up over hero */}
       <div
+        className="relative z-20 transition-none lg:[-webkit-transform:translateY(0)]"
         style={{
-          marginTop: `${-scrollProgress * 90}vh`,
-          transition: 'none',
-          position: 'relative',
-          zIndex: 20,
+          marginTop: `${-scrollProgress * 100}vh`,
         }}
       >
+        <style jsx>{`
+          @media (min-width: 1024px) {
+            div {
+              margin-top: ${-scrollProgress * 115}vh;
+            }
+          }
+        `}</style>
         <IntroSection
           backgroundImage={pageData.intro.backgroundImage}
           heading={pageData.intro.heading}

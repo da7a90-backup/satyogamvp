@@ -2,13 +2,28 @@
 
 import HomePage from '@/components/homepage/Homepage';
 import { staticContentAPI } from '@/lib/static-content-api';
+import { unstable_noStore as noStore } from 'next/cache';
 
-// This is a server component that fetches data
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-export default async function Home() {
+// Enable static generation by default, but opt out dynamically for preview
+export const revalidate = 3600; // Revalidate every hour in production
+
+interface HomeProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
   try {
-    console.log("Fetching homepage data from backend API...");
+    // Check if we're in preview mode
+    const params = await searchParams;
+    const isPreview = params.preview === 'true';
+
+    if (isPreview) {
+      // Opt out of caching for preview mode to prevent stale data
+      noStore();
+      console.log("[Preview Mode] Loading homepage data...");
+    } else {
+      console.log("Fetching homepage data from backend API...");
+    }
 
     // Fetch homepage data from FastAPI backend
     const homePageData = await staticContentAPI.getHomepage();
@@ -19,7 +34,7 @@ export default async function Home() {
     return <HomePage data={homePageData}/>;
   } catch (error) {
     console.error("Error loading homepage data:", error);
-    
+
     // Return an error message
     return (
       <div className="container mx-auto px-4 py-16 text-center">

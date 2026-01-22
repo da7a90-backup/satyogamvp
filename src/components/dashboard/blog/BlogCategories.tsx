@@ -236,7 +236,7 @@ const BlogCategories = () => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">
+          <h3 className="text-lg font-medium text-[#1F2937]">
             {isEdit ? "Edit Category" : "Add New Category"}
           </h3>
           <button
@@ -244,7 +244,7 @@ const BlogCategories = () => {
               isEdit ? setShowEditModal(false) : setShowAddModal(false);
               resetForm();
             }}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-[#737373]"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
@@ -254,7 +254,7 @@ const BlogCategories = () => {
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#374151] mb-1"
             >
               Name <span className="text-red-500">*</span>
             </label>
@@ -264,7 +264,7 @@ const BlogCategories = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Category name"
               required
             />
@@ -273,7 +273,7 @@ const BlogCategories = () => {
           <div className="mb-4">
             <label
               htmlFor="slug"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#374151] mb-1"
             >
               Slug <span className="text-red-500">*</span>
             </label>
@@ -283,11 +283,11 @@ const BlogCategories = () => {
               name="slug"
               value={formData.slug}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="category-slug"
               required
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-[#737373]">
               URL-friendly version of the name. Will be auto-generated.
             </p>
           </div>
@@ -295,7 +295,7 @@ const BlogCategories = () => {
           <div className="mb-6">
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#374151] mb-1"
             >
               Description
             </label>
@@ -305,7 +305,7 @@ const BlogCategories = () => {
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Category description (optional)"
             />
           </div>
@@ -317,13 +317,13 @@ const BlogCategories = () => {
                 isEdit ? setShowEditModal(false) : setShowAddModal(false);
                 resetForm();
               }}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+              className="px-4 py-2 bg-gray-200 text-[#374151] rounded-lg hover:bg-gray-300"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+              className="px-4 py-2 bg-[#7D1A13] text-white rounded-lg hover:bg-[#6B1710]"
             >
               {isEdit ? "Update" : "Create"}
             </button>
@@ -337,23 +337,23 @@ const BlogCategories = () => {
   const DeleteConfirmationModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
+        <h3 className="text-lg font-medium text-[#1F2937] mb-4">
           Confirm Delete
         </h3>
-        <p className="mb-6 text-gray-600">
+        <p className="mb-6 text-[#737373]">
           Are you sure you want to delete the category "
           {currentCategory?.attributes.name}"? This action cannot be undone.
         </p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={() => setShowDeleteModal(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 text-[#374151] rounded-lg hover:bg-gray-300"
           >
             Cancel
           </button>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
             Delete
           </button>
@@ -365,20 +365,20 @@ const BlogCategories = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">
+        <h1 className="text-2xl font-bold text-[#1F2937] mb-4 sm:mb-0" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
           Blog Categories
         </h1>
         <div className="flex space-x-2">
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+            className="inline-flex items-center px-4 py-2 bg-[#7D1A13] text-white rounded-lg hover:bg-[#6B1710]"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
             New Category
           </button>
           <button
             onClick={fetchCategories}
-            className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+            className="inline-flex items-center px-4 py-2 bg-gray-200 text-[#374151] rounded-lg hover:bg-gray-300"
           >
             <ArrowPathIcon className="h-5 w-5" />
           </button>
@@ -387,7 +387,7 @@ const BlogCategories = () => {
 
       {/* Error message */}
       {error && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
+        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
           {error}
         </div>
       )}
@@ -395,7 +395,7 @@ const BlogCategories = () => {
       {/* Loading state */}
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <ArrowPathIcon className="h-8 w-8 text-purple-600 animate-spin" />
+          <ArrowPathIcon className="h-8 w-8 text-[#7D1A13] animate-spin" />
         </div>
       ) : (
         <>
@@ -406,31 +406,31 @@ const BlogCategories = () => {
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-[#737373] uppercase tracking-wider"
                   >
                     Name
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-[#737373] uppercase tracking-wider"
                   >
                     Slug
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-[#737373] uppercase tracking-wider"
                   >
                     Description
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-[#737373] uppercase tracking-wider"
                   >
                     Created
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-right text-xs font-medium text-[#737373] uppercase tracking-wider"
                   >
                     Actions
                   </th>
@@ -441,22 +441,22 @@ const BlogCategories = () => {
                   categories.map((category) => (
                     <tr key={category.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-[#1F2937]">
                           {category.attributes.name}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-[#737373]">
                           {category.attributes.slug}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                        <div className="text-sm text-[#737373] truncate max-w-xs">
                           {category.attributes.description || "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-[#737373]">
                           {formatDate(category.attributes.createdAt)}
                         </div>
                       </td>
@@ -464,7 +464,7 @@ const BlogCategories = () => {
                         <div className="flex justify-end space-x-2">
                           <button
                             onClick={() => handleEdit(category)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-[#7D1A13] hover:text-blue-900"
                           >
                             <PencilIcon className="h-5 w-5" />
                           </button>
@@ -482,12 +482,12 @@ const BlogCategories = () => {
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-6 py-10 text-center text-gray-500"
+                      className="px-6 py-10 text-center text-[#737373]"
                     >
                       No categories found.
                       <button
                         onClick={() => setShowAddModal(true)}
-                        className="text-purple-600 hover:underline ml-1"
+                        className="text-[#7D1A13] hover:underline ml-1"
                       >
                         Create a new category
                       </button>

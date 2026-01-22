@@ -86,23 +86,50 @@ function extractEndDate(fixedDate: string): Date | null {
 }
 
 /**
- * Filters retreats to only show upcoming ones (end date hasn't passed)
- * Ready for Strapi API integration
+ * Parse ISO date string or Date object
  */
- function getUpcomingRetreats(retreats: OnlineRetreat[]): OnlineRetreat[] {
+function parseDate(date: string | Date | null | undefined): Date | null {
+  if (!date) return null;
+  if (date instanceof Date) return date;
+  try {
+    return new Date(date);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Filters retreats to only show upcoming ones (end date hasn't passed)
+ * and sorts them by start date (closest first)
+ * Uses start_date and end_date fields from API (ISO strings)
+ */
+function getUpcomingRetreats(retreats: OnlineRetreat[]): OnlineRetreat[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Start of today
 
-  return retreats.filter(retreat => {
-    // Get fixedDate with fallback
-    const dateString = retreat.fixedDate || retreat.fixed_date || '';
-    const endDate = extractEndDate(dateString);
+  const filtered = retreats.filter(retreat => {
+    // Use end_date field from API (already an ISO string)
+    const endDate = parseDate((retreat as any).end_date);
 
-    // If we can't parse the date, include it anyway
-    if (!endDate) return true;
+    // If we can't parse the date, exclude it (likely past retreat)
+    if (!endDate) return false;
 
     // Include if end date is today or in the future
     return endDate >= today;
+  });
+
+  // Sort by start date, closest first
+  return filtered.sort((a, b) => {
+    const dateA = parseDate((a as any).start_date);
+    const dateB = parseDate((b as any).start_date);
+
+    // If we can't parse dates, keep original order
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1; // Put unparseable dates at end
+    if (!dateB) return -1;
+
+    // Sort ascending (closest date first)
+    return dateA.getTime() - dateB.getTime();
   });
 }
 
@@ -118,7 +145,7 @@ function transformRetreatsToCards(retreats: OnlineRetreat[], iconOverlay?: strin
     const intro1Content = retreat.intro1_content || retreat.intro1Content || [];
 
     return {
-      image: retreat.images[0]?.src || heroBackground || PLACEHOLDER_IMAGE,
+      image: retreat.images?.[0]?.src || heroBackground || PLACEHOLDER_IMAGE,
       iconOverlay: iconOverlay || ICON_OVERLAY,
       duration: retreat.duration || extractDuration(fixedDate),
       type: retreat.location,

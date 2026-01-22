@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Heart, Clock, Search, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { Heart, Clock, Search, ChevronLeft, ChevronRight, Filter, X, Play } from "lucide-react";
 import Image from "next/image";
 
 interface Teaching {
@@ -34,8 +34,25 @@ export default function DashboardTeachingsClient({
   initialFeaturedTeaching,
 }: DashboardTeachingsClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<string>("teachings");
+
+  // Check user membership tier
+  const userTier = session?.user?.membershipTier?.toLowerCase() || 'free';
+  const isFreeUser = userTier === 'free';
+
+  // Get initial tab from URL query parameter
+  const tabParam = searchParams.get('tab');
+  // Map URL tab names to internal tab names
+  const tabMapping: { [key: string]: string } = {
+    'teachings': 'teachings',
+    'meditations': 'guided_meditations',
+    'qas': 'qas',
+    'essays': 'essays'
+  };
+  const initialTab = tabParam && tabMapping[tabParam] ? tabMapping[tabParam] : 'teachings';
+
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [activeSubTab, setActiveSubTab] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [teachings, setTeachings] = useState<Teaching[]>(initialTeachings);
@@ -46,6 +63,20 @@ export default function DashboardTeachingsClient({
   const [showFilters, setShowFilters] = useState(false);
   const [contentTypeFilter, setContentTypeFilter] = useState<string>("all");
   const itemsPerPage = 6;
+
+  // Update tab when URL changes
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    const tabMapping: { [key: string]: string } = {
+      'teachings': 'teachings',
+      'meditations': 'guided_meditations',
+      'qas': 'qas',
+      'essays': 'essays'
+    };
+    if (tabParam && tabMapping[tabParam]) {
+      setActiveTab(tabMapping[tabParam]);
+    }
+  }, [searchParams]);
 
   // Load favorites on mount
   useEffect(() => {
@@ -172,7 +203,9 @@ export default function DashboardTeachingsClient({
   // Pagination
   const totalPages = Math.ceil(filteredTeachings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTeachings = filteredTeachings.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedTeachings = isFreeUser
+    ? filteredTeachings.slice(0, 6)  // Show only 6 teachings for FREE users
+    : filteredTeachings.slice(startIndex, startIndex + itemsPerPage);
 
   // Format duration
   const formatDuration = (seconds: number) => {
@@ -194,6 +227,17 @@ export default function DashboardTeachingsClient({
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setCurrentPage(1);
+    // Map internal tab names to URL tab names
+    const reverseTabMapping: { [key: string]: string } = {
+      'teachings': 'teachings',
+      'guided_meditations': 'meditations',
+      'qas': 'qas',
+      'essays': 'essays'
+    };
+    // Update URL with the new tab
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', reverseTabMapping[tab] || tab);
+    router.push(url.pathname + url.search, { scroll: false });
   };
 
   // Handle search
@@ -203,12 +247,12 @@ export default function DashboardTeachingsClient({
   };
 
   return (
-    <div className="flex flex-col bg-[#FAF8F1] min-h-screen">
+    <div className="flex flex-col bg-[#FAF8F1] min-h-screen lg:min-h-[125vh]">
       {/* Header Section */}
-      <div className="flex flex-col px-8 pt-8 gap-6 border-b border-[#E5E7EB]">
+      <div className="flex flex-col px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8 gap-4 lg:gap-6 border-b border-[#E5E7EB]">
         <div className="flex flex-col gap-5">
           {/* Page header */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <h1
               className="text-[24px] leading-[32px] font-[550] text-[#181D27]"
               style={{ fontFamily: "Optima, serif" }}
@@ -216,33 +260,33 @@ export default function DashboardTeachingsClient({
               Library
             </h1>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 lg:gap-3">
               {/* Search Input */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#D5D7DA] rounded-lg shadow-sm w-[320px]">
-                <Search className="w-5 h-5 text-[#717680]" />
+              <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#D5D7DA] rounded-lg shadow-sm flex-1 lg:w-[320px]">
+                <Search className="w-5 h-5 text-[#717680] flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="Search"
                   value={searchQuery}
                   onChange={handleSearch}
-                  className="flex-1 text-base text-[#717680] outline-none bg-transparent"
+                  className="flex-1 text-base text-[#717680] outline-none bg-transparent min-w-0"
                   style={{ fontFamily: "Avenir Next, sans-serif" }}
                 />
-                <div className="px-1 py-0.5 border border-[#E9EAEB] rounded text-xs text-[#717680] mix-blend-multiply">
+                <div className="hidden sm:block px-1 py-0.5 border border-[#E9EAEB] rounded text-xs text-[#717680] mix-blend-multiply">
                   ⌘K
                 </div>
               </div>
 
               {/* Filter Button */}
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 transition-colors ${
+                  className={`flex items-center gap-2 px-3 lg:px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 transition-colors ${
                     showFilters ? "border-[#7D1A13] bg-[#7D1A13]/5" : "border-[#D5D7DA]"
                   }`}
                 >
                   <Filter className="w-5 h-5 text-[#717680]" />
-                  <span className="text-sm font-medium text-[#181D27]">Filters</span>
+                  <span className="hidden sm:inline text-sm font-medium text-[#181D27]">Filters</span>
                   {contentTypeFilter !== "all" && (
                     <span className="ml-1 px-2 py-0.5 bg-[#7D1A13] text-white text-xs rounded-full">1</span>
                   )}
@@ -349,101 +393,71 @@ export default function DashboardTeachingsClient({
       </div>
 
       {/* Content */}
-      <div className="flex flex-col p-8 gap-6">
-        {/* Featured Teaching */}
+      <div className="flex flex-col p-4 sm:p-6 lg:p-8 gap-6">
+        {/* Featured Teaching - Dashboard Homepage Style */}
         {currentFeaturedTeaching && (
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h2
-                className="text-[20px] leading-[28px] font-semibold text-[#181D27]"
-                style={{ fontFamily: "Avenir Next, sans-serif" }}
-              >
-                {activeTab === "teachings" && "Latest teaching"}
+              <h2 className="text-base lg:text-lg font-semibold text-[#181D27]">
+                {activeTab === "teachings" && "Featured teaching"}
                 {activeTab === "guided_meditations" && "Guided Meditation of the Month"}
                 {activeTab === "essays" && "Featured Essay"}
                 {activeTab === "qas" && "Latest Q&A"}
               </h2>
-              <button
-                className="px-4 py-2 text-sm font-semibold text-[#535862] rounded-lg hover:bg-gray-50"
-                style={{ fontFamily: "Avenir Next, sans-serif" }}
-              >
-                View all
-              </button>
             </div>
 
-            {/* Featured Card */}
-            <div className="flex bg-white border border-[#D1D1D1] rounded-lg overflow-hidden">
-              {/* Thumbnail */}
-              <div className="relative w-[560px] h-[331px] flex-shrink-0 cursor-pointer" onClick={() => router.push(`/dashboard/user/teachings/${currentFeaturedTeaching.slug}`)}>
-                <Image
-                  src={currentFeaturedTeaching.thumbnail_url || "/default-thumbnail.jpg"}
-                  alt={currentFeaturedTeaching.title}
-                  fill
-                  className="object-cover"
-                />
-                {/* Play button overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="ml-1">
-                      <path d="M8 5L19 12L8 19V5Z" fill="#942017" />
-                    </svg>
+            <div className="relative w-full min-h-[200px] lg:h-[240px] bg-white border border-[#D1D1D1] rounded-lg overflow-hidden cursor-pointer" onClick={() => router.push(`/dashboard/user/teachings/${currentFeaturedTeaching.slug}`)}>
+              <div className="flex flex-col lg:flex-row h-full">
+                {/* Thumbnail */}
+                <div className="relative w-full lg:w-[426px] h-[200px] lg:h-full bg-gray-900 flex-shrink-0">
+                  {currentFeaturedTeaching.thumbnail_url && (
+                    <Image
+                      src={currentFeaturedTeaching.thumbnail_url}
+                      alt={currentFeaturedTeaching.title}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/20" />
+
+                  {/* Play button */}
+                  <button className="absolute inset-0 m-auto w-16 h-16 flex items-center justify-center bg-white rounded-full hover:scale-105 transition">
+                    <Play className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" />
+                  </button>
+
+                  {/* Duration badge */}
+                  <div className="absolute bottom-3 left-3 px-2 py-1 bg-black/40 backdrop-blur-sm rounded text-white text-xs font-medium">
+                    Video
                   </div>
                 </div>
+
+                {/* Content */}
+                <div className="flex flex-col p-4 gap-4 flex-grow">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-semibold text-[#7D1A13]">Video Teaching</span>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[#384250]">
+                        <Clock className="w-4 h-4 text-[#535862]" />
+                        {Math.floor((currentFeaturedTeaching.duration || 2700) / 60)} minutes
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-[#181D27] line-clamp-2">
+                      {currentFeaturedTeaching.title}
+                    </h3>
+                    <p className="text-base text-[#535862] line-clamp-3">
+                      {currentFeaturedTeaching.description}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Favorite button */}
                 <button
                   onClick={(e) => toggleFavorite(currentFeaturedTeaching.id, e)}
-                  className="absolute top-4 right-4 p-4 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20"
+                  className="absolute top-4 right-4 w-13 h-13 flex items-center justify-center bg-white/40 rounded-full hover:bg-white/60 transition"
                 >
-                  <Heart
-                    className={`w-5 h-5 ${favorites.has(currentFeaturedTeaching.id) ? "fill-red-500 text-red-500" : "text-white"}`}
-                  />
-                </button>
-                {/* Video badge */}
-                <div className="absolute bottom-3 left-3 flex items-center gap-2 px-2 py-1 bg-black/40 backdrop-blur-sm rounded">
-                  <span className="text-[10px] font-medium text-[#F3F4F6]">Video</span>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="flex flex-col justify-between p-6 flex-1">
-                <div className="flex flex-col gap-6">
-                  {/* Meta */}
-                  <div className="flex items-center gap-6">
-                    <span className="text-sm font-semibold text-[#7D1A13]" style={{ fontFamily: "Avenir Next, sans-serif" }}>
-                      {formatDate(currentFeaturedTeaching.published_date)}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#384250]" />
-                      <span className="text-sm font-semibold text-[#384250]" style={{ fontFamily: "Avenir Next, sans-serif" }}>
-                        {formatDuration(currentFeaturedTeaching.duration)}
-                      </span>
-                    </div>
+                  <div className="w-12 h-12 flex items-center justify-center bg-white/40 rounded-full">
+                    <Heart className={`w-5 h-5 ${favorites.has(currentFeaturedTeaching.id) ? "fill-red-500 text-red-500" : ""}`} />
                   </div>
-
-                  {/* Title */}
-                  <h3
-                    className="text-[20px] leading-[30px] font-semibold text-black"
-                    style={{ fontFamily: "Avenir Next, sans-serif" }}
-                  >
-                    {currentFeaturedTeaching.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p
-                    className="text-base leading-[24px] text-[#535862] line-clamp-5"
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                  >
-                    {currentFeaturedTeaching.description}
-                  </p>
-                </div>
-
-                {/* Open Button */}
-                <button
-                  onClick={() => router.push(`/dashboard/user/teachings/${currentFeaturedTeaching.slug}`)}
-                  className="self-start px-4 py-2 bg-[#942017] text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-[#7D1A13]"
-                  style={{ fontFamily: "Avenir Next, sans-serif" }}
-                >
-                  Open
                 </button>
               </div>
             </div>
@@ -465,14 +479,14 @@ export default function DashboardTeachingsClient({
           </div>
 
           {/* Sub-tabs */}
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2 items-center">
+          <div className="flex items-center justify-between border-b border-[#E9EAEB]">
+            <div className="flex items-center">
               <button
                 onClick={() => setActiveSubTab("all")}
-                className={`px-3 py-2 text-sm font-semibold rounded-lg border-b-2 ${
+                className={`px-1 pb-3 text-sm font-semibold ${
                   activeSubTab === "all"
-                    ? "border-[#942017] text-[#7D1A13]"
-                    : "border-transparent text-[#717680] hover:bg-gray-50"
+                    ? "border-b-2 border-[#942017] text-[#7D1A13]"
+                    : "text-[#717680]"
                 }`}
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
@@ -480,10 +494,10 @@ export default function DashboardTeachingsClient({
               </button>
               <button
                 onClick={() => setActiveSubTab("free")}
-                className={`px-3 py-2 text-sm font-semibold rounded-lg border-b-2 ${
+                className={`ml-3 px-1 pb-3 text-sm font-semibold ${
                   activeSubTab === "free"
-                    ? "border-[#942017] text-[#7D1A13]"
-                    : "border-transparent text-[#717680] hover:bg-gray-50"
+                    ? "border-b-2 border-[#942017] text-[#7D1A13]"
+                    : "text-[#717680]"
                 }`}
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
@@ -506,124 +520,134 @@ export default function DashboardTeachingsClient({
             </div>
           </div>
 
-          {/* Teaching Cards Grid */}
+          {/* Teaching Cards Grid - Dashboard Homepage Style */}
           {isLoading ? (
             <div className="text-center py-12">Loading...</div>
           ) : (
-            <div className="grid grid-cols-3 gap-8">
-              {paginatedTeachings.map((teaching) => (
+            <div className="relative">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+                {paginatedTeachings.map((teaching) => (
                 <div
                   key={teaching.id}
-                  className="flex flex-col bg-white border border-[#D2D6DB] rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                  className="flex flex-col cursor-pointer"
                   onClick={() => router.push(`/dashboard/user/teachings/${teaching.slug}`)}
                 >
-                  {/* Thumbnail */}
-                  <div className="relative w-full h-[202px]">
-                    <Image
-                      src={teaching.thumbnail_url || "/default-thumbnail.jpg"}
-                      alt={teaching.title}
-                      fill
-                      className="object-cover"
-                    />
-                    {/* Play button overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
-                      <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="ml-0.5">
-                          <path d="M5 3L13 8L5 13V3Z" fill="#942017" />
-                        </svg>
-                      </div>
+                  <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden mb-3">
+                    {teaching.thumbnail_url && (
+                      <Image
+                        src={teaching.thumbnail_url}
+                        alt={teaching.title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/15" />
+
+                    <button className="absolute inset-0 m-auto w-16 h-16 flex items-center justify-center bg-white rounded-full hover:scale-105 transition">
+                      <Play className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" />
+                    </button>
+
+                    <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/40 backdrop-blur-sm rounded text-white text-[10px] font-medium">
+                      Video
                     </div>
-                    {/* Badge */}
-                    <div className="absolute top-3 left-2 px-2 py-1 bg-white border border-[#D5D7DA] rounded-md shadow-sm">
-                      <span className="text-sm font-medium text-[#414651]" style={{ fontFamily: "Avenir Next, sans-serif" }}>
-                        {teaching.category === "video_teaching" && "Teaching"}
-                        {teaching.category === "guided_meditation" && "Meditation"}
-                        {teaching.category === "qa" && "Q&A"}
-                        {teaching.category === "essay" && "Essay"}
-                      </span>
-                    </div>
-                    {/* Favorite button */}
+
                     <button
                       onClick={(e) => toggleFavorite(teaching.id, e)}
-                      className="absolute top-2 right-2 p-4 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20"
+                      className="absolute top-4 right-4 w-13 h-13 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20 transition"
                     >
-                      <Heart
-                        className={`w-5 h-5 ${favorites.has(teaching.id) ? "fill-red-500 text-red-500" : "text-white"}`}
-                      />
+                      <div className="w-12 h-12 flex items-center justify-center bg-white/10 rounded-full">
+                        <Heart className={`w-5 h-5 ${favorites.has(teaching.id) ? "fill-red-500 text-red-500" : "text-white"}`} />
+                      </div>
                     </button>
-                    {/* Video badge */}
-                    <div className="absolute bottom-3 left-2 flex items-center gap-2 px-2 py-1 bg-black/40 backdrop-blur-sm rounded">
-                      <span className="text-[10px] font-medium text-[#F3F4F6]">Video</span>
-                    </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex flex-col gap-6 p-6">
-                    <div className="flex flex-col gap-2">
-                      {/* Meta */}
-                      <div className="flex items-center gap-6">
-                        <span className="text-sm font-semibold text-[#7D1A13]" style={{ fontFamily: "Avenir Next, sans-serif" }}>
-                          {formatDate(teaching.published_date)}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-[#384250]" />
-                          <span className="text-sm font-semibold text-[#384250]" style={{ fontFamily: "Avenir Next, sans-serif" }}>
-                            {formatDuration(teaching.duration)}
-                          </span>
-                        </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-semibold text-[#7D1A13]">Video Teaching</span>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[#384250]">
+                        <Clock className="w-4 h-4 text-[#535862]" />
+                        {Math.floor((teaching.duration || 2700) / 60)} min
                       </div>
-
-                      {/* Title */}
-                      <h3
-                        className="text-[20px] leading-[30px] font-semibold text-black line-clamp-1"
-                        style={{ fontFamily: "Avenir Next, sans-serif" }}
-                      >
-                        {teaching.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p
-                        className="text-base leading-[24px] text-[#384250] line-clamp-2"
-                        style={{ fontFamily: "Avenir Next, sans-serif" }}
-                      >
-                        {teaching.description}
-                      </p>
                     </div>
+                    <h3 className="text-xl font-semibold text-black line-clamp-2">
+                      {teaching.title}
+                    </h3>
+                    <p className="text-base text-[#384250] line-clamp-3">
+                      {teaching.description}
+                    </p>
                   </div>
                 </div>
               ))}
+              </div>
+
+              {/* FREE tier upgrade overlay */}
+              {isFreeUser && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-[#FAF8F1] via-[#FAF8F1]/95 to-transparent pt-20">
+                  <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xl p-8 max-w-lg mx-4 text-center">
+                    <h3 className="text-2xl font-semibold text-[#181D27] mb-4">
+                      Upgrade to Gyani to access the full library
+                    </h3>
+                    <p className="text-[#535862] mb-6">
+                      Unlock hundreds of teachings, guided meditations, and exclusive content with a Gyani membership.
+                    </p>
+                    <button
+                      onClick={() => router.push('/dashboard/user/settings/billing')}
+                      className="px-6 py-3 bg-[#7D1A13] text-white rounded-lg hover:bg-[#942017] transition-colors font-semibold"
+                    >
+                      Upgrade Now
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 pt-5 border-t border-[#E9EAEB]">
+        {!isFreeUser && totalPages > 1 && (
+          <div className="flex items-center justify-between pt-5 border-t border-[#E9EAEB] gap-2">
             {/* Previous Button */}
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className={`flex items-center gap-1 px-3 py-2 rounded-lg border shadow-sm ${
+              className={`flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg border shadow-sm flex-shrink-0 ${
                 currentPage === 1
                   ? "bg-white border-[#E9EAEB] text-[#A4A7AE] cursor-not-allowed"
                   : "bg-white border-[#E9EAEB] text-[#A4A7AE] hover:bg-gray-50"
               }`}
             >
               <ChevronLeft className="w-5 h-5" />
-              <span className="text-sm font-semibold" style={{ fontFamily: "Avenir Next, sans-serif" }}>
+              <span className="hidden sm:inline text-sm font-semibold" style={{ fontFamily: "Avenir Next, sans-serif" }}>
                 Previous
               </span>
             </button>
 
             {/* Page Numbers */}
-            <div className="flex gap-0.5">
+            <div className="flex gap-0.5 overflow-x-auto scrollbar-hide flex-1 justify-center max-w-full">
               {(() => {
                 const pages = [];
-                const showEllipsisStart = currentPage > 4;
-                const showEllipsisEnd = currentPage < totalPages - 3;
+                const delta = 2; // Show 2 pages before and after current page
 
-                // Always show first page
-                if (totalPages > 0) {
+                // If total pages <= 9, show all pages
+                if (totalPages <= 9) {
+                  for (let i = 1; i <= totalPages; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium ${
+                          currentPage === i
+                            ? "bg-[#FAFAFA] text-[#252B37]"
+                            : "text-[#535862] hover:bg-gray-50"
+                        }`}
+                        style={{ fontFamily: "Avenir Next, sans-serif" }}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+                } else {
+                  // Always show first page
                   pages.push(
                     <button
                       key={1}
@@ -638,49 +662,48 @@ export default function DashboardTeachingsClient({
                       1
                     </button>
                   );
-                }
 
-                // Show ellipsis after first page if needed
-                if (showEllipsisStart) {
-                  pages.push(
-                    <span key="ellipsis-start" className="w-10 h-10 flex items-center justify-center text-[#535862]">
-                      ...
-                    </span>
-                  );
-                }
+                  // Calculate range around current page
+                  const rangeStart = Math.max(2, currentPage - delta);
+                  const rangeEnd = Math.min(totalPages - 1, currentPage + delta);
 
-                // Show pages around current page
-                const startPage = showEllipsisStart ? Math.max(2, currentPage - 1) : 2;
-                const endPage = showEllipsisEnd ? Math.min(totalPages - 1, currentPage + 1) : totalPages - 1;
+                  // Show left ellipsis if there's a gap
+                  if (rangeStart > 2) {
+                    pages.push(
+                      <span key="ellipsis-left" className="w-10 h-10 flex items-center justify-center text-[#535862]">
+                        ...
+                      </span>
+                    );
+                  }
 
-                for (let i = startPage; i <= endPage; i++) {
-                  pages.push(
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i)}
-                      className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium ${
-                        currentPage === i
-                          ? "bg-[#FAFAFA] text-[#252B37]"
-                          : "text-[#535862] hover:bg-gray-50"
-                      }`}
-                      style={{ fontFamily: "Avenir Next, sans-serif" }}
-                    >
-                      {i}
-                    </button>
-                  );
-                }
+                  // Show pages around current page
+                  for (let i = rangeStart; i <= rangeEnd; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium ${
+                          currentPage === i
+                            ? "bg-[#FAFAFA] text-[#252B37]"
+                            : "text-[#535862] hover:bg-gray-50"
+                        }`}
+                        style={{ fontFamily: "Avenir Next, sans-serif" }}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
 
-                // Show ellipsis before last page if needed
-                if (showEllipsisEnd) {
-                  pages.push(
-                    <span key="ellipsis-end" className="w-10 h-10 flex items-center justify-center text-[#535862]">
-                      ...
-                    </span>
-                  );
-                }
+                  // Show right ellipsis if there's a gap
+                  if (rangeEnd < totalPages - 1) {
+                    pages.push(
+                      <span key="ellipsis-right" className="w-10 h-10 flex items-center justify-center text-[#535862]">
+                        ...
+                      </span>
+                    );
+                  }
 
-                // Always show last page if there's more than 1 page
-                if (totalPages > 1) {
+                  // Always show last page
                   pages.push(
                     <button
                       key={totalPages}
@@ -705,13 +728,13 @@ export default function DashboardTeachingsClient({
             <button
               onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
-              className={`flex items-center gap-1 px-3 py-2 rounded-lg border shadow-sm ${
+              className={`flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg border shadow-sm flex-shrink-0 ${
                 currentPage === totalPages
                   ? "bg-white border-[#D5D7DA] text-[#414651] cursor-not-allowed opacity-50"
                   : "bg-white border-[#D5D7DA] text-[#414651] hover:bg-gray-50"
               }`}
             >
-              <span className="text-sm font-semibold" style={{ fontFamily: "Avenir Next, sans-serif" }}>
+              <span className="hidden sm:inline text-sm font-semibold" style={{ fontFamily: "Avenir Next, sans-serif" }}>
                 Next
               </span>
               <ChevronRight className="w-5 h-5" />

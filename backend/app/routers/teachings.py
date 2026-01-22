@@ -1,16 +1,27 @@
 """Teachings router with membership-aware access control."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 from ..core.database import get_db
-from ..core.deps import get_current_user, get_optional_user
+from ..core.deps import get_current_user, get_optional_user, require_admin
 from ..models.user import User, MembershipTierEnum
-from ..models.teaching import Teaching, TeachingAccess, TeachingFavorite, TeachingComment, AccessLevel
-from ..schemas.teaching import CommentCreate, CommentUpdate, CommentResponse, CommentListResponse
+from ..models.teaching import Teaching, TeachingAccess, TeachingFavorite, TeachingComment, TeachingWatchLater, AccessLevel
+from ..schemas.teaching import (
+    CommentCreate,
+    CommentUpdate,
+    CommentResponse,
+    CommentListResponse,
+    TeachingCreate,
+    TeachingUpdate,
+    TeachingResponse,
+)
 from ..services import mixpanel_service
+from ..services.media_service import MediaService
+from ..services.cloudflare_service import CloudflareService
+import uuid
 
 router = APIRouter()
 
@@ -149,6 +160,9 @@ async def get_teachings(
     # Get teachings - order by published_date desc to get most recent first
     teachings = query.order_by(Teaching.published_date.desc()).offset(skip).limit(limit).all()
 
+    # Initialize media service for CDN URL resolution
+    media_service = MediaService(db)
+
     # Process teachings based on user access
     result = []
     for teaching in teachings:
@@ -196,6 +210,8 @@ async def get_teachings(
             teaching_data["youtube_ids"] = []
             teaching_data["dash_preview_duration"] = None
 
+        # Resolve all media paths to CDN URLs
+        teaching_data = media_service.resolve_dict(teaching_data)
         result.append(teaching_data)
 
     return {
@@ -240,6 +256,9 @@ async def get_teaching(
             teaching.content_type,
         )
 
+    # Initialize media service for CDN URL resolution
+    media_service = MediaService(db)
+
     teaching_data = {
         "id": str(teaching.id),
         "slug": teaching.slug,
@@ -281,6 +300,9 @@ async def get_teaching(
         teaching_data["podbean_ids"] = []
         teaching_data["youtube_ids"] = []
         teaching_data["dash_preview_duration"] = None
+
+    # Resolve all media paths to CDN URLs
+    teaching_data = media_service.resolve_dict(teaching_data)
 
     return teaching_data
 
@@ -553,3 +575,226 @@ async def delete_comment(
     db.commit()
 
     return {"message": "Comment deleted successfully"}
+
+
+# ============================================================================
+# ADMIN ENDPOINTS - Teachings Management
+# ============================================================================
+
+@router.get("/admin/teachings", response_model=List[TeachingResponse])
+async def get_all_teachings_admin(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=10000),
+    category: Optional[str] = None,
+    access_level: Optional[str] = None,
+    hidden_tag: Optional[str] = None,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get all teachings including unpublished (admin only)."""
+    query = db.query(Teaching)
+
+    if category:
+        query = query.filter(Teaching.category == category)
+
+    if access_level:
+        query = query.filter(Teaching.access_level == access_level)
+
+    if hidden_tag:
+        query = query.filter(Teaching.hidden_tag == hidden_tag)
+
+    teachings = query.order_by(Teaching.created_at.desc()).offset(skip).limit(limit).all()
+
+    return [TeachingResponse.model_validate(teaching) for teaching in teachings]
+
+
+@router.post("/admin/teachings", response_model=TeachingResponse)
+async def create_teaching(
+    teaching_data: TeachingCreate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create a new teaching (admin only)."""
+    # Check if slug already exists
+    existing = db.query(Teaching).filter(Teaching.slug == teaching_data.slug).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Teaching with this slug already exists")
+
+    teaching = Teaching(**teaching_data.model_dump())
+    db.add(teaching)
+    db.commit()
+    db.refresh(teaching)
+
+    return TeachingResponse.model_validate(teaching)
+
+
+@router.put("/admin/teachings/{teaching_id}", response_model=TeachingResponse)
+async def update_teaching(
+    teaching_id: str,
+    teaching_data: TeachingUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update a teaching (admin only)."""
+    teaching = db.query(Teaching).filter(Teaching.id == uuid.UUID(teaching_id)).first()
+
+    if not teaching:
+        raise HTTPException(status_code=404, detail="Teaching not found")
+
+    # Update fields
+    for field, value in teaching_data.model_dump(exclude_unset=True).items():
+        setattr(teaching, field, value)
+
+    teaching.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(teaching)
+
+    return TeachingResponse.model_validate(teaching)
+
+
+@router.delete("/admin/teachings/{teaching_id}")
+async def delete_teaching(
+    teaching_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete a teaching (admin only)."""
+    teaching = db.query(Teaching).filter(Teaching.id == uuid.UUID(teaching_id)).first()
+
+    if not teaching:
+        raise HTTPException(status_code=404, detail="Teaching not found")
+
+    db.delete(teaching)
+    db.commit()
+
+    return {"message": "Teaching deleted successfully"}
+
+
+@router.post("/admin/teachings/upload-video")
+async def upload_video_to_cloudflare(
+    file: UploadFile = File(...),
+    title: Optional[str] = None,
+    current_user: User = Depends(require_admin),
+) -> Dict[str, Any]:
+    """
+    Upload video to Cloudflare Stream (admin only).
+    Max file size: 5GB
+    """
+    # Validate file type
+    allowed_types = ["video/mp4", "video/quicktime", "video/x-msvideo", "video/webm", "video/avi", "video/mov"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+        )
+
+    # Read file content
+    file_content = await file.read()
+
+    # Check file size (5GB max)
+    max_size = 5 * 1024 * 1024 * 1024  # 5GB in bytes
+    if len(file_content) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size is 5GB."
+        )
+
+    try:
+        # Upload to Cloudflare Stream
+        cloudflare_service = CloudflareService()
+        metadata = {}
+        if title:
+            metadata["title"] = title
+
+        result = await cloudflare_service.upload_video_to_stream(
+            file_content=file_content,
+            filename=file.filename or "video.mp4",
+            metadata=metadata
+        )
+
+        return {
+            "success": True,
+            "stream_uid": result["stream_uid"],
+            "status": result["status"],
+            "duration": result.get("duration"),
+            "thumbnail_url": result["thumbnail_url"],
+            "embed_url": result["embed_url"],
+            "playback_url": result["playback_url"],
+            "message": "Video uploaded successfully to Cloudflare Stream"
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload video: {str(e)}"
+        )
+
+
+@router.post("/admin/teachings/upload-thumbnail")
+async def upload_thumbnail_to_cloudflare(
+    file: UploadFile = File(...),
+    alt_text: Optional[str] = None,
+    current_user: User = Depends(require_admin),
+) -> Dict[str, Any]:
+    """
+    Upload thumbnail image to Cloudflare Images (admin only).
+    Max file size: 10MB
+    """
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+        )
+
+    # Read file content
+    file_content = await file.read()
+
+    # Check file size (10MB max for images)
+    max_size = 10 * 1024 * 1024  # 10MB in bytes
+    if len(file_content) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size is 10MB."
+        )
+
+    try:
+        # Upload to Cloudflare Images
+        cloudflare_service = CloudflareService()
+
+        result = await cloudflare_service.upload_image(
+            file_content=file_content,
+            filename=file.filename or "thumbnail.jpg",
+            alt_text=alt_text,
+            require_signed_urls=False
+        )
+
+        return {
+            "success": True,
+            "image_id": result["image_id"],
+            "url": result["url"],
+            "variants": result.get("variants", []),
+            "message": "Thumbnail uploaded successfully to Cloudflare Images"
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload thumbnail: {str(e)}"
+        )
+
+
+@router.get("/admin/teachings/{teaching_id}", response_model=TeachingResponse)
+async def get_teaching_admin(
+    teaching_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get a single teaching by ID (admin only)."""
+    teaching = db.query(Teaching).filter(Teaching.id == uuid.UUID(teaching_id)).first()
+
+    if not teaching:
+        raise HTTPException(status_code=404, detail="Teaching not found")
+
+    return TeachingResponse.model_validate(teaching)

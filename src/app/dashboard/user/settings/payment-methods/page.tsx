@@ -1,239 +1,207 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+
+interface PaymentMethod {
+  id: string;
+  card_type: string;
+  last_four: string;
+  expiry_month: number;
+  expiry_year: number;
+  is_default: boolean;
+  cardholder_name?: string;
+}
 
 export default function PaymentMethodsPage() {
-  const [paymentMethods, setPaymentMethods] = useState([
-    {
-      id: '1',
-      type: 'VISA',
-      last4: '4242',
-      expiryMonth: 12,
-      expiryYear: 2027,
-      isDefault: true,
-      holderName: 'John Doe',
-    },
-    {
-      id: '2',
-      type: 'Mastercard',
-      last4: '5555',
-      expiryMonth: 8,
-      expiryYear: 2026,
-      isDefault: false,
-      holderName: 'John Doe',
-    },
-  ]);
+  const { data: session } = useSession();
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState({ type: '', text: '' });
 
-  const [showAddCard, setShowAddCard] = useState(false);
+  useEffect(() => {
+    // Payment methods are managed by Tilopay, not stored in our database
+    setIsLoading(false);
+  }, [session]);
 
-  const handleSetDefault = (id: string) => {
-    setPaymentMethods(
-      paymentMethods.map((method) => ({
-        ...method,
-        isDefault: method.id === id,
-      }))
-    );
-  };
+  const handleSetDefault = async (id: string) => {
+    if (!session?.user?.accessToken) return;
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to remove this payment method?')) {
-      setPaymentMethods(paymentMethods.filter((method) => method.id !== id));
+    try {
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+      const response = await fetch(`${FASTAPI_URL}/api/users/me/payment-methods/${id}/set-default`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${session.user.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setPaymentMethods(
+          paymentMethods.map((method) => ({
+            ...method,
+            is_default: method.id === id,
+          }))
+        );
+        setMessage({ type: 'success', text: 'Default payment method updated' });
+      }
+    } catch (error) {
+      console.error('Error setting default payment method:', error);
+      setMessage({ type: 'error', text: 'Failed to update default payment method' });
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to remove this payment method?')) return;
+    if (!session?.user?.accessToken) return;
+
+    try {
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+      const response = await fetch(`${FASTAPI_URL}/api/users/me/payment-methods/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.user.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setPaymentMethods(paymentMethods.filter((method) => method.id !== id));
+        setMessage({ type: 'success', text: 'Payment method removed' });
+      }
+    } catch (error) {
+      console.error('Error deleting payment method:', error);
+      setMessage({ type: 'error', text: 'Failed to remove payment method' });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7D1A13]"></div>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="max-w-[398px] sm:max-w-full mx-auto">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Payment Methods</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <h2 className="font-optima text-lg sm:text-2xl font-semibold text-[#181D27]">
+          Payment Methods
+        </h2>
+        <p className="mt-1 font-avenir text-sm text-[#535862]">
           Manage your saved payment methods
         </p>
       </div>
 
-      {/* Payment Methods List */}
-      <div className="space-y-4 mb-6">
-        {paymentMethods.map((method) => (
-          <div
-            key={method.id}
-            className="border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                {/* Card Icon */}
-                <div className="w-16 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded flex items-center justify-center text-white text-xs font-bold">
-                  {method.type}
-                </div>
-
-                {/* Card Details */}
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {method.type} ending in {method.last4}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Expires {method.expiryMonth}/{method.expiryYear} • {method.holderName}
-                  </p>
-                  {method.isDefault && (
-                    <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
-                      Default
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center space-x-2">
-                {!method.isDefault && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSetDefault(method.id)}
-                  >
-                    Set as Default
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(method.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  Remove
-                </Button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Add New Payment Method */}
-      {!showAddCard ? (
-        <Button
-          variant="outline"
-          onClick={() => setShowAddCard(true)}
-          className="w-full border-dashed border-2 py-6"
-        >
-          <span className="mr-2">+</span>
-          Add New Payment Method
-        </Button>
-      ) : (
-        <div className="border border-gray-300 rounded-lg p-6 bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Add New Card
-          </h3>
-
-          <form className="space-y-4">
-            {/* Card Number */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Card Number
-              </label>
-              <input
-                type="text"
-                placeholder="1234 5678 9012 3456"
-                maxLength={19}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Card Holder Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cardholder Name
-              </label>
-              <input
-                type="text"
-                placeholder="JOHN DOE"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Expiry and CVV */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Expiry Date
-                </label>
-                <input
-                  type="text"
-                  placeholder="MM/YY"
-                  maxLength={5}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  CVV
-                </label>
-                <input
-                  type="text"
-                  placeholder="123"
-                  maxLength={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Billing Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Billing Address
-              </label>
-              <input
-                type="text"
-                placeholder="Street address"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  placeholder="City"
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <input
-                  type="text"
-                  placeholder="ZIP Code"
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Set as Default */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="setDefault"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="setDefault" className="ml-2 text-sm text-gray-700">
-                Set as default payment method
-              </label>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex justify-end space-x-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowAddCard(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Add Card</Button>
-            </div>
-          </form>
+      {message.text && (
+        <div className={`mb-6 p-4 rounded-xl border ${
+          message.type === 'success'
+            ? 'bg-green-50 text-green-800 border-green-200'
+            : 'bg-red-50 text-red-800 border-red-200'
+        }`}>
+          <p className="font-avenir text-sm">{message.text}</p>
         </div>
       )}
 
+      {/* Payment Methods List */}
+      {paymentMethods.length > 0 ? (
+        <div className="space-y-4 mb-6">
+          {paymentMethods.map((method) => (
+            <div
+              key={method.id}
+              className="bg-white border border-[#E9EAEB] rounded-xl p-4 shadow-sm"
+            >
+              <div className="flex items-start gap-4">
+                {/* Card Icon */}
+                <div className="w-14 h-10 bg-white border border-[#F5F5F5] rounded-md flex items-center justify-center flex-shrink-0">
+                  <span className="font-avenir text-xs font-semibold text-[#172B85]">
+                    {method.card_type}
+                  </span>
+                </div>
+
+                {/* Card Details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-avenir text-sm font-medium text-[#414651]">
+                      •••• •••• •••• {method.last_four}
+                    </p>
+                    {!method.is_default && (
+                      <button
+                        onClick={() => handleSetDefault(method.id)}
+                        className="px-3 py-1 bg-white border border-[#D5D7DA] rounded-lg font-avenir text-xs font-semibold text-[#414651] shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        Set as Default
+                      </button>
+                    )}
+                  </div>
+                  <p className="font-avenir text-sm text-[#535862] mb-2">
+                    Expires {method.expiry_month}/{method.expiry_year}
+                    {method.cardholder_name && ` • ${method.cardholder_name}`}
+                  </p>
+
+                  {method.is_default && (
+                    <div className="flex items-center gap-1 mb-2">
+                      <svg className="w-3 h-3 text-[#17B26A]" fill="currentColor" viewBox="0 0 12 12">
+                        <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="px-2 py-0.5 bg-[#ECFDF3] border border-[#ABEFC6] rounded-full font-avenir text-xs font-medium text-[#067647]">
+                        Default
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#E9EAEB]">
+                    <svg className="w-4 h-4 text-[#A4A7AE]" fill="none" stroke="currentColor" viewBox="0 0 16 16">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33" d="M2.67 7.33V6c0-2.21 1.79-4 4-4h2.66c2.21 0 4 1.79 4 4v1.33M4.67 14h6.66c.73 0 1.34-.6 1.34-1.33V8.67c0-.74-.6-1.34-1.34-1.34H4.67c-.74 0-1.34.6-1.34 1.34v4c0 .73.6 1.33 1.34 1.33z"/>
+                    </svg>
+                    <p className="font-avenir text-sm text-[#535862]">
+                      Securely stored with Tilopay
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white border border-[#E9EAEB] rounded-xl p-8 text-center mb-6">
+          <p className="font-avenir text-sm text-[#535862]">
+            No payment methods saved
+          </p>
+        </div>
+      )}
+
+      {/* Add Payment Method CTA */}
+      <div className="bg-white border border-[#E9EAEB] rounded-xl p-6 shadow-sm">
+        <div className="mb-5">
+          <h3 className="font-avenir text-lg font-semibold text-[#181D27]">
+            Add Payment Method
+          </h3>
+          <p className="font-avenir text-sm text-[#535862] mt-1">
+            Add a new card to make payments easier
+          </p>
+        </div>
+
+        <button className="w-full px-4 py-2.5 bg-white border border-[#D5D7DA] rounded-lg font-avenir text-sm font-semibold text-[#414651] shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+          <span>+</span>
+          <span>Add New Card</span>
+        </button>
+      </div>
+
       {/* Security Notice */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-start">
-          <span className="text-blue-600 mr-3">🔒</span>
+      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 0v2m0-13.81V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H8a2 2 0 01-2-2v-1.19"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 8V6a4 4 0 00-8 0v2"/>
+          </svg>
           <div>
-            <h4 className="font-semibold text-blue-900 text-sm">Secure Payment</h4>
-            <p className="text-sm text-blue-700 mt-1">
-              Your payment information is encrypted and securely processed by Tilopay.
-              We never store your full card details.
+            <h4 className="font-avenir font-semibold text-blue-900 text-sm">Secure Payment</h4>
+            <p className="font-avenir text-sm text-blue-700 mt-1">
+              Your payment information is encrypted and securely processed by Tilopay. We never store your full card details.
             </p>
           </div>
         </div>

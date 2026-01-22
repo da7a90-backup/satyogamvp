@@ -2,19 +2,35 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 export default function UserDashboard() {
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [hideCalendar, setHideCalendar] = useState(false);
-  
+
   useEffect(() => {
     // Simulate loading data
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
+
+  // Get membership tier display
+  const getMembershipDisplay = () => {
+    const role = (session?.user as any)?.role || 'FREE';
+    const roleMap: { [key: string]: { label: string; color: string } } = {
+      'FREE': { label: 'Free', color: 'bg-gray-100 text-gray-600' },
+      'GYANI': { label: 'Gyani', color: 'bg-blue-100 text-blue-700' },
+      'PRAGYANI': { label: 'Pragyani', color: 'bg-purple-100 text-purple-700' },
+      'PRAGYANI_PLUS': { label: 'Pragyani+', color: 'bg-indigo-100 text-indigo-700' },
+    };
+    return roleMap[role] || roleMap['FREE'];
+  };
+
+  const membershipInfo = getMembershipDisplay();
   
   if (isLoading) {
     return (
@@ -37,10 +53,16 @@ export default function UserDashboard() {
             </div>
             <div>
               <div className="flex items-center">
-                <h1 className="text-2xl text-gray-900 font-medium">Namaste, Alessandra</h1>
-                <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">Free</span>
+                <h1 className="text-2xl text-gray-900 font-medium">
+                  Namaste, {session?.user?.name?.split(' ')[0] || 'Friend'}
+                </h1>
+                <span className={`ml-2 px-2 py-0.5 text-xs rounded ${membershipInfo.color}`}>
+                  {membershipInfo.label}
+                </span>
               </div>
-              <p className="text-sm text-gray-500">Sunday, Jan 5th, 2024</p>
+              <p className="text-sm text-gray-500">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">

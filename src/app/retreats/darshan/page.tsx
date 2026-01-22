@@ -6,17 +6,46 @@ import { staticContentAPI } from '@/lib/static-content-api';
 // Force dynamic rendering (don't pre-render at build time)
 export const dynamic = 'force-dynamic';
 
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+
+async function getRetreatData(slug: string) {
+  try {
+    const res = await fetch(`${FASTAPI_URL}/api/retreats/${slug}`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    if (!res.ok) {
+      console.error('Failed to fetch retreat data:', res.status);
+      return null;
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching retreat data:', error);
+    return null;
+  }
+}
+
 // This is a server component that fetches data
 export default async function Darshan() {
   try {
     console.log("Fetching retreats/darshan data from backend API...");
 
-    const pageData = await staticContentAPI.getPage('retreats-darshan');
+    // Fetch both page content and retreat data in parallel
+    const [pageData, retreatData] = await Promise.all([
+      staticContentAPI.getPage('retreats-darshan'),
+      getRetreatData('darshan')
+    ]);
 
     console.log("Retreats/darshan data loaded successfully:", Object.keys(pageData));
+    if (retreatData) {
+      console.log("Retreat booking data loaded from API");
+    }
 
     // Pass the data to your client component
-    return <DarshanPage data={pageData} />;
+    return <DarshanPage data={pageData} retreatData={retreatData} />;
   } catch (error) {
     console.error("Error loading retreats/darshan page data:", error);
 

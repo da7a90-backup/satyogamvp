@@ -11,12 +11,23 @@ from .course import (
     Instructor,
 )
 from .retreat import Retreat, RetreatPortal, RetreatRegistration
-from .event import Event, UserCalendar
+from .book_group import BookGroup, BookGroupSession, BookGroupAccess, BookGroupStatus, BookGroupAccessType
+from .event import Event, EventSession, UserCalendar
 from .product import Product, Order, OrderItem, UserProductAccess, Cart, CartItem, ProductType, OrderStatus
 from .payment import Payment
 from .blog import BlogPost, BlogCategory
+from .blog_comment import BlogComment
 from .forms import Application, ContactSubmission
-from .form_templates import FormTemplate, FormQuestion, FormSubmission, FormCategory, QuestionType
+from .form_templates import FormTemplate as OldFormTemplate, FormQuestion, FormSubmission as OldFormSubmission, FormCategory, QuestionType
+from .form import (
+    DynamicFormTemplate,
+    FormSection,
+    FormField,
+    DynamicFormSubmission,
+    FormAnswer,
+    FieldType,
+    SubmissionStatus,
+)
 from .email import (
     NewsletterSubscriber,
     EmailTemplate,
@@ -40,7 +51,7 @@ from .static_content import (
     Gallery,
     GalleryImage,
     ContactInfo,
-    FormField,
+    FormField as StaticFormField,
     MembershipPricing,
     MembershipFeature,
     MembershipDiscountItem,
@@ -49,6 +60,21 @@ from .static_content import (
     DonationProject,
     CoursePageSection,
 )
+from .forum import (
+    ForumCategory,
+    ForumThread,
+    ForumPost,
+    ForumPostReaction,
+    ForumPostAttachment,
+    ForumReport,
+    ForumUserBan,
+    ForumMention,
+    ReactionType,
+    ReportStatus,
+)
+from .hidden_tag import HiddenTag, EntityType
+from .audit_log import AuditLog, ActionType
+from .recommendation import Recommendation, RecommendationType
 
 __all__ = [
     "User",
@@ -68,7 +94,13 @@ __all__ = [
     "Retreat",
     "RetreatPortal",
     "RetreatRegistration",
+    "BookGroup",
+    "BookGroupSession",
+    "BookGroupAccess",
+    "BookGroupStatus",
+    "BookGroupAccessType",
     "Event",
+    "EventSession",
     "UserCalendar",
     "Product",
     "ProductType",
@@ -81,11 +113,21 @@ __all__ = [
     "Payment",
     "BlogPost",
     "BlogCategory",
+    "BlogComment",
     "Application",
     "ContactSubmission",
-    "FormTemplate",
+    # New dynamic form system
+    "DynamicFormTemplate",
+    "FormSection",
+    "FormField",
+    "DynamicFormSubmission",
+    "FormAnswer",
+    "FieldType",
+    "SubmissionStatus",
+    # Old form system (deprecated)
+    "OldFormTemplate",
     "FormQuestion",
-    "FormSubmission",
+    "OldFormSubmission",
     "FormCategory",
     "QuestionType",
     "NewsletterSubscriber",
@@ -110,7 +152,7 @@ __all__ = [
     "Gallery",
     "GalleryImage",
     "ContactInfo",
-    "FormField",
+    "StaticFormField",
     "MembershipPricing",
     "MembershipFeature",
     "MembershipDiscountItem",
@@ -118,4 +160,24 @@ __all__ = [
     "MembershipBenefitItem",
     "DonationProject",
     "CoursePageSection",
+    # Forum Models
+    "ForumCategory",
+    "ForumThread",
+    "ForumPost",
+    "ForumPostReaction",
+    "ForumPostAttachment",
+    "ForumReport",
+    "ForumUserBan",
+    "ForumMention",
+    "ReactionType",
+    "ReportStatus",
+    # Hidden Tags
+    "HiddenTag",
+    "EntityType",
+    # Audit Logs
+    "AuditLog",
+    "ActionType",
+    # Recommendations
+    "Recommendation",
+    "RecommendationType",
 ]

@@ -8,10 +8,11 @@ export const dynamic = 'force-dynamic';
 
 const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
-// Fetch products from store (online retreat products)
+// Fetch products from store (past retreat portal products only)
 async function getStoreProducts() {
   try {
-    const res = await fetch(`${FASTAPI_URL}/api/products?limit=3&published=true`, {
+    // Use trailing slash and filter by type in API call for efficiency
+    const res = await fetch(`${FASTAPI_URL}/api/products/?published=true&product_type=RETREAT_PORTAL_ACCESS&limit=3`, {
       cache: 'no-store'
     });
 
@@ -21,6 +22,8 @@ async function getStoreProducts() {
     }
 
     const data = await res.json();
+    console.log(`Fetched ${data.length} RETREAT_PORTAL_ACCESS products:`, data.map((p: any) => p.title));
+
     return data;
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -31,7 +34,7 @@ async function getStoreProducts() {
 // Fetch online retreats from API
 async function getOnlineRetreats() {
   try {
-    const res = await fetch(`${FASTAPI_URL}/api/online-retreats/`, {
+    const res = await fetch(`${FASTAPI_URL}/api/retreats/?retreat_type=online`, {
       cache: 'no-store'
     });
 

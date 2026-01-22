@@ -23,6 +23,7 @@ class PaymentCreate(BaseModel):
     billing_country: Optional[str] = None
     billing_postal_code: Optional[str] = None
     billing_telephone: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None  # Additional payment metadata (e.g., access_type for retreats)
 
 
 class PaymentResponse(BaseModel):

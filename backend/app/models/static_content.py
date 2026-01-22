@@ -85,6 +85,7 @@ class SectionContent(Base):
     image_alt = Column(String(200))
     background_image = Column(String(500))
     background_decoration = Column(String(500))
+    image_gravity = Column(String(50))  # Positioning: top-left, top-center, top-right, center-left, center, center-right, bottom-left, bottom-center, bottom-right
     secondary_images = Column(JSONB)
 
     # CTA

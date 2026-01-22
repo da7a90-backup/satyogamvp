@@ -1,24 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useState, createContext, useContext } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { useCart } from "@/contexts/CartContext";
+
+// Create context for triggering tour
+const TourContext = createContext<{ startTour: () => void } | null>(null);
+
+export const useTour = () => {
+  const context = useContext(TourContext);
+  if (!context) {
+    throw new Error('useTour must be used within TourContext.Provider');
+  }
+  return context;
+};
 
 const UserSidebar = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const { totalItems, toggleDrawer } = useCart();
   const [isLibraryExpanded, setIsLibraryExpanded] = useState(true);
   const [showSpotifyWidget, setShowSpotifyWidget] = useState(true);
+  const [triggerTour, setTriggerTour] = useState(false);
+
+  const handleStartTour = () => {
+    // Trigger tour by dispatching custom event
+    window.dispatchEvent(new CustomEvent('start-dashboard-tour'));
+  };
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(`${path}/`);
 
+  // Check if a specific library tab is active
+  const isLibraryTabActive = (tab: string) => {
+    if (pathname !== '/dashboard/user/teachings') return false;
+    const currentTab = searchParams.get('tab') || 'teachings';
+    return currentTab === tab;
+  };
+
+  // Get membership tier display
+  const getMembershipLabel = () => {
+    const tier = ((session?.user as any)?.membershipTier || 'free').toUpperCase();
+    const tierMap: { [key: string]: string } = {
+      'FREE': 'Free Membership',
+      'GYANI': 'Gyani Membership',
+      'PRAGYANI': 'Pragyani Membership',
+      'PRAGYANI_PLUS': 'Pragyani+ Membership',
+    };
+    return tierMap[tier] || 'Free Membership';
+  };
+
+  // Check if user has forum access (not FREE tier)
+  const hasForumAccess = () => {
+    const tier = ((session?.user as any)?.membershipTier || 'free').toLowerCase();
+    return tier !== 'free';
+  };
+
+  // Check if user has GYANI+ access (GYANI, PRAGYANI, PRAGYANI_PLUS)
+  const hasGyaniPlusAccess = () => {
+    const tier = ((session?.user as any)?.membershipTier || 'free').toLowerCase();
+    return ['gyani', 'pragyani', 'pragyani_plus'].includes(tier);
+  };
+
   return (
-    <div className="w-[224px] h-screen bg-white flex flex-col overflow-y-auto" style={{ gap: '23px', padding: '20px 16px' }}>
+    <div className="w-64 h-screen lg:h-[125vh] bg-white flex flex-col overflow-y-auto" style={{ gap: '23px', padding: '20px 16px' }} data-tour="sidebar">
       {/* Logo */}
       <div className="flex items-center justify-center" style={{ height: '53px' }}>
         <Link href="/dashboard">
-          <Image src="/logo_black.svg" alt="Sat Yoga" width={224} height={45} />
+          <Image src="/Logo-dash.png" alt="Sat Yoga" width={180} height={45} />
         </Link>
       </div>
 
@@ -27,17 +79,12 @@ const UserSidebar = () => {
         <Link
           href="/dashboard/user"
           className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
-            isActive('/dashboard/user') && !pathname.includes('/teachings') && !pathname.includes('/courses')
-              ? 'bg-white text-[#374151]'
+            pathname === '/dashboard/user'
+              ? 'bg-[#7D1A13] text-white'
               : 'bg-white text-[#374151] hover:bg-gray-50'
           }`}
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="2" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
-            <rect x="12" y="2" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
-            <rect x="2" y="12" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
-            <rect x="12" y="12" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
+          <Image src="/dash.png" alt="" width={20} height={20} />
           <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Dashboard</span>
         </Link>
       </div>
@@ -48,24 +95,24 @@ const UserSidebar = () => {
         <div className="space-y-0">
           <Link
             href="/dashboard/user/retreats"
-            className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/retreats')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M2.5 15L10 5L17.5 15H2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 8L13.33 12H6.67L10 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+            <Image src="/globe.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Online Retreats</span>
           </Link>
           <Link
             href="/dashboard/user/courses"
-            className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/courses')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="3" y="4" width="14" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M3 7H17" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M7 4V7" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M13 4V7" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+            <Image src="/online-learning.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Courses</span>
           </Link>
         </div>
@@ -75,38 +122,99 @@ const UserSidebar = () => {
       <div>
         <h3 className="px-1 text-sm font-semibold text-[#737373] mb-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>My Space</h3>
         <div className="space-y-0">
-          <Link href="/dashboard/user/purchases" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M2.5 6.67L6.67 2.5L17.5 2.5V13.33L13.33 17.5H2.5V6.67Z" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+          {/* Cart */}
+          <button
+            onClick={toggleDrawer}
+            className="w-full flex items-center justify-between px-3 py-2 rounded transition-colors bg-white text-[#374151] hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-3">
+              <Image src="/shopping-cart-01 (1).png" alt="" width={20} height={20} />
+              <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Cart</span>
+            </div>
+            {totalItems > 0 && (
+              <span className="flex items-center justify-center h-5 w-5 bg-[#7D1A13] text-white text-xs font-bold rounded-full">
+                {totalItems > 99 ? '99+' : totalItems}
+              </span>
+            )}
+          </button>
+
+          {/* My Purchases */}
+          <Link
+            href="/dashboard/user/purchases"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/purchases')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/shopping-cart-01 (1).png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>My Purchases</span>
           </Link>
-          <Link href="/dashboard/user/favourites" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 3.33C7.5 1.67 4.17 2.5 2.92 5.42C1.67 8.33 3.75 12.5 10 17.5C16.25 12.5 18.33 8.33 17.08 5.42C15.83 2.5 12.5 1.67 10 3.33Z" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+
+          <Link
+            href="/dashboard/user/favourites"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/favourites')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/heart (1).png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>My Favourites</span>
           </Link>
-          <Link href="/dashboard/user/history" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M10 5V10L13.33 11.67" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+          <Link
+            href="/dashboard/user/history"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/history')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/clock-fast-forward (1).png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>My History</span>
           </Link>
-          <Link href="/dashboard/user/calendar" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2.5" y="4.17" width="15" height="13.33" rx="1.67" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M2.5 8.33H17.5" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+          <Link
+            href="/dashboard/user/calendar"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/calendar')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/calendar (1).png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Calendar</span>
+          </Link>
+          <Link
+            href="/dashboard/user/applications"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/applications')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/building-02.png" alt="" width={20} height={20} />
+            <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Applications</span>
           </Link>
         </div>
       </div>
 
-      {/* Pragyani Membership */}
+      {/* Membership Section */}
       <div>
-        <h3 className="px-1 text-sm font-semibold text-[#737373] mb-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Pragyani Membership</h3>
+        <h3 className="px-1 text-sm font-semibold text-[#737373] mb-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+          {getMembershipLabel()}
+        </h3>
+
+        {/* Upgrade Button for FREE users */}
+        {((session?.user as any)?.membershipTier || 'free').toLowerCase() === 'free' && (
+          <Link
+            href="/membership"
+            className="block mb-3 px-3 py-2 bg-gradient-to-r from-[#7D1A13] to-[#5A1310] text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-200 text-center"
+            style={{ fontFamily: 'Avenir Next, sans-serif' }}
+          >
+            Upgrade Membership
+          </Link>
+        )}
+
         <div>
           {/* Library with submenu */}
           <button
@@ -114,11 +222,7 @@ const UserSidebar = () => {
             className="w-full flex items-center justify-between px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="2.5" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                <rect x="8.5" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                <rect x="14.5" y="3" width="3" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
-              </svg>
+              <Image src="/building-08 (1).png" alt="" width={20} height={20} />
               <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Library</span>
             </div>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`transition-transform ${isLibraryExpanded ? '' : 'rotate-180'}`}>
@@ -130,9 +234,9 @@ const UserSidebar = () => {
           {isLibraryExpanded && (
             <div className="ml-4 mt-1 space-y-1">
               <Link
-                href="/dashboard/user/teachings"
+                href="/dashboard/user/teachings?tab=teachings"
                 className={`block px-6 py-2 rounded text-sm font-medium capitalize transition-colors ${
-                  isActive('/dashboard/user/teachings')
+                  isLibraryTabActive('teachings')
                     ? 'bg-[#7D1A13] text-white'
                     : 'bg-white text-[#374151] hover:bg-gray-50'
                 }`}
@@ -141,22 +245,34 @@ const UserSidebar = () => {
                 Teachings
               </Link>
               <Link
-                href="/dashboard/user/meditations"
-                className="block px-6 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 text-sm font-medium capitalize transition-colors"
+                href="/dashboard/user/teachings?tab=meditations"
+                className={`block px-6 py-2 rounded text-sm font-medium capitalize transition-colors ${
+                  isLibraryTabActive('meditations')
+                    ? 'bg-[#7D1A13] text-white'
+                    : 'bg-white text-[#374151] hover:bg-gray-50'
+                }`}
                 style={{ fontFamily: 'Avenir Next, sans-serif' }}
               >
                 Guided Meditations
               </Link>
               <Link
-                href="/dashboard/user/qas"
-                className="block px-6 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 text-sm font-medium capitalize transition-colors"
+                href="/dashboard/user/teachings?tab=qas"
+                className={`block px-6 py-2 rounded text-sm font-medium capitalize transition-colors ${
+                  isLibraryTabActive('qas')
+                    ? 'bg-[#7D1A13] text-white'
+                    : 'bg-white text-[#374151] hover:bg-gray-50'
+                }`}
                 style={{ fontFamily: 'Avenir Next, sans-serif' }}
               >
                 Q&A's
               </Link>
               <Link
-                href="/dashboard/user/essays"
-                className="block px-6 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 text-sm font-medium capitalize transition-colors"
+                href="/dashboard/user/teachings?tab=essays"
+                className={`block px-6 py-2 rounded text-sm font-medium capitalize transition-colors ${
+                  isLibraryTabActive('essays')
+                    ? 'bg-[#7D1A13] text-white'
+                    : 'bg-white text-[#374151] hover:bg-gray-50'
+                }`}
                 style={{ fontFamily: 'Avenir Next, sans-serif' }}
               >
                 Essays
@@ -164,31 +280,64 @@ const UserSidebar = () => {
             </div>
           )}
 
-          {/* Other membership items */}
-          <Link href="/dashboard/user/recommendations" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors mt-1">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 2.5C6.25 5 4.17 7.5 4.17 10.83C4.17 13.75 6.25 16.67 10 17.5C13.75 16.67 15.83 13.75 15.83 10.83C15.83 7.5 13.75 5 10 2.5Z" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-            <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Shunyamurti Recommends</span>
+          {/* Shunyamurti Recommends - GYANI+ only */}
+          {hasGyaniPlusAccess() ? (
+            <Link
+              href="/dashboard/user/shunya-recommends"
+              className={`flex items-center gap-3 px-3 py-2 rounded transition-colors mt-1 ${
+                isActive('/dashboard/user/shunya-recommends')
+                  ? 'bg-[#7D1A13] text-white'
+                  : 'bg-white text-[#374151] hover:bg-gray-50'
+              }`}
+            >
+              <Image src="/annotation-heart (1).png" alt="" width={20} height={20} />
+              <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Shunyamurti Recommends</span>
+            </Link>
+          ) : (
+            <div className="flex items-center justify-between px-3 py-2 rounded bg-white text-[#9CA3AF] cursor-not-allowed opacity-60 mt-1">
+              <div className="flex items-center gap-3">
+                <Image src="/annotation-heart (1).png" alt="" width={20} height={20} className="opacity-50" />
+                <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Shunyamurti Recommends</span>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <rect x="5" y="7" width="6" height="7" rx="1" stroke="currentColor" strokeWidth="1.2" />
+                <path d="M11 7V5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5V7" stroke="currentColor" strokeWidth="1.2" />
+              </svg>
+            </div>
+          )}
+          <Link
+            href="/dashboard/user/book-groups"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/book-groups')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/feather (1).png" alt="" width={20} height={20} />
+            <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Book Groups</span>
           </Link>
-          <Link href="/dashboard/user/book-group" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="6" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-              <circle cx="14" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-              <circle cx="10" cy="14" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M8 7L7 12" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M12 7L13 12" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-            <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Book Group</span>
-          </Link>
-          <div className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
+         {/*  <Link
+            href="/dashboard/user/study-group"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/study-group')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <rect x="2.5" y="2.5" width="15" height="15" stroke="currentColor" strokeWidth="1.5" />
             </svg>
             <span className="text-sm font-medium capitalize flex-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Study Group</span>
             <span className="px-2 py-0.5 bg-[#EF4444] text-white text-xs font-medium rounded" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Live</span>
-          </div>
-          <Link href="/dashboard/user/discussion" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
+          </Link> */}
+   {/*        <Link
+            href="/dashboard/user/discussion"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/discussion')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="6" cy="6" r="3" stroke="currentColor" strokeWidth="1.5" />
               <circle cx="14" cy="6" r="3" stroke="currentColor" strokeWidth="1.5" />
@@ -196,14 +345,31 @@ const UserSidebar = () => {
               <circle cx="14" cy="14" r="3" stroke="currentColor" strokeWidth="1.5" />
             </svg>
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Discussion Group</span>
-          </Link>
-          <Link href="/dashboard/user/forum" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2.5" y="4" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M6 8H14M6 11H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Forum</span>
-          </Link>
+          </Link> */}
+          {hasForumAccess() ? (
+            <Link
+              href="/dashboard/user/forum"
+              className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+                isActive('/dashboard/user/forum')
+                  ? 'bg-[#7D1A13] text-white'
+                  : 'bg-white text-[#374151] hover:bg-gray-50'
+              }`}
+            >
+              <Image src="/message-chat-square (1).png" alt="" width={20} height={20} />
+              <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Forum</span>
+            </Link>
+          ) : (
+            <div className="flex items-center justify-between px-3 py-2 rounded bg-white text-[#9CA3AF] cursor-not-allowed opacity-60">
+              <div className="flex items-center gap-3">
+                <Image src="/message-chat-square (1).png" alt="" width={20} height={20} className="opacity-50" />
+                <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Forum</span>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <rect x="5" y="7" width="6" height="7" rx="1" stroke="currentColor" strokeWidth="1.2" />
+                <path d="M11 7V5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5V7" stroke="currentColor" strokeWidth="1.2" />
+              </svg>
+            </div>
+          )}
         </div>
       </div>
 
@@ -211,18 +377,26 @@ const UserSidebar = () => {
       <div>
         <h3 className="px-1 text-sm font-semibold text-[#737373] mb-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Store</h3>
         <div className="space-y-0">
-          <Link href="/store" className="flex items-center gap-1 px-3 py-2.5 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2.5" y="6" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M2.5 6L4 3H16L17.5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M10 9V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+          <Link
+            href="/dashboard/user/dharma-bandhara"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded transition-colors ${
+              isActive('/dashboard/user/dharma-bandhara')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/building-02.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>The Dharma Bandhara</span>
           </Link>
-          <Link href="/dashboard/user/saved" className="flex items-center gap-1 px-3 py-2.5 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M5 2.5H15V17.5L10 14L5 17.5V2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+          <Link
+            href="/dashboard/user/saved"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded transition-colors ${
+              isActive('/dashboard/user/saved')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/bookmark.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Saved For Later</span>
           </Link>
         </div>
@@ -232,19 +406,27 @@ const UserSidebar = () => {
       <div>
         <h3 className="px-1 text-sm font-semibold text-[#737373] mb-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Resources</h3>
         <div className="space-y-0">
-          <Link href="/blog" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="3.33" y="2.5" width="13.33" height="15" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+          <Link
+            href="/dashboard/user/blog"
+            className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+              isActive('/dashboard/user/blog')
+                ? 'bg-[#7D1A13] text-white'
+                : 'bg-white text-[#374151] hover:bg-gray-50'
+            }`}
+          >
+            <Image src="/book-closed.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Blog</span>
           </Link>
-          <Link href="/dashboard/tour" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M8 7L13 10L8 13V7Z" fill="currentColor" />
-            </svg>
-            <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Dashboard Tour</span>
-          </Link>
+          {/* Only show Dashboard Tour button for non-admin users */}
+          {(session?.user as any)?.role !== 'admin' && (
+            <button
+              onClick={handleStartTour}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors"
+            >
+              <Image src="/play-square.png" alt="" width={20} height={20} />
+              <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Dashboard Tour</span>
+            </button>
+          )}
           <Link href="https://t.me/satyoga" target="_blank" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
             <div className="w-5 h-5 bg-gradient-to-b from-[#2AABEE] to-[#229ED9] rounded-full flex items-center justify-center">
               <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
@@ -284,13 +466,18 @@ const UserSidebar = () => {
 
       {/* Help & Settings */}
       <div className="space-y-0">
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
+        <div className="w-full flex items-center gap-3 px-3 py-2 rounded bg-white text-[#9CA3AF] cursor-not-allowed opacity-60">
+          <Image src="/support-lifebuoy.png" alt="" width={20} height={20} className="opacity-50" />
           <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Help Us Improve</span>
-        </button>
-        <Link href="/dashboard/user/settings" className="flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors">
+        </div>
+        <Link
+          href="/dashboard/user/settings"
+          className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+            isActive('/dashboard/user/settings')
+              ? 'bg-[#7D1A13] text-white'
+              : 'bg-white text-[#374151] hover:bg-gray-50'
+          }`}
+        >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" />
             <path d="M10 2.5V5M10 15V17.5M17.5 10H15M5 10H2.5M15.3 4.7L13.54 6.46M6.46 13.54L4.7 15.3M15.3 15.3L13.54 13.54M6.46 6.46L4.7 4.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -311,27 +498,33 @@ const UserSidebar = () => {
       {/* User Profile */}
       <div className="border border-[#F3F4F6] rounded-lg p-2 flex items-center gap-3">
         <div className="relative w-10 h-10 flex-shrink-0">
-          <div className="w-full h-full rounded-full bg-gray-200 border-2 border-white overflow-hidden">
-            <Image
-              src="/user-avatar.jpg"
-              alt="User"
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
+          <div className="w-full h-full rounded-full bg-gray-200 border-2 border-white overflow-hidden flex items-center justify-center">
+            {session?.user?.image ? (
+              <Image
+                src={session.user.image}
+                alt={session.user.name || "User"}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+            ) : (
+              <span className="text-gray-600 text-sm font-medium">
+                {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
+              </span>
+            )}
           </div>
           <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#22C55E] border border-white rounded-full" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-[#1F2937] truncate capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
-            Alessandra Franceschinin
+            {session?.user?.name || 'Loading...'}
           </p>
           <p className="text-xs text-[#737373] truncate" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
-            alessandra@thefrance...
+            {session?.user?.email || ''}
           </p>
         </div>
         <button className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0">

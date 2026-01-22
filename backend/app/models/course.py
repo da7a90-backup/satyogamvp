@@ -17,6 +17,23 @@ class ComponentType(str, enum.Enum):
     QUIZ = "quiz"
 
 
+class ComponentCategory(str, enum.Enum):
+    """Component categories for structured course content (e.g., Principles & Practice)"""
+    VIDEO_LESSON = "video_lesson"
+    KEY_CONCEPTS = "key_concepts"
+    WRITING_PROMPTS = "writing_prompts"
+    ADDITIONAL_MATERIALS = "additional_materials"
+    INTRODUCTION = "introduction"
+    COMPLETION = "completion"
+    ADDENDUM = "addendum"
+
+
+class CourseStructure(str, enum.Enum):
+    """Course structure templates"""
+    PRINCIPLES_PRACTICE = "principles_practice"
+    FUNDAMENTALS_MEDITATION = "fundamentals_meditation"
+
+
 class EnrollmentStatus(str, enum.Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
@@ -50,6 +67,8 @@ class Course(Base):
     cloudflare_image_id = Column(String(255), nullable=True)  # Cloudflare Images ID for thumbnail
     is_published = Column(Boolean, default=False, nullable=False)
     difficulty_level = Column(String(50), nullable=True)  # beginner, intermediate, advanced
+    structure_template = Column(Enum(CourseStructure), nullable=True)  # Course structure template
+    selling_page_data = Column(JSON_TYPE, nullable=True)  # All selling page content (what you'll learn, features, quotes, etc.)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -84,16 +103,27 @@ class CourseComponent(Base):
 
     id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     class_id = Column(UUID_TYPE, ForeignKey("course_classes.id", ondelete="CASCADE"), nullable=False, index=True)
-    type = Column(Enum(ComponentType), nullable=False)
+    type = Column(Enum(ComponentType), nullable=True)  # Legacy field for backward compatibility
+    component_category = Column(Enum(ComponentCategory), nullable=True)  # New structured category
     title = Column(String(500), nullable=False)
-    content = Column(Text, nullable=True)  # URL for video/audio, markdown for text, etc.
+    content = Column(Text, nullable=True)  # Markdown content for text components
     cloudflare_stream_uid = Column(String(255), nullable=True)  # Cloudflare Stream UID for video components
     duration = Column(Integer, nullable=True)  # Duration in seconds for video/audio
     order_index = Column(Integer, nullable=False)
+
+    # New fields for rich content structure
+    description = Column(Text, nullable=True)  # Video description or component description
+    transcription = Column(Text, nullable=True)  # Video transcription
+    essay_content = Column(Text, nullable=True)  # Essay content for additional materials
+    audio_url = Column(String(500), nullable=True)  # URL for audio content (guided meditation)
+    has_tabs = Column(Boolean, default=False, nullable=False)  # Whether component has multiple tabs
+    parent_component_id = Column(UUID_TYPE, ForeignKey("course_components.id", ondelete="CASCADE"), nullable=True)  # For nested components
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
     course_class = relationship("CourseClass", back_populates="components")
+    sub_components = relationship("CourseComponent", backref="parent_component", remote_side=[id], cascade="all, delete", single_parent=True)
 
 
 class CourseEnrollment(Base):
@@ -138,7 +168,8 @@ class CourseComment(Base):
     id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     course_id = Column(UUID_TYPE, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
-    class_id = Column(UUID_TYPE, ForeignKey("course_classes.id", ondelete="SET NULL"), nullable=True)
+    class_id = Column(UUID_TYPE, ForeignKey("course_classes.id", ondelete="SET NULL"), nullable=True)  # Legacy field
+    component_id = Column(UUID_TYPE, ForeignKey("course_components.id", ondelete="CASCADE"), nullable=True)  # New: comments per component
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

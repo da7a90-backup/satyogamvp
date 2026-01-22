@@ -7,9 +7,10 @@ import { useState, useRef } from 'react';
 // ============================================================================
 
 interface VideoHeroData {
-  mediaType: 'image' | 'video';
+  mediaType: 'image' | 'video' | 'youtube';
   mediaSrc: string;
   posterImage?: string; // For video thumbnail
+  youtubeId?: string; // For YouTube videos
   tagline: string;
   title: string;
   description: string;
@@ -23,7 +24,9 @@ const VideoHeroSection = ({ data }: { data: VideoHeroData }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlayClick = () => {
-    if (videoRef.current) {
+    if (data.mediaType === 'youtube') {
+      setIsPlaying(true);
+    } else if (videoRef.current) {
       videoRef.current.play();
       setIsPlaying(true);
     }
@@ -46,7 +49,28 @@ const VideoHeroSection = ({ data }: { data: VideoHeroData }) => {
       }}
     >
       {/* Background Media */}
-      {data.mediaType === 'image' ? (
+      {data.mediaType === 'youtube' && isPlaying ? (
+        <>
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src={`https://www.youtube.com/embed/${data.youtubeId}?autoplay=1&rel=0`}
+            title={data.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+          {/* Close button for YouTube video */}
+          <button
+            onClick={() => setIsPlaying(false)}
+            className="absolute top-4 right-4 z-50 flex items-center justify-center w-10 h-10 bg-black bg-opacity-50 hover:bg-opacity-75 rounded-full transition-all duration-300"
+            aria-label="Close video"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </>
+      ) : data.mediaType === 'image' || data.mediaType === 'youtube' ? (
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -109,8 +133,8 @@ const VideoHeroSection = ({ data }: { data: VideoHeroData }) => {
             </h2>
         </div>
 
-        {/* Center Play Button (only for video when not playing) */}
-        {data.mediaType === 'video' && !isPlaying && (
+        {/* Center Play Button (only for video/youtube when not playing) */}
+        {(data.mediaType === 'video' || data.mediaType === 'youtube') && !isPlaying && (
           <div className="absolute inset-0 flex items-center justify-center">
             <button
               onClick={handlePlayClick}

@@ -31,6 +31,8 @@ from ..schemas.course import (
     CourseComponentBase,
     CourseCommentCreate,
     InstructorBase,
+    VideoTimestampUpdate,
+    ComponentCommentCreate,
 )
 from ..services import mixpanel_service
 
@@ -181,7 +183,7 @@ async def get_course(
     user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
-    """Get a single course by slug with full details."""
+    """Get a single course by slug with full details including component hierarchy."""
     course = db.query(Course).filter(Course.slug == slug).first()
 
     if not course:
@@ -194,6 +196,7 @@ async def get_course(
         "title": course.title,
         "description": course.description,
         "thumbnail_url": course.thumbnail_url,
+        "cloudflare_image_id": course.cloudflare_image_id,
         "price": float(course.price) if course.price else 0.0,
         "instructor": {
             "id": str(course.instructor.id),
@@ -204,11 +207,24 @@ async def get_course(
         if course.instructor
         else None,
         "is_published": course.is_published,
+        "difficulty_level": course.difficulty_level,
+        "structure_template": course.structure_template.value if course.structure_template else None,
+        "selling_page_data": course.selling_page_data,
         "can_access": False,
         "is_enrolled": False,
     }
 
-    # Check access if user is logged in
+    # Calculate total duration across all classes
+    total_duration = (
+        db.query(func.sum(CourseComponent.duration))
+        .join(CourseClass)
+        .filter(CourseClass.course_id == course.id)
+        .scalar()
+    ) or 0
+    course_data["total_duration"] = int(total_duration)
+
+    # Get enrollment info if user is logged in
+    enrollment = None
     if user:
         access_info = user_can_access_course(user, course, db)
         course_data["can_access"] = access_info["can_access"]
@@ -221,58 +237,293 @@ async def get_course(
                 str(user.id), str(course.id), db
             )
 
-            # Include course structure if user has access
-            classes = (
-                db.query(CourseClass)
-                .filter(CourseClass.course_id == course.id)
-                .order_by(CourseClass.order_index)
-                .all()
+    # Always include course structure (for selling page syllabus)
+    classes = (
+        db.query(CourseClass)
+        .filter(CourseClass.course_id == course.id)
+        .order_by(CourseClass.order_index)
+        .all()
+    )
+
+    course_data["classes"] = []
+    for cls in classes:
+        class_duration = sum(comp.duration for comp in cls.components if comp.duration)
+
+        class_data = {
+            "id": str(cls.id),
+            "title": cls.title,
+            "description": cls.description,
+            "order_index": cls.order_index,
+            "duration": class_duration,
+            "components": [],
+        }
+
+        # Get top-level components for this class (excluding sub-components)
+        components = (
+            db.query(CourseComponent)
+            .filter(
+                CourseComponent.class_id == cls.id,
+                CourseComponent.parent_component_id == None
             )
+            .order_by(CourseComponent.order_index)
+            .all()
+        )
 
-            course_data["classes"] = []
-            for cls in classes:
-                class_data = {
-                    "id": str(cls.id),
-                    "title": cls.title,
-                    "description": cls.description,
-                    "order": cls.order_index,
-                    "components": [],
-                }
+        for component in components:
+            component_data = {
+                "id": str(component.id),
+                "title": component.title,
+                "type": component.type.value if component.type else None,
+                "component_category": component.component_category.value if component.component_category else None,
+                "duration": component.duration,
+                "order_index": component.order_index,
+                "has_tabs": component.has_tabs,
+            }
 
-                # Get components for this class
-                components = (
-                    db.query(CourseComponent)
-                    .filter(CourseComponent.class_id == cls.id)
-                    .order_by(CourseComponent.order_index)
-                    .all()
+            # Only include full content and progress if user is enrolled
+            if enrollment:
+                # Check if user has completed this component
+                progress = (
+                    db.query(CourseProgress)
+                    .filter(
+                        CourseProgress.enrollment_id == enrollment.id,
+                        CourseProgress.component_id == component.id,
+                    )
+                    .first()
                 )
 
-                for component in components:
-                    # Check if user has completed this component
-                    progress = (
-                        db.query(CourseProgress)
-                        .filter(
-                            CourseProgress.enrollment_id == enrollment.id,
-                            CourseProgress.component_id == component.id,
-                        )
-                        .first()
-                    )
-
-                    class_data["components"].append({
-                        "id": str(component.id),
-                        "title": component.title,
-                        "component_type": component.type.value,
-                        "content": component.content,
-                        "order": component.order_index,
+                component_data.update({
+                    "content": component.content,
+                    "cloudflare_stream_uid": component.cloudflare_stream_uid,
+                    "description": component.description,
+                    "transcription": component.transcription,
+                    "essay_content": component.essay_content,
+                    "audio_url": component.audio_url,
+                    "progress": {
                         "completed": progress.completed if progress else False,
-                        "progress_percentage": (
-                            progress.progress_percentage if progress else 0.0
-                        ),
-                    })
+                        "progress_percentage": progress.progress_percentage if progress else 0,
+                        "last_accessed": progress.last_accessed.isoformat() if progress and progress.last_accessed else None,
+                        "video_timestamp": progress.video_timestamp if progress else 0,
+                    },
+                })
 
-                course_data["classes"].append(class_data)
+                # Include sub-components if any
+                if component.has_tabs and component.sub_components:
+                    component_data["sub_components"] = []
+                    for sub_comp in component.sub_components:
+                        component_data["sub_components"].append({
+                            "id": str(sub_comp.id),
+                            "title": sub_comp.title,
+                            "type": sub_comp.type.value if sub_comp.type else None,
+                            "component_category": sub_comp.component_category.value if sub_comp.component_category else None,
+                            "content": sub_comp.content,
+                            "cloudflare_stream_uid": sub_comp.cloudflare_stream_uid,
+                            "duration": sub_comp.duration,
+                            "description": sub_comp.description,
+                            "audio_url": sub_comp.audio_url,
+                            "essay_content": sub_comp.essay_content,
+                        })
+
+            class_data["components"].append(component_data)
+
+        course_data["classes"].append(class_data)
 
     return course_data
+
+
+@router.get("/components/{component_id}", response_model=dict)
+async def get_component(
+    component_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get a specific course component with all details including sub-components."""
+    component = db.query(CourseComponent).filter(CourseComponent.id == component_id).first()
+
+    if not component:
+        raise HTTPException(status_code=404, detail="Component not found")
+
+    # Get course through class relationship
+    course_class = component.course_class
+    course = course_class.course
+
+    # Verify user is enrolled
+    enrollment = (
+        db.query(CourseEnrollment)
+        .filter(
+            CourseEnrollment.user_id == user.id,
+            CourseEnrollment.course_id == course.id,
+        )
+        .first()
+    )
+
+    if not enrollment:
+        raise HTTPException(status_code=403, detail="Not enrolled in this course")
+
+    # Get progress for this component
+    progress = (
+        db.query(CourseProgress)
+        .filter(
+            CourseProgress.enrollment_id == enrollment.id,
+            CourseProgress.component_id == component.id,
+        )
+        .first()
+    )
+
+    # Get component's position within its class
+    class_components = (
+        db.query(CourseComponent)
+        .filter(CourseComponent.class_id == course_class.id)
+        .order_by(CourseComponent.order_index)
+        .all()
+    )
+    component_index_in_class = next(
+        (i for i, c in enumerate(class_components) if c.id == component.id),
+        0
+    )
+
+    component_data = {
+        "id": str(component.id),
+        "title": component.title,
+        "type": component.type.value if component.type else None,
+        "component_category": component.component_category.value if component.component_category else None,
+        "content": component.content,
+        "cloudflare_stream_uid": component.cloudflare_stream_uid,
+        "duration": component.duration,
+        "order_index": component.order_index,
+        "component_index_in_class": component_index_in_class,
+        "description": component.description,
+        "transcription": component.transcription,
+        "essay_content": component.essay_content,
+        "audio_url": component.audio_url,
+        "has_tabs": component.has_tabs,
+        "class": {
+            "id": str(course_class.id),
+            "title": course_class.title,
+            "order_index": course_class.order_index,
+        },
+        "course": {
+            "id": str(course.id),
+            "slug": course.slug,
+            "title": course.title,
+        },
+        "progress": {
+            "completed": progress.completed if progress else False,
+            "progress_percentage": progress.progress_percentage if progress else 0,
+            "last_accessed": progress.last_accessed.isoformat() if progress and progress.last_accessed else None,
+            "video_timestamp": progress.video_timestamp if progress else 0,
+        },
+    }
+
+    # Include sub-components if any
+    if component.has_tabs and component.sub_components:
+        component_data["sub_components"] = []
+        for sub_comp in component.sub_components:
+            component_data["sub_components"].append({
+                "id": str(sub_comp.id),
+                "title": sub_comp.title,
+                "type": sub_comp.type.value if sub_comp.type else None,
+                "component_category": sub_comp.component_category.value if sub_comp.component_category else None,
+                "content": sub_comp.content,
+                "cloudflare_stream_uid": sub_comp.cloudflare_stream_uid,
+                "duration": sub_comp.duration,
+                "description": sub_comp.description,
+                "audio_url": sub_comp.audio_url,
+                "essay_content": sub_comp.essay_content,
+            })
+
+    return component_data
+
+
+@router.get("/{slug}/navigation/{component_id}", response_model=dict)
+async def get_component_navigation(
+    slug: str,
+    component_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get previous and next components for navigation."""
+    # Get course
+    course = db.query(Course).filter(Course.slug == slug).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    # Verify enrollment
+    enrollment = (
+        db.query(CourseEnrollment)
+        .filter(
+            CourseEnrollment.user_id == user.id,
+            CourseEnrollment.course_id == course.id,
+        )
+        .first()
+    )
+
+    if not enrollment:
+        raise HTTPException(status_code=403, detail="Not enrolled in this course")
+
+    # Get current component
+    current_component = db.query(CourseComponent).filter(CourseComponent.id == component_id).first()
+    if not current_component:
+        raise HTTPException(status_code=404, detail="Component not found")
+
+    # Get all components for this course in order (only top-level, no sub-components)
+    all_classes = (
+        db.query(CourseClass)
+        .filter(CourseClass.course_id == course.id)
+        .order_by(CourseClass.order_index)
+        .all()
+    )
+
+    # Flatten all components across classes
+    all_components = []
+    for cls in all_classes:
+        components = (
+            db.query(CourseComponent)
+            .filter(
+                CourseComponent.class_id == cls.id,
+                CourseComponent.parent_component_id == None
+            )
+            .order_by(CourseComponent.order_index)
+            .all()
+        )
+        all_components.extend(components)
+
+    # Find current component index
+    current_index = None
+    for i, comp in enumerate(all_components):
+        if str(comp.id) == str(component_id):
+            current_index = i
+            break
+
+    if current_index is None:
+        raise HTTPException(status_code=404, detail="Component not found in course")
+
+    # Get previous and next
+    previous = None
+    next_comp = None
+
+    if current_index > 0:
+        prev_comp = all_components[current_index - 1]
+        previous = {
+            "id": str(prev_comp.id),
+            "title": prev_comp.title,
+            "component_category": prev_comp.component_category.value if prev_comp.component_category else None,
+        }
+
+    if current_index < len(all_components) - 1:
+        next_component = all_components[current_index + 1]
+        next_comp = {
+            "id": str(next_component.id),
+            "title": next_component.title,
+            "component_category": next_component.component_category.value if next_component.component_category else None,
+        }
+
+    return {
+        "previous": previous,
+        "next": next_comp,
+        "current_index": current_index,
+        "total_components": len(all_components),
+    }
 
 
 # ============================================================================
@@ -456,10 +707,6 @@ async def update_progress(
     progress.progress_percentage = progress_data.progress_percentage
     progress.completed = progress_data.completed
     progress.last_accessed = datetime.utcnow()
-
-    # If marked as completed, set completion time
-    if progress_data.completed and not progress.completed_at:
-        progress.completed_at = datetime.utcnow()
 
     db.commit()
     db.refresh(progress)
@@ -726,6 +973,7 @@ async def create_class_admin(
         "class": {
             "id": str(course_class.id),
             "title": course_class.title,
+            "order_index": course_class.order_index,
         },
     }
 
@@ -755,6 +1003,7 @@ async def update_class_admin(
         "class": {
             "id": str(course_class.id),
             "title": course_class.title,
+            "order_index": course_class.order_index,
         },
     }
 
@@ -970,22 +1219,64 @@ async def delete_instructor_admin(
 # COURSE COMMENT ENDPOINTS
 # ============================================================================
 
+@router.get("/components/{component_id}/comments", response_model=dict)
+async def get_component_comments(
+    component_id: str,
+    user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+):
+    """Get comments for a specific component."""
+    # Verify component exists
+    component = db.query(CourseComponent).filter(CourseComponent.id == component_id).first()
+    if not component:
+        raise HTTPException(status_code=404, detail="Component not found")
+
+    # Get comments for this component
+    from sqlalchemy import cast, String
+    comments = (
+        db.query(CourseComment)
+        .filter(cast(CourseComment.component_id, String) == component_id)
+        .order_by(CourseComment.created_at.desc())
+        .all()
+    )
+
+    result = []
+    for comment in comments:
+        result.append({
+            "id": str(comment.id),
+            "user_id": str(comment.user_id),
+            "user_name": comment.user.full_name if comment.user else "Unknown",
+            "user_photo": comment.user.profile_picture if hasattr(comment.user, 'profile_picture') else None,
+            "component_id": str(comment.component_id),
+            "content": comment.content,
+            "created_at": comment.created_at.isoformat(),
+            "updated_at": comment.updated_at.isoformat(),
+        })
+
+    return {"comments": result, "total": len(result)}
+
+
 @router.get("/{course_id}/comments", response_model=dict)
 async def get_course_comments(
     course_id: str,
     class_id: Optional[str] = None,
+    component_id: Optional[str] = None,
     user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
-    """Get comments for a course or specific class."""
+    """Get comments for a course, class, or component (legacy support)."""
     # Build query
     query = db.query(CourseComment).filter(CourseComment.course_id == course_id)
 
-    if class_id:
+    if component_id:
+        # Component-specific comments (new way)
+        query = query.filter(CourseComment.component_id == component_id)
+    elif class_id:
+        # Class-specific comments (legacy)
         query = query.filter(CourseComment.class_id == class_id)
     else:
         # Only course-level comments
-        query = query.filter(CourseComment.class_id == None)
+        query = query.filter(CourseComment.class_id == None, CourseComment.component_id == None)
 
     comments = query.order_by(CourseComment.created_at.desc()).all()
 
@@ -995,14 +1286,74 @@ async def get_course_comments(
             "id": str(comment.id),
             "user_id": str(comment.user_id),
             "user_name": comment.user.full_name if comment.user else "Unknown",
+            "user_photo": comment.user.profile_picture if hasattr(comment.user, 'profile_picture') else None,
             "course_id": str(comment.course_id),
             "class_id": str(comment.class_id) if comment.class_id else None,
+            "component_id": str(comment.component_id) if comment.component_id else None,
             "content": comment.content,
             "created_at": comment.created_at.isoformat(),
             "updated_at": comment.updated_at.isoformat(),
         })
 
     return {"comments": result, "total": len(result)}
+
+
+@router.post("/components/{component_id}/comments", response_model=dict)
+async def create_component_comment(
+    component_id: str,
+    data: ComponentCommentCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Add a comment to a specific component."""
+    # Verify component exists
+    component = db.query(CourseComponent).filter(CourseComponent.id == component_id).first()
+    if not component:
+        raise HTTPException(status_code=404, detail="Component not found")
+
+    # Get course through relationships
+    course_class = component.course_class
+    course = course_class.course
+
+    # Verify user is enrolled
+    enrollment = (
+        db.query(CourseEnrollment)
+        .filter(
+            CourseEnrollment.user_id == current_user.id,
+            CourseEnrollment.course_id == course.id,
+        )
+        .first()
+    )
+
+    if not enrollment:
+        raise HTTPException(
+            status_code=403,
+            detail="You must be enrolled in this course to comment"
+        )
+
+    # Create comment
+    comment = CourseComment(
+        user_id=current_user.id,
+        course_id=course.id,
+        component_id=component_id,
+        content=data.content,
+    )
+
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+
+    return {
+        "message": "Comment added successfully",
+        "comment": {
+            "id": str(comment.id),
+            "user_id": str(current_user.id),
+            "user_name": current_user.full_name,
+            "user_photo": current_user.profile_picture if hasattr(current_user, 'profile_picture') else None,
+            "content": comment.content,
+            "created_at": comment.created_at.isoformat(),
+        },
+    }
 
 
 @router.post("/{course_id}/comments", response_model=dict)
@@ -1012,7 +1363,7 @@ async def create_comment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Add a comment to a course or class."""
+    """Add a comment to a course, class, or component (legacy support)."""
     # Verify course exists
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
@@ -1039,6 +1390,7 @@ async def create_comment(
         user_id=current_user.id,
         course_id=course_id,
         class_id=comment_data.class_id,
+        component_id=comment_data.component_id,
         content=comment_data.content,
     )
 
@@ -1050,6 +1402,8 @@ async def create_comment(
         "message": "Comment added successfully",
         "comment": {
             "id": str(comment.id),
+            "user_id": str(current_user.id),
+            "user_name": current_user.full_name,
             "content": comment.content,
             "created_at": comment.created_at.isoformat(),
         },
@@ -1111,14 +1465,13 @@ async def delete_comment(
 
 @router.post("/progress/video-timestamp", response_model=dict)
 async def save_video_timestamp(
-    component_id: str,
-    timestamp: int,
+    data: VideoTimestampUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Save video timestamp for resume functionality."""
     # Get component
-    component = db.query(CourseComponent).filter(CourseComponent.id == component_id).first()
+    component = db.query(CourseComponent).filter(CourseComponent.id == str(data.component_id)).first()
     if not component:
         raise HTTPException(status_code=404, detail="Component not found")
 
@@ -1143,7 +1496,7 @@ async def save_video_timestamp(
         db.query(CourseProgress)
         .filter(
             CourseProgress.enrollment_id == enrollment.id,
-            CourseProgress.component_id == component_id,
+            CourseProgress.component_id == str(data.component_id),
         )
         .first()
     )
@@ -1152,17 +1505,17 @@ async def save_video_timestamp(
         progress = CourseProgress(
             enrollment_id=enrollment.id,
             class_id=course_class.id,
-            component_id=component_id,
+            component_id=str(data.component_id),
         )
         db.add(progress)
 
     # Update timestamp and calculate progress percentage
-    progress.video_timestamp = timestamp
+    progress.video_timestamp = data.timestamp
     progress.last_accessed = datetime.utcnow()
 
     # Calculate progress based on video duration
     if component.duration and component.duration > 0:
-        progress.progress_percentage = min(int((timestamp / component.duration) * 100), 100)
+        progress.progress_percentage = min(int((data.timestamp / component.duration) * 100), 100)
 
         # Mark as completed if watched 95% or more
         if progress.progress_percentage >= 95:
@@ -1172,7 +1525,7 @@ async def save_video_timestamp(
 
     return {
         "message": "Timestamp saved successfully",
-        "timestamp": timestamp,
+        "timestamp": data.timestamp,
         "progress_percentage": progress.progress_percentage,
         "completed": progress.completed,
     }

@@ -14,6 +14,7 @@ class ProductType(str, enum.Enum):
     AUDIO_VIDEO = "AUDIO_VIDEO"
     AUDIO_VIDEO_TEXT = "AUDIO_VIDEO_TEXT"
     RETREAT_PORTAL_ACCESS = "RETREAT_PORTAL_ACCESS"
+    BOOK_GROUP_PORTAL_ACCESS = "BOOK_GROUP_PORTAL_ACCESS"
     PHYSICAL = "PHYSICAL"
     EBOOK = "EBOOK"
     GUIDED_MEDITATION = "GUIDED_MEDITATION"
@@ -83,10 +84,12 @@ class Product(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    retreat = relationship("Retreat")
+    # retreat = relationship("Retreat", foreign_keys=[retreat_id])  # Commented out: causes ambiguity with Retreat.store_product
     order_items = relationship("OrderItem", back_populates="product", cascade="all, delete-orphan")
     user_accesses = relationship("UserProductAccess", back_populates="product", cascade="all, delete-orphan")
     cart_items = relationship("CartItem", back_populates="product", cascade="all, delete-orphan")
+    bookmarks = relationship("ProductBookmark", back_populates="product", cascade="all, delete-orphan")
+    testimonials = relationship("Testimonial", back_populates="product", cascade="all, delete-orphan")
 
 
 class Order(Base):
@@ -98,6 +101,16 @@ class Order(Base):
     total_amount = Column(Numeric(10, 2), nullable=False)
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False, index=True)
     payment_id = Column(UUID_TYPE, ForeignKey("payments.id"), nullable=True)
+
+    # Billing information
+    billing_name = Column(String(255), nullable=True)
+    billing_email = Column(String(255), nullable=True)
+    billing_address = Column(String(500), nullable=True)
+    billing_city = Column(String(255), nullable=True)
+    billing_state = Column(String(255), nullable=True)
+    billing_country = Column(String(100), nullable=True)
+    billing_postal_code = Column(String(50), nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -164,3 +177,36 @@ class UserProductAccess(Base):
     user = relationship("User", back_populates="product_accesses")
     product = relationship("Product", back_populates="user_accesses")
     order = relationship("Order")
+
+
+class ProductBookmark(Base):
+    """User's bookmarked/saved for later products."""
+    __tablename__ = "product_bookmarks"
+
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(UUID_TYPE, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="product_bookmarks")
+    product = relationship("Product", back_populates="bookmarks")
+
+
+class Testimonial(Base):
+    """Product testimonials/reviews from customers."""
+    __tablename__ = "testimonials"
+
+    id = Column(UUID_TYPE, primary_key=True, default=uuid.uuid4, index=True)
+    product_id = Column(UUID_TYPE, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
+    quote = Column(Text, nullable=False)
+    author_name = Column(String(255), nullable=False)
+    author_location = Column(String(255), nullable=True)
+    author_avatar_url = Column(String(500), nullable=True)
+    order_index = Column(Integer, default=0, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    product = relationship("Product", back_populates="testimonials")

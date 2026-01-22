@@ -80,7 +80,7 @@ export default function DashboardTeachingDetailClient({
   }));
 
   return (
-    <div className="bg-[#FAF8F1] min-h-screen">
+    <div className="bg-[#FAF8F1] min-h-screen lg:min-h-[125vh]">
       <TeachingDetailPage
         data={transformedTeaching as TeachingData}
         relatedTeachings={relatedTeachings as TeachingData[]}

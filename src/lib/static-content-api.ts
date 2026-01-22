@@ -134,17 +134,22 @@ export const staticContentAPI = {
   },
 
   /**
-   * Get online retreats
+   * Get online retreats (uses new /retreats API)
    */
   getOnlineRetreats: async () => {
-    return contentFetch('/api/online-retreats');
+    const data = await contentFetch('/api/retreats?type=online');
+    // Transform response to match expected format
+    return {
+      retreats: data.retreats || [],
+      total: data.total || 0
+    };
   },
 
   /**
-   * Get single online retreat by slug
+   * Get single online retreat by slug (uses new /retreats API)
    */
   getOnlineRetreat: async (slug: string) => {
-    return contentFetch(`/api/online-retreats/${slug}`);
+    return contentFetch(`/api/retreats/${slug}`);
   },
 
   /**

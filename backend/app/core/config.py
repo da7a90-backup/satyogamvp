@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # Cron Jobs
+    CRON_SECRET_KEY: str = "default-cron-secret-change-me"  # Change this in production!
+
     # Tilopay
     TILOPAY_API_KEY: Optional[str] = None
     TILOPAY_API_USER: Optional[str] = None
@@ -29,6 +32,7 @@ class Settings(BaseSettings):
     TILOPAY_BASE_URL: str = "https://app.tilopay.com/api/v1"
     TILOPAY_REDIRECT_URL: str = "http://localhost:3000/payment/success"
     TILOPAY_CANCEL_URL: str = "http://localhost:3000/payment/cancel"
+    TILOPAY_WEBHOOK_URL: str = "http://localhost:8000/api/payments/webhook"
 
     # Strapi
     STRAPI_URL: str = "http://localhost:1337"
@@ -52,7 +56,16 @@ class Settings(BaseSettings):
     # Cloudflare Stream & Images
     CLOUDFLARE_ACCOUNT_ID: Optional[str] = None
     CLOUDFLARE_ACCOUNT_HASH: Optional[str] = None  # For Cloudflare Images
-    CLOUDFLARE_API_TOKEN: Optional[str] = None
+    CLOUDFLARE_API_TOKEN: Optional[str] = None  # For Cloudflare Stream
+    CLOUDFLARE_IMAGES_TOKEN: Optional[str] = None  # For Cloudflare Images
+
+    # Cloudflare R2 Storage
+    CLOUDFLARE_R2_ACCESS_KEY_ID: Optional[str] = None
+    CLOUDFLARE_R2_SECRET_ACCESS_KEY: Optional[str] = None
+    CLOUDFLARE_R2_BUCKET: Optional[str] = None
+    R2_BUCKET_NAME: Optional[str] = None
+    R2_ENDPOINT_URL: Optional[str] = None
+    R2_PUBLIC_URL: Optional[str] = None
 
     # YouTube
     YOUTUBE_API_KEY: Optional[str] = None

@@ -32,6 +32,10 @@ class User(Base):
     membership_end_date = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
+    email_verified = Column(Boolean, default=False, nullable=False)
+    email_verification_token = Column(String(255), nullable=True)
+    email_verification_token_expires = Column(DateTime, nullable=True)
+    has_seen_dashboard_tour = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -46,9 +50,11 @@ class User(Base):
     course_comments = relationship("CourseComment", back_populates="user", cascade="all, delete-orphan")
     retreat_registrations = relationship("RetreatRegistration", back_populates="user", cascade="all, delete-orphan")
     calendar_events = relationship("UserCalendar", back_populates="user", cascade="all, delete-orphan")
+    book_group_accesses = relationship("BookGroupAccess", back_populates="user", cascade="all, delete-orphan")
     cart = relationship("Cart", back_populates="user", uselist=False, cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
     product_accesses = relationship("UserProductAccess", back_populates="user", cascade="all, delete-orphan")
+    product_bookmarks = relationship("ProductBookmark", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
     analytics = relationship("UserAnalytics", back_populates="user", uselist=False, cascade="all, delete-orphan")
 

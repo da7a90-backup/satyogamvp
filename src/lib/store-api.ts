@@ -5,6 +5,12 @@
 
 const API_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
+export interface DownloadItem {
+  id: string;
+  name: string;
+  url: string;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -22,7 +28,7 @@ export interface Product {
   images: string[];
   sku: string;
   woo_type: string[];
-  downloads: any[];
+  downloads: DownloadItem[];
   categories: string[];
   tags: string[];
   portal_media: {
@@ -31,7 +37,14 @@ export interface Product {
     cloudflare: string[];
     mp4: string[];
     mp3: string[];
-  } | null;
+    podbean: string[];
+  } | Array<{
+    title: string;
+    description?: string;
+    youtube_url?: string;
+    audio_url?: string;
+    cloudflare_url?: string;
+  }> | null;
   has_video_category: boolean;
   has_audio_category: boolean;
   product_slug: string | null;
@@ -48,6 +61,14 @@ export interface Product {
   retreat_id: string | null;
   created_at: string;
   updated_at: string;
+  testimonials?: Array<{
+    id: string;
+    quote: string;
+    author_name: string;
+    author_location: string | null;
+    author_avatar_url: string | null;
+    order_index: number;
+  }>;
 }
 
 export interface Category {
@@ -91,6 +112,17 @@ export interface CheckoutResponse {
   currency: string;
 }
 
+export interface PurchaseItem {
+  id: string;
+  product: Product;
+  order_id: string | null;
+  order_number: string | null;
+  amount_paid: number | null;
+  granted_at: string;
+  expires_at: string | null;
+  is_expired: boolean;
+}
+
 export interface ProductFilters {
   skip?: number;
   limit?: number;
@@ -102,14 +134,6 @@ export interface ProductFilters {
   search?: string;
   sort_by?: 'name' | 'price' | 'created_at' | 'featured';
   sort_order?: 'asc' | 'desc';
-}
-
-/**
- * Get authentication token from localStorage
- */
-function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('authToken');
 }
 
 /**
@@ -204,30 +228,42 @@ export const cartApi = {
   /**
    * Get current user's cart
    */
-  async getCart(): Promise<Cart> {
-    const token = getAuthToken();
+  async getCart(token: string): Promise<Cart> {
     if (!token) {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_URL}/api/cart`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    console.log('[Cart API] Fetching cart from:', `${API_URL}/api/cart`);
+    console.log('[Cart API] Token:', token ? 'Present' : 'Missing');
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch cart: ${response.statusText}`);
+    try {
+      const response = await fetch(`${API_URL}/api/cart`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log('[Cart API] Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Cart API] Error response:', errorText);
+        throw new Error(`Failed to fetch cart: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('[Cart API] Cart data:', data);
+      return data;
+    } catch (error) {
+      console.error('[Cart API] Fetch error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   /**
    * Get cart item count
    */
-  async getCartCount(): Promise<number> {
-    const token = getAuthToken();
+  async getCartCount(token?: string): Promise<number> {
     if (!token) return 0;
 
     try {
@@ -249,8 +285,7 @@ export const cartApi = {
   /**
    * Add item to cart
    */
-  async addItem(productId: string, quantity: number = 1): Promise<CartItem> {
-    const token = getAuthToken();
+  async addItem(productId: string, quantity: number = 1, token: string): Promise<CartItem> {
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -275,8 +310,7 @@ export const cartApi = {
   /**
    * Update cart item quantity
    */
-  async updateItem(itemId: string, quantity: number): Promise<CartItem> {
-    const token = getAuthToken();
+  async updateItem(itemId: string, quantity: number, token: string): Promise<CartItem> {
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -301,8 +335,7 @@ export const cartApi = {
   /**
    * Remove item from cart
    */
-  async removeItem(itemId: string): Promise<void> {
-    const token = getAuthToken();
+  async removeItem(itemId: string, token: string): Promise<void> {
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -323,8 +356,7 @@ export const cartApi = {
   /**
    * Clear entire cart
    */
-  async clearCart(): Promise<void> {
-    const token = getAuthToken();
+  async clearCart(token: string): Promise<void> {
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -350,8 +382,7 @@ export const checkoutApi = {
   /**
    * Create order and initiate payment
    */
-  async checkout(data: CheckoutData): Promise<CheckoutResponse> {
-    const token = getAuthToken();
+  async checkout(data: CheckoutData, token: string): Promise<CheckoutResponse> {
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -368,6 +399,32 @@ export const checkoutApi = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Checkout failed');
+    }
+
+    return response.json();
+  },
+};
+
+/**
+ * Purchases API
+ */
+export const purchasesApi = {
+  /**
+   * Get current user's purchased products
+   */
+  async getMyPurchases(token: string): Promise<PurchaseItem[]> {
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_URL}/api/users/me/purchases`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch purchases: ${response.statusText}`);
     }
 
     return response.json();

@@ -100,12 +100,75 @@ try:
     )
     db.add(quote_content)
 
-    # 5. CONTACT US SECTION
+    # 5. APPLICATION PROCESS SECTION (Timeline)
+    application_process_section = PageSection(
+        page_slug="retreats-sevadhari",
+        section_slug="application_process",
+        section_type="two_pane_timeline",
+        order_index=5,
+        is_active=True
+    )
+    db.add(application_process_section)
+    db.flush()
+
+    application_process_content = SectionContent(
+        section_id=application_process_section.id,
+        tagline="AFTER ADMISSION",
+        heading="What's the Process of Application and Admission?",
+        title_line_height="120%",
+        content=[
+            {
+                "number": 1,
+                "tagline": "Start Your Journey to Join the Community",
+                "title": "Submit Your Application",
+                "description": "Fill out the application form, providing details about your background, intentions, and interest in joining the Sat Yoga community."
+            },
+            {
+                "number": 2,
+                "tagline": "We Assess Your Fit",
+                "title": "Application Review",
+                "description": "Our admissions committee will review your application to assess your readiness for this lifestyle, your goals, and whether there is a strong resonance with our teachings and community dynamic. We consider your aspirations and how well you align with our values."
+            },
+            {
+                "number": 3,
+                "tagline": "Get to Know Us and Ask Your Questions",
+                "title": "Phone Interview",
+                "description": "If your application resonates, we'll schedule a phone interview to discuss the program and life at the ashram in depth. We'll clarify expectations, including our rainy climate, diet, Dharma, early morning meditation schedule, and remote location. This is your chance to ask questions and ensure you fully understand the lifestyle you're committing to."
+            },
+            {
+                "number": 4,
+                "tagline": "Admissions Committee Makes a Decision",
+                "title": "Final decision",
+                "description": "After the interview, the admissions committee will review everything and make a decision as soon as possible."
+            },
+            {
+                "number": 5,
+                "tagline": "We Help You Prepare for Your Arrival",
+                "title": "Arrival arrangements",
+                "description": "If accepted, we'll work with you to finalize your arrival date and ensure a smooth transition into ashram life."
+            },
+            {
+                "number": 6,
+                "tagline": "Begin Your Journey with Us",
+                "title": "Trial period",
+                "description": "Your first month at the Ashram will be part of the Shakti Saturation Immersion, which serves as a trial period for both you and the community. During this time, you'll dive into ashram life, connect with the community, and begin your seva (selfless service) duties. It's a chance for us to get to know each other better and ensure there is a mutual resonance. If, after the first month, it is a good fit, you will transition into a full time sevadhari."
+            },
+            {
+                "number": 7,
+                "tagline": "Reflection and Feedback",
+                "title": "Monthly Assessment and Reflection",
+                "description": "At the end of the Shakti Saturation Immersion, and at the end of every month of your stay thereafter, we'll sit down together to reflect on your experience. We'll discuss how things are going, listen to your feedback, and make any adjustments needed. This helps us ensure you're thriving and aligned with the community and to see if this program and the ashram are the right fit for you for the remaining months of the program."
+            }
+        ]
+    )
+    db.add(application_process_content)
+
+    # 6. CONTACT US SECTION
     contact_section = PageSection(
         page_slug="retreats-sevadhari",
         section_slug="contact",
         section_type="contact_us",
-        order_index=5,
+        order_index=6,
         is_active=True
     )
     db.add(contact_section)

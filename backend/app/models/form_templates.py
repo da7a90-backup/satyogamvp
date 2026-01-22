@@ -2,7 +2,7 @@
 Dynamic form template models for configurable applications and questionnaires.
 Enables creation of custom forms without code changes.
 """
-from sqlalchemy import Column, String, Text, Integer, Boolean, DateTime, ForeignKey, Enum, CheckConstraint
+from sqlalchemy import Column, String, Text, Integer, Boolean, DateTime, ForeignKey, Enum, CheckConstraint, Numeric
 from sqlalchemy.orm import relationship
 from ..core.db_types import UUID_TYPE, JSON_TYPE
 from ..core.database import Base
@@ -152,9 +152,17 @@ class FormSubmission(Base):
 
     # Review/status
     status = Column(String(50), default="pending", nullable=False, index=True)
+    # Status values: "pending", "reviewed", "approved", "payment_sent", "paid", "rejected"
     reviewed_at = Column(DateTime, nullable=True)
     reviewed_by = Column(UUID_TYPE, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     reviewer_notes = Column(Text, nullable=True)
+
+    # Payment fields (for application fees, retreat payments, etc.)
+    retreat_id = Column(UUID_TYPE, ForeignKey("retreats.id", ondelete="SET NULL"), nullable=True, index=True)
+    payment_amount = Column(Numeric(10, 2), nullable=True)  # Amount to be paid
+    payment_id = Column(UUID_TYPE, ForeignKey("payments.id", ondelete="SET NULL"), nullable=True, index=True)
+    order_id = Column(UUID_TYPE, ForeignKey("orders.id", ondelete="SET NULL"), nullable=True, index=True)
+    payment_link_sent_at = Column(DateTime, nullable=True)  # When payment email was sent
 
     # Metadata
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -165,3 +173,6 @@ class FormSubmission(Base):
     form_template = relationship("FormTemplate", back_populates="submissions")
     user = relationship("User", foreign_keys=[user_id])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
+    retreat = relationship("Retreat", foreign_keys=[retreat_id])
+    payment = relationship("Payment", foreign_keys=[payment_id])
+    order = relationship("Order", foreign_keys=[order_id])

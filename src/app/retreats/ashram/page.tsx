@@ -10,7 +10,7 @@ const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:800
 
 async function getOnlineRetreats() {
   try {
-    const res = await fetch(`${FASTAPI_URL}/api/online-retreats?limit=1`, {
+    const res = await fetch(`${FASTAPI_URL}/api/retreats/?retreat_type=online&limit=1`, {
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',

@@ -6,17 +6,46 @@ import { staticContentAPI } from '@/lib/static-content-api';
 // Force dynamic rendering (don't pre-render at build time)
 export const dynamic = 'force-dynamic';
 
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+
+async function getRetreatData(slug: string) {
+  try {
+    const res = await fetch(`${FASTAPI_URL}/api/retreats/${slug}`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    if (!res.ok) {
+      console.error('Failed to fetch retreat data:', res.status);
+      return null;
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching retreat data:', error);
+    return null;
+  }
+}
+
 // This is a server component that fetches data
 export default async function Sevadhari() {
   try {
     console.log("Fetching retreats/sevadhari data from backend API...");
 
-    const pageData = await staticContentAPI.getPage('retreats-sevadhari');
+    // Fetch both page content and retreat data in parallel
+    const [pageData, retreatData] = await Promise.all([
+      staticContentAPI.getPage('retreats-sevadhari'),
+      getRetreatData('sevadhari')
+    ]);
 
     console.log("Retreats/sevadhari data loaded successfully:", Object.keys(pageData));
+    if (retreatData) {
+      console.log("Retreat booking data loaded from API");
+    }
 
     // Pass the data to your client component
-    return <SevadhariPage data={pageData} />;
+    return <SevadhariPage data={pageData} retreatData={retreatData} />;
   } catch (error) {
     console.error("Error loading retreats/sevadhari page data:", error);
 

@@ -93,20 +93,20 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F1] p-8">
+    <div className="min-h-screen lg:min-h-[125vh] bg-[#FAF8F1] p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#000000] mb-2" style={{ fontFamily: 'Optima, serif' }}>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#000000] mb-2" style={{ fontFamily: 'Optima, serif' }}>
             History
           </h1>
-          <p className="text-[#717680]">
+          <p className="text-sm sm:text-base text-[#717680]">
             Track your spiritual journey and revisit teachings that have resonated with you.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-8 border-b border-[#E5E7EB] mb-6">
+        <div className="flex gap-4 sm:gap-8 border-b border-[#E5E7EB] mb-6">
           <button
             onClick={() => setActiveTab('video')}
             className={`pb-3 px-1 border-b-2 transition-colors text-sm font-medium ${
@@ -158,12 +158,12 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
           </div>
         ) : (
           <>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
               <p className="text-sm text-[#717680]">
                 {filteredTeachings.length} {filteredTeachings.length === 1 ? 'item' : 'items'}
               </p>
-              <div className="flex gap-4 items-center">
-                <span className="text-sm text-[#717680]">Sort by</span>
+              <div className="flex gap-2 sm:gap-4 items-center">
+                <span className="text-sm text-[#717680] hidden sm:inline">Sort by</span>
                 <button className="flex items-center gap-2 px-3 py-2 bg-white border border-[#E5E7EB] rounded-lg text-sm hover:bg-gray-50">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M2 5H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -177,20 +177,31 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
 
             {/* Grouped History */}
             <div className="space-y-8">
-              {Object.entries(groupedByDate).map(([dateLabel, teachings]) => (
-                <div key={dateLabel}>
-                  <h2 className="text-lg font-bold text-[#000000] mb-4 flex items-center gap-2">
-                    <span className="w-2 h-2 bg-[#7D1A13] rounded-full"></span>
-                    {dateLabel}
-                  </h2>
-                  <div className="space-y-4">
-                    {teachings.map((teaching) => (
-                      <Link
-                        key={`${teaching.id}-${teaching.accessed_at}`}
-                        href={`/dashboard/user/teachings/${teaching.slug}`}
-                        className="flex gap-4 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group p-4"
-                      >
-                        <div className="relative w-64 h-36 bg-gray-200 rounded flex-shrink-0">
+              {Object.entries(groupedByDate).map(([dateLabel, teachings], groupIndex) => (
+                <div key={dateLabel} className="flex gap-2 sm:gap-3">
+                  {/* Timeline column */}
+                  <div className="flex flex-col items-center pt-1.5 flex-shrink-0">
+                    {/* Dot */}
+                    <div className="w-2 h-2 bg-[#414651] rounded-full"></div>
+                    {/* Connecting line - only show if not the last group */}
+                    {groupIndex < Object.entries(groupedByDate).length - 1 && (
+                      <div className="flex-1 w-px bg-[#A4A7AE] mt-2"></div>
+                    )}
+                  </div>
+
+                  {/* Content column */}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-base sm:text-lg font-bold text-[#000000] mb-4">
+                      {dateLabel}
+                    </h2>
+                    <div className="space-y-4">
+                      {teachings.map((teaching) => (
+                        <Link
+                          key={`${teaching.id}-${teaching.accessed_at}`}
+                          href={`/dashboard/user/teachings/${teaching.slug}`}
+                          className="flex flex-col sm:flex-row gap-4 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group p-4"
+                        >
+                        <div className="relative w-full sm:w-48 md:w-56 lg:w-64 h-48 sm:h-36 bg-gray-200 rounded flex-shrink-0">
                           {teaching.thumbnail_url ? (
                             <Image
                               src={teaching.thumbnail_url}
@@ -216,10 +227,10 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
                             </div>
                           </div>
                         </div>
-                        <div className="flex-1 flex flex-col justify-between py-1">
+                        <div className="flex-1 flex flex-col justify-between py-1 min-w-0">
                           <div>
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="text-sm text-[#717680]">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                              <span className="text-xs sm:text-sm text-[#717680]">
                                 {new Date(teaching.published_date).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
@@ -227,24 +238,25 @@ export default function HistoryClient({ history: initialHistory }: HistoryClient
                                 })}
                               </span>
                               {teaching.duration && (
-                                <span className="flex items-center gap-1 text-sm text-[#717680]">
+                                <span className="flex items-center gap-1 text-xs sm:text-sm text-[#717680]">
                                   <Clock size={14} />
                                   {formatDuration(teaching.duration)}
                                 </span>
                               )}
                             </div>
-                            <h3 className="font-bold text-lg text-[#000000] mb-2 group-hover:text-[#7D1A13] transition-colors">
+                            <h3 className="font-bold text-base sm:text-lg text-[#000000] mb-2 group-hover:text-[#7D1A13] transition-colors">
                               {teaching.title}
                             </h3>
                             {teaching.description && (
-                              <p className="text-sm text-[#717680] line-clamp-2">
+                              <p className="text-xs sm:text-sm text-[#717680] line-clamp-2">
                                 {teaching.description}
                               </p>
                             )}
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}

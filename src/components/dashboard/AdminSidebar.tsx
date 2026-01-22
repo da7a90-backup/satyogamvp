@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import {
   UsersIcon,
   BookOpenIcon,
@@ -32,8 +34,8 @@ import {
 
 const AdminSidebar = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(true);
 
   // Toggle submenu expanded state
   const toggleExpand = (item: string) => {
@@ -58,11 +60,6 @@ const AdminSidebar = () => {
       name: "Users",
       href: "/dashboard/admin/users",
       icon: UsersIcon,
-      subItems: [
-        { name: "All Users", href: "/dashboard/admin/users" },
-        { name: "Memberships", href: "/dashboard/admin/users/memberships" },
-        { name: "Permissions", href: "/dashboard/admin/users/permissions" },
-      ],
     },
     {
       name: 'Activity Log',
@@ -84,6 +81,7 @@ const AdminSidebar = () => {
         { name: 'Contact Page', href: '/dashboard/admin/content/contact' },
         { name: 'Membership', href: '/dashboard/admin/content/membership' },
         { name: 'FAQs', href: '/dashboard/admin/content/faqs' },
+        { name: 'Hidden Tags', href: '/dashboard/admin/content/hidden-tags' },
       ]
     },
     {
@@ -108,14 +106,8 @@ const AdminSidebar = () => {
     },
     {
       name: 'Library',
-      href: '/dashboard/admin/library',
+      href: '/dashboard/admin/library/teachings',
       icon: BookmarkIcon,
-      subItems: [
-        { name: 'Teachings', href: '/dashboard/admin/library/teachings' },
-        { name: 'Guided Meditations', href: '/dashboard/admin/library/meditations' },
-        { name: 'Q & A', href: '/dashboard/admin/library/qanda' },
-        { name: 'Essays', href: '/dashboard/admin/library/essays' },
-      ]
     },
     {
       name: 'Book Groups',
@@ -164,11 +156,6 @@ const AdminSidebar = () => {
       name: "Products",
       href: "/dashboard/admin/products",
       icon: ShoppingBagIcon,
-      subItems: [
-        { name: "All Products", href: "/dashboard/admin/products" },
-        { name: "Categories", href: "/dashboard/admin/products/categories" },
-        { name: "Inventory", href: "/dashboard/admin/products/inventory" },
-      ],
     },
     {
       name: "Sales",
@@ -176,8 +163,16 @@ const AdminSidebar = () => {
       icon: CurrencyDollarIcon,
       subItems: [
         { name: "Orders", href: "/dashboard/admin/sales" },
-        { name: "Transactions", href: "/dashboard/admin/sales/transactions" },
-        { name: "Discounts", href: "/dashboard/admin/sales/discounts" },
+        { name: "Donations", href: "/dashboard/admin/sales/donations" },
+      ],
+    },
+    {
+      name: "Analytics",
+      href: "/dashboard/admin/analytics",
+      icon: ChartBarIcon,
+      subItems: [
+        { name: "Overview", href: "/dashboard/admin/analytics" },
+        { name: "Custom Reports", href: "/dashboard/admin/analytics/custom" },
       ],
     },
     {
@@ -190,34 +185,10 @@ const AdminSidebar = () => {
         { name: "Subscribers", href: "/dashboard/admin/email/subscribers" },
       ],
     },
-    {
-      name: "Analytics",
-      href: "/dashboard/admin/analytics",
-      icon: ChartBarIcon,
-      subItems: [
-        { name: "Overview", href: "/dashboard/admin/analytics" },
-        {
-          name: "User Engagement",
-          href: "/dashboard/admin/analytics/engagement",
-        },
-        { name: "Revenue", href: "/dashboard/admin/analytics/revenue" },
-      ],
-    },
   ];
 
   // Support and settings
-  const bottomNavItems = [
-    {
-      name: "Help Center",
-      href: "/dashboard/admin/help",
-      icon: QuestionMarkCircleIcon,
-    },
-    {
-      name: "Settings",
-      href: "/dashboard/admin/settings",
-      icon: Cog6ToothIcon,
-    },
-  ];
+  const bottomNavItems: any[] = [];
 
   // Render an individual navigation item
   const renderNavItem = (item: any, key: number) => {
@@ -226,12 +197,12 @@ const AdminSidebar = () => {
     const hasSubItems = item.subItems && item.subItems.length > 0;
 
     return (
-      <div key={key} className="mb-1">
+      <div key={key} className="mb-0">
         <div
-          className={`flex items-center justify-between rounded-md px-3 py-2 cursor-pointer ${
+          className={`flex items-center justify-between rounded px-3 py-2 cursor-pointer transition-colors ${
             isItemActive
-              ? "bg-gray-700 text-white"
-              : "text-gray-700 hover:bg-gray-200"
+              ? "bg-[#7D1A13] text-white"
+              : "bg-white text-[#374151] hover:bg-gray-50"
           }`}
           onClick={() => (hasSubItems ? toggleExpand(item.name) : null)}
         >
@@ -241,31 +212,30 @@ const AdminSidebar = () => {
             onClick={(e) => hasSubItems && e.preventDefault()}
           >
             <item.icon className="h-5 w-5 mr-3" />
-            <span className="text-sm font-medium">{item.name}</span>
+            <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>{item.name}</span>
           </Link>
           {hasSubItems && (
             <button className="p-1">
-              {isExpanded ? (
-                <ChevronUpIcon className="h-4 w-4" />
-              ) : (
-                <ChevronDownIcon className="h-4 w-4" />
-              )}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`transition-transform ${isExpanded ? '' : 'rotate-180'}`}>
+                <path d="M4 10L8 6L12 10" stroke={isItemActive ? "#FFFFFF" : "#A4A7AE"} strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           )}
         </div>
 
         {/* Sub items */}
         {hasSubItems && isExpanded && (
-          <div className="ml-5 pl-4 border-l border-gray-200 mt-1 space-y-1">
+          <div className="ml-4 mt-1 space-y-1">
             {item.subItems.map((subItem: any, idx: number) => (
               <Link
                 key={idx}
                 href={subItem.href}
-                className={`block px-3 py-2 text-sm rounded-md ${
+                className={`block px-6 py-2 text-sm rounded font-medium capitalize transition-colors ${
                   pathname === subItem.href
-                    ? "text-purple-700 font-medium"
-                    : "text-gray-600 hover:text-purple-700"
+                    ? "bg-[#7D1A13] text-white"
+                    : "bg-white text-[#374151] hover:bg-gray-50"
                 }`}
+                style={{ fontFamily: 'Avenir Next, sans-serif' }}
               >
                 {subItem.name}
               </Link>
@@ -277,57 +247,69 @@ const AdminSidebar = () => {
   };
 
   return (
-    <div className="w-64 h-screen bg-gray-50 border-r border-gray-200 flex flex-col">
+    <div className="w-64 h-screen lg:h-[125vh] bg-white flex flex-col overflow-y-auto" style={{ gap: '23px', padding: '20px 16px' }}>
       {/* Logo section */}
-      <div className="p-5">
-        <Link href="/dashboard" className="text-2xl font-serif italic">
-          Logo
+      <div className="flex items-center justify-center" style={{ height: '53px' }}>
+        <Link href="/dashboard/admin">
+          <Image src="/Logo-dash.png" alt="Sat Yoga" width={180} height={45} />
         </Link>
       </div>
 
       {/* Main navigation */}
-      <div className="flex-grow overflow-y-auto px-4 py-2">
+      <div className="flex-grow space-y-0">
         {/* Main items */}
         {mainNavItems.map((item, idx) => renderNavItem(item, idx))}
+      </div>
 
-        {/* Bottom items (Support and Settings) */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          {bottomNavItems.map((item, idx) => renderNavItem(item, idx))}
-        </div>
+      {/* Help & Settings */}
+      <div className="space-y-0">
+        {bottomNavItems.map((item, idx) => renderNavItem(item, idx))}
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded bg-white text-[#374151] hover:bg-red-50 hover:text-red-600 transition-colors"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M13 14L17 10L13 6M17 10H7M7 2.5H5.5C4.11929 2.5 3 3.61929 3 5V15C3 16.3807 4.11929 17.5 5.5 17.5H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Logout</span>
+        </button>
       </div>
 
       {/* Admin info */}
-      <div className="p-4 border-t border-gray-200 flex items-center">
-        <div className="w-8 h-8 rounded-full bg-gray-300 mr-3 overflow-hidden">
-          <img
-            src="/admin-avatar.jpg"
-            alt="Admin"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback if image doesn't load
-              const target = e.target as HTMLImageElement;
-              target.style.display = "none";
-            }}
-          />
+      <div className="border border-[#F3F4F6] rounded-lg p-2 flex items-center gap-3">
+        <div className="relative w-10 h-10 flex-shrink-0">
+          <div className="w-full h-full rounded-full bg-gray-200 border-2 border-white overflow-hidden flex items-center justify-center">
+            {session?.user?.image ? (
+              <Image
+                src={session.user.image}
+                alt={session.user.name || "Admin"}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+            ) : (
+              <span className="text-gray-600 text-sm font-medium">
+                {session?.user?.name?.charAt(0).toUpperCase() || 'A'}
+              </span>
+            )}
+          </div>
+          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#22C55E] border border-white rounded-full" />
         </div>
-        <div className="flex-grow">
-          <p className="text-sm font-medium truncate">Admin User</p>
-          <p className="text-xs text-gray-500 truncate">admin@example.com</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[#1F2937] truncate capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+            {session?.user?.name || 'Loading...'}
+          </p>
+          <p className="text-xs text-[#737373] truncate" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+            {session?.user?.email || ''}
+          </p>
         </div>
-        <button className="ml-2 text-gray-400 hover:text-gray-600">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-            />
+        <button className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5L8.5 10L3 15" stroke="#1F2937" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>

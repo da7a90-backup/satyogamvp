@@ -1,0 +1,8 @@
+-- Add billing fields to orders table
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_name VARCHAR(255);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_email VARCHAR(255);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_address VARCHAR(500);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_city VARCHAR(255);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_state VARCHAR(255);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_country VARCHAR(100);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_postal_code VARCHAR(50);

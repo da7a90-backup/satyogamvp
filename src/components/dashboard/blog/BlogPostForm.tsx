@@ -337,18 +337,18 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
         <div className="flex items-center space-x-4">
           <Link
             href="/dashboard/admin/blog"
-            className="text-gray-600 hover:text-gray-900"
+            className="text-[#737373] hover:text-[#1F2937]"
           >
             <ArrowLeftIcon className="h-6 w-6" />
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-[#1F2937]">
             {isEditMode ? "Edit Blog Post" : "Create Blog Post"}
           </h1>
         </div>
         <button
           type="button"
           onClick={() => setShowPreview(!showPreview)}
-          className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+          className="inline-flex items-center px-4 py-2 bg-gray-200 text-[#374151] rounded-lg hover:bg-gray-300"
         >
           {showPreview ? (
             <>
@@ -366,14 +366,14 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
 
       {/* Success Message */}
       {successMessage && (
-        <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-md">
+        <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
           {successMessage}
         </div>
       )}
 
       {/* Error Message */}
       {errors.form && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
+        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
           {errors.form}
         </div>
       )}
@@ -384,7 +384,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
           <div className="lg:col-span-2 space-y-6">
             {/* Title */}
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="title" className="block text-sm font-medium text-[#374151] mb-2">
                 Title *
               </label>
               <input
@@ -393,8 +393,8 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  errors.title ? "border-red-500" : "border-gray-300"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  errors.title ? "border-red-500" : "border-[#E5E7EB]"
                 }`}
                 placeholder="Enter post title"
               />
@@ -405,7 +405,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
 
             {/* Slug */}
             <div>
-              <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="slug" className="block text-sm font-medium text-[#374151] mb-2">
                 Slug *
               </label>
               <input
@@ -414,8 +414,8 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                 name="slug"
                 value={formData.slug}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  errors.slug ? "border-red-500" : "border-gray-300"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  errors.slug ? "border-red-500" : "border-[#E5E7EB]"
                 }`}
                 placeholder="post-url-slug"
               />
@@ -426,7 +426,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
 
             {/* Excerpt */}
             <div>
-              <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="excerpt" className="block text-sm font-medium text-[#374151] mb-2">
                 Excerpt
               </label>
               <textarea
@@ -435,19 +435,19 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                 value={formData.excerpt}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Brief description of the post"
               />
             </div>
 
             {/* Content Editor */}
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="content" className="block text-sm font-medium text-[#374151] mb-2">
                 Content * {showPreview && "(Markdown)"}
               </label>
 
               {/* Markdown Toolbar */}
-              <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-50 rounded-t-md border border-b-0 border-gray-300">
+              <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-50 rounded-t-md border border-b-0 border-[#E5E7EB]">
                 <button
                   type="button"
                   onClick={() => insertMarkdown("bold", "bold text")}
@@ -523,7 +523,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
               </div>
 
               {showPreview ? (
-                <div className="w-full min-h-[400px] px-4 py-2 border border-gray-300 rounded-b-md bg-white prose max-w-none">
+                <div className="w-full min-h-[400px] px-4 py-2 border border-[#E5E7EB] rounded-b-md bg-white prose max-w-none">
                   <ReactMarkdown>{formData.content}</ReactMarkdown>
                 </div>
               ) : (
@@ -535,7 +535,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                   onChange={handleChange}
                   rows={20}
                   className={`w-full px-4 py-2 border rounded-b-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm ${
-                    errors.content ? "border-red-500" : "border-gray-300"
+                    errors.content ? "border-red-500" : "border-[#E5E7EB]"
                   }`}
                   placeholder="Write your post content in Markdown..."
                 />
@@ -550,7 +550,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
               <button
                 type="button"
                 onClick={() => setShowSeoFields(!showSeoFields)}
-                className="text-purple-600 hover:text-purple-700 font-medium"
+                className="text-[#7D1A13] hover:text-[#7D1A13] font-medium"
               >
                 {showSeoFields ? "− Hide" : "+ Show"} SEO Fields
               </button>
@@ -558,7 +558,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
               {showSeoFields && (
                 <div className="mt-4 space-y-4">
                   <div>
-                    <label htmlFor="meta_title" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="meta_title" className="block text-sm font-medium text-[#374151] mb-2">
                       Meta Title
                     </label>
                     <input
@@ -567,13 +567,13 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                       name="meta_title"
                       value={formData.meta_title}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="SEO title for search engines"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="meta_description" className="block text-sm font-medium text-[#374151] mb-2">
                       Meta Description
                     </label>
                     <textarea
@@ -582,13 +582,13 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                       value={formData.meta_description}
                       onChange={handleChange}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="SEO description for search engines"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="meta_keywords" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="meta_keywords" className="block text-sm font-medium text-[#374151] mb-2">
                       Keywords (comma-separated)
                     </label>
                     <input
@@ -597,7 +597,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                       name="meta_keywords"
                       value={formData.meta_keywords}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="keyword1, keyword2, keyword3"
                     />
                   </div>
@@ -610,7 +610,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
           <div className="space-y-6">
             {/* Publish Options */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Publish</h3>
+              <h3 className="text-lg font-medium text-[#1F2937] mb-4">Publish</h3>
 
               <div className="space-y-4">
                 <div className="flex items-center">
@@ -620,9 +620,9 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                     name="is_published"
                     checked={formData.is_published}
                     onChange={handleChange}
-                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-[#7D1A13] focus:ring-purple-500 border-[#E5E7EB] rounded"
                   />
-                  <label htmlFor="is_published" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="is_published" className="ml-2 block text-sm text-[#374151]">
                     Publish immediately
                   </label>
                 </div>
@@ -634,9 +634,9 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                     name="is_featured"
                     checked={formData.is_featured}
                     onChange={handleChange}
-                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-[#7D1A13] focus:ring-purple-500 border-[#E5E7EB] rounded"
                   />
-                  <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="is_featured" className="ml-2 block text-sm text-[#374151]">
                     Featured post
                   </label>
                 </div>
@@ -645,7 +645,7 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 bg-[#7D1A13] text-white rounded-lg hover:bg-[#6B1710] disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     {isSaving ? "Saving..." : isEditMode ? "Update Post" : "Create Post"}
                   </button>
@@ -655,13 +655,13 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
 
             {/* Category */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Category</h3>
+              <h3 className="text-lg font-medium text-[#1F2937] mb-4">Category</h3>
               <select
                 id="category_id"
                 name="category_id"
                 value={formData.category_id}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="">Select a category</option>
                 {categories.map((category) => (
@@ -674,21 +674,21 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
 
             {/* Author */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Author</h3>
+              <h3 className="text-lg font-medium text-[#1F2937] mb-4">Author</h3>
               <input
                 type="text"
                 id="author_name"
                 name="author_name"
                 value={formData.author_name}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Author name"
               />
             </div>
 
             {/* Read Time */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Read Time</h3>
+              <h3 className="text-lg font-medium text-[#1F2937] mb-4">Read Time</h3>
               <div className="flex items-center space-x-2">
                 <input
                   type="number"
@@ -697,22 +697,22 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                   value={formData.read_time}
                   onChange={handleChange}
                   min="1"
-                  className="w-20 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-20 px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
-                <span className="text-sm text-gray-600">minutes</span>
+                <span className="text-sm text-[#737373]">minutes</span>
               </div>
             </div>
 
             {/* Featured Image */}
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Featured Image</h3>
+              <h3 className="text-lg font-medium text-[#1F2937] mb-4">Featured Image</h3>
 
               {formData.featured_image ? (
                 <div className="relative">
                   <img
                     src={formData.featured_image}
                     alt="Featured"
-                    className="w-full h-48 object-cover rounded-md"
+                    className="w-full h-48 object-cover rounded-lg"
                   />
                   <button
                     type="button"
@@ -726,11 +726,11 @@ export default function BlogPostForm({ postId }: BlogPostFormProps) {
                 <div>
                   <label
                     htmlFor="featured_image"
-                    className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-purple-500"
+                    className="flex flex-col items-center justify-center w-full h-48 border-2 border-[#E5E7EB] border-dashed rounded-lg cursor-pointer hover:border-purple-500"
                   >
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <PhotoIcon className="h-12 w-12 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[#737373]">
                         {uploadingImage ? "Uploading..." : "Click to upload image"}
                       </p>
                     </div>

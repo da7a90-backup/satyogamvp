@@ -15,92 +15,37 @@ import StandardSection, { StandardSectionData } from "@/components/shared/Standa
 
 
 
-export default function SevadhariPage({ data }: any) {
-// Data structure for Shakti Saturation Included Section
-
-
-
+export default function SevadhariPage({ data, retreatData }: any) {
+  // Use retreat data from API - intro section
   const introData = {
     leftPane: {
-      title: "A Personal Encounter with Shunyamurti",
+      title: retreatData?.intro1_title || "A Personal Encounter with Shunyamurti",
       titleLineHeight: "120%"
     },
     rightPane: {
       type: 'paragraphs' as const,
-      content: [
-"This retreat is a precious opportunity to receive initiation from Shunyamurti directly—an encounter that can shift your vibrational frequency immediately to the Presence of divine light and love. This in turn can bring full realization of your God-Self.",
-" Designed to open your heart and mind to be filled with the Light of the Supreme Real,",
-"these compact events also feature wisdom classes, meditation training, and optional meetings with an individual counselor.",
-]
+      content: retreatData?.intro1_content || []
     }
   };
 
   const carouselImages: CarouselImage[] = data?.carousel?.secondaryImages || [];
 
+  // Use retreat data from API - schedule section
   const scheduleData = {
-    tagline: "A TYPICAL ASHRAM DAY",
-    title: "Sample Daily Schedule",
-    items: [
-      {
-        time: "4:00 - 4:45am",
-        activity: "Morning meditation"
-      },
-      {
-        time: "5:00 - 8:00am",
-        activity: "Personal Time, Asanas, or Optional Outdoor Service"
-      },
-      {
-        time: "8:45 - 11:45 am",
-        activity: "Class, Optional Service, or Atmanology Session"
-      },
-      {
-        time: "12:15 - 12:50 pm",
-        activity: "Midday Meditation"
-      },
-      {
-        time: "1:00 - 1:45 pm",
-        activity: "Lunch"
-      },
-      {
-        time: "2:30 - 5:30 pm",
-        activity: "Personal Time"
-      },
-      {
-        time: "5:30 - 7:00 pm",
-        activity: "Evening Class / Meditation"
-      },
-      {
-        time: "7:00 - 7:30 pm",
-        activity: "Evening Meal"
-      }
-    ]
+    tagline: retreatData?.schedule_tagline || "A TYPICAL ASHRAM DAY",
+    title: retreatData?.schedule_title || "Sample Daily Schedule",
+    items: retreatData?.schedule_items || []
   };
 
 
-  const shaktiBookingData = {
-    retreatType: "onsite" as const,
-    tagline: "RETREAT CONTRIBUTION AND DATES",
-    title: "Darshan Retreat",
-    basePrice: 1750,
-    description: "The Darshan Retreat with Shunyamurti is a sacred seven-day retreat designed to elevate your spiritual journey through direct transmission. This retreat offers a unique opportunity for a personal encounter with Shunyamurti, including a transformative one-on-one session. ",
-    accommodation: "Stay in a charming cabin, with a private room that includes its own bathroom and balcony.",
-    meals: "Nourishing vegetarian meals. We offer vegan and gluten-free options to those on specialized diets.",
-    dateLabel: "Select a date",
-    dateOptions: [
-      "Jan. 21th - Jan. 27th, 2025"
-    ],
-    memberLabel: "Are you a member?",
-    memberOptions: [
-      "Select an option"
-    ],
-    buttonText: "Begin application",
-    buttonUrl: "/apply",
-    membershipText: "Discover our",
-    membershipLink: "memberships",
-    membershipLinkUrl: "/memberships",
-    membershipNote: "to receive discounts",
-    images: data?.productComponent?.content?.images || []
-  };
+  // Use retreat data from API - no fallback, data must come from database
+  const shaktiBookingData = retreatData?.product_component_data ? {
+    ...retreatData.product_component_data,
+    retreatId: retreatData.product_component_data.retreatId || retreatData.id,
+    retreatSlug: retreatData.slug,
+    memberDiscountPercentage: retreatData.member_discount_percentage || 10,
+    images: retreatData.product_component_data.images || data?.productComponent?.content?.images || []
+  } : null;
 
   const heroData = {
     tagline: data?.hero?.tagline || "",
@@ -114,43 +59,18 @@ export default function SevadhariPage({ data }: any) {
     programs: data?.relatedPrograms?.content || []
   };
 
-  const applicationProcessData = {
+  // Use application process data from API
+  const applicationProcessData = data?.applicationProcess ? {
     leftPane: {
-      tagline: "AFTER ADMISSION",
-      title: "What's the Process of Application and Admission?"
+      tagline: data.applicationProcess.tagline || "AFTER ADMISSION",
+      title: data.applicationProcess.heading || "What's the Process of Application and Admission?",
+      titleLineHeight: data.applicationProcess.titleLineHeight || "120%"
     },
     rightPane: {
       type: 'timeline' as const,
-      content: [
-        {
-          number: 1,
-          tagline: "Start Your Journey to Join the Community",
-          title: "Submit Your Application",
-          description: "Fill out the application form..."
-        },
-        {
-            number: 2,
-            tagline: "Start Your Journey to Join the Community",
-            title: "Submit Your Application",
-            description: "Fill out the application form..."
-          },
-          {
-            number: 3,
-            tagline: "Start Your Journey to Join the Community",
-            title: "Submit Your Application",
-            description: "Fill out the application form..."
-          },
-          {
-            number: 4,
-            tagline: "Start Your Journey to Join the Community",
-            title: "Submit Your Application",
-            description: "Fill out the application form..."
-          },
-        
-        // ... more timeline items
-      ]
+      content: data.applicationProcess.content || []
     }
-  };
+  } : null;
 
   const whatSeva = {
     leftPane: {
@@ -191,7 +111,14 @@ export default function SevadhariPage({ data }: any) {
       ]
     }
   };
-  const videoHeroData = {mediaType: "image" as 'image', mediaSrc:'/sevavideo.png', tagline: 'Q&A WITH SHUNYAMURTI', title: "Karma Yoga is the Highest Practice", description : "The highest and most important practice is karma yoga, meaning that we lead an active life of service to God, community, and world while in full realization that all is consciousness, nothing is outside consciousness, and thus no one is working and nothing is happening—only the manifestation of the free Self-expression of the Supreme Intelligence."}
+  const videoHeroData = {
+    mediaType: "youtube" as 'youtube',
+    mediaSrc: 'https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/sevadhari-karma-yoga-thumbnail/public',
+    youtubeId: 'pDjThYJtM4c',
+    tagline: 'Q&A WITH SHUNYAMURTI',
+    title: "Karma Yoga is the Highest Practice",
+    description: "The highest and most important practice is karma yoga, meaning that we lead an active life of service to God, community, and world while in full realization that all is consciousness, nothing is outside consciousness, and thus no one is working and nothing is happening—only the manifestation of the free Self-expression of the Supreme Intelligence."
+  }
 
   const standardSectionData: StandardSectionData = {tagline:"OPENINGS", title:"We’re looking for highly skilled applicants!", description:"The majority of our service opportunities are in our gardens, greenhouses, and kitchen helping to maintain the daily cycle of abundance from farm to table. Most of our sevadharis will be doing hands-on physical work that may require, in some instances, endurance and strong physical fitness. We also offer a very few select opportunities for highly skilled and professionally trained applicants in the areas of media/outreach, healthcare and animal husbandry.", ctabuttontext:"contact", ctabuttonurl:"/application?program=sevadhari"}
 return (
@@ -202,10 +129,10 @@ return (
     <QuoteSection data={"A seeker of the Real should not follow a beaten path. The way to completion is to develop originality. Sat Yoga is not a path: we teach you how to use a compass and a machete, and we encourage you to cut a new path of your own."} />
     <TwoPaneComponent data={whatSeva}/>
     <VideoHeroSection data={videoHeroData}/>
-    <TwoPaneComponent data={applicationProcessData}/>
+    {applicationProcessData && <TwoPaneComponent data={applicationProcessData}/>}
     <ScheduleSection data={scheduleData}/>
     <StandardSection data={standardSectionData}/>
-    <ProductComponent data={shaktiBookingData}/>
+    {shaktiBookingData && <ProductComponent data={shaktiBookingData}/>}
     <ContactUsSection/>
     <RelatedProgramsSection data={relatedProgramsData}/>
     </>

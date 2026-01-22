@@ -34,8 +34,12 @@ export default function UsersManagementClient() {
     membership_tier: 'FREE',
     is_admin: false,
   });
+  const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const [originalTier, setOriginalTier] = useState<string>('');
+  const [originalIsAdmin, setOriginalIsAdmin] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -50,7 +54,7 @@ export default function UsersManagementClient() {
       if (tierFilter !== 'all') url += `membership_tier=${tierFilter}`;
 
       const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${session?.accessToken}` },
+        headers: { 'Authorization': `Bearer ${session?.user?.accessToken}` },
       });
 
       if (response.ok) {
@@ -68,7 +72,7 @@ export default function UsersManagementClient() {
     try {
       const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
       const response = await fetch(`${FASTAPI_URL}/api/users/admin/stats`, {
-        headers: { 'Authorization': `Bearer ${session?.accessToken}` },
+        headers: { 'Authorization': `Bearer ${session?.user?.accessToken}` },
       });
 
       if (response.ok) {
@@ -80,19 +84,83 @@ export default function UsersManagementClient() {
     }
   };
 
+  const openCreateModal = () => {
+    setSelectedUser(null);
+    setIsCreating(true);
+    setFormData({
+      name: '',
+      email: '',
+      membership_tier: 'FREE',
+      is_admin: false,
+    });
+    setReason('');
+    setShowModal(true);
+  };
+
   const editUser = (user: User) => {
     setSelectedUser(user);
+    setIsCreating(false);
     setFormData({
       name: user.name,
       email: user.email,
       membership_tier: user.membership_tier,
       is_admin: user.is_admin,
     });
+    setOriginalTier(user.membership_tier);
+    setOriginalIsAdmin(user.is_admin);
+    setReason('');
     setShowModal(true);
+  };
+
+  const createUser = async () => {
+    // Validate required fields
+    if (!formData.name.trim() || !formData.email.trim()) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+      const response = await fetch(
+        `${FASTAPI_URL}/api/users/admin/users`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.user?.accessToken}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (response.ok) {
+        setShowModal(false);
+        fetchUsers();
+        fetchStats();
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to create user');
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      alert('Failed to create user');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const saveUser = async () => {
     if (!selectedUser) return;
+
+    // Check if tier or admin status changed and reason is required
+    const tierChanged = formData.membership_tier !== originalTier;
+    const adminChanged = formData.is_admin !== originalIsAdmin;
+
+    if ((tierChanged || adminChanged) && !reason.trim()) {
+      alert('Please provide a reason for changing membership tier or admin status');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -103,19 +171,27 @@ export default function UsersManagementClient() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.accessToken}`,
+            'Authorization': `Bearer ${session?.user?.accessToken}`,
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            reason: reason.trim() || undefined,
+          }),
         }
       );
 
       if (response.ok) {
         setShowModal(false);
+        setReason('');
         fetchUsers();
         fetchStats();
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to update user');
       }
     } catch (error) {
       console.error('Error updating user:', error);
+      alert('Failed to update user');
     } finally {
       setSaving(false);
     }
@@ -130,7 +206,7 @@ export default function UsersManagementClient() {
         `${FASTAPI_URL}/api/users/admin/users/${userId}`,
         {
           method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${session?.accessToken}` },
+          headers: { 'Authorization': `Bearer ${session?.user?.accessToken}` },
         }
       );
 
@@ -168,11 +244,19 @@ export default function UsersManagementClient() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Users Management</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Manage user accounts, memberships, and permissions
-        </p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Users Management</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage user accounts, memberships, and permissions
+          </p>
+        </div>
+        <button
+          onClick={openCreateModal}
+          className="px-4 py-2 bg-[#7D1A13] hover:bg-[#9d2419] text-white rounded-lg font-medium"
+        >
+          Create User
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -285,11 +369,13 @@ export default function UsersManagementClient() {
         )}
       </div>
 
-      {/* Edit User Modal */}
-      {showModal && selectedUser && (
+      {/* Create/Edit User Modal */}
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Edit User</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {isCreating ? 'Create User' : 'Edit User'}
+            </h2>
 
             <div className="space-y-4">
               <div>
@@ -335,6 +421,26 @@ export default function UsersManagementClient() {
                 />
                 <label className="ml-2 block text-sm text-gray-900">Admin Access</label>
               </div>
+
+              {/* Reason field - shown when tier or admin status changes (edit mode only) */}
+              {!isCreating && (formData.membership_tier !== originalTier || formData.is_admin !== originalIsAdmin) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Reason for Change <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Explain why you are changing the membership tier or admin status..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    This reason will be logged in the audit trail.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex gap-2 justify-end">
@@ -345,11 +451,11 @@ export default function UsersManagementClient() {
                 Cancel
               </button>
               <button
-                onClick={saveUser}
+                onClick={isCreating ? createUser : saveUser}
                 disabled={saving}
                 className="px-4 py-2 bg-[#7D1A13] hover:bg-[#9d2419] disabled:bg-gray-400 text-white rounded-lg"
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? 'Saving...' : (isCreating ? 'Create User' : 'Save Changes')}
               </button>
             </div>
           </div>

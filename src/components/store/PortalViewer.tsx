@@ -15,32 +15,57 @@ interface PortalMedia {
 interface PortalViewerProps {
   portalMedia: PortalMedia;
   productTitle: string;
+  digitalContentUrl?: string | null; // For single-file products (audio, ebook)
 }
 
-export function PortalViewer({ portalMedia, productTitle }: PortalViewerProps) {
+export function PortalViewer({ portalMedia, productTitle, digitalContentUrl }: PortalViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mediaType, setMediaType] = useState<'video' | 'audio'>('video');
 
+  // Debug: Log the portal media structure
+  console.log('[PortalViewer] Portal Media:', {
+    youtube: portalMedia?.youtube?.length || 0,
+    mp3: portalMedia?.mp3?.length || 0,
+    vimeo: portalMedia?.vimeo?.length || 0,
+    cloudflare: portalMedia?.cloudflare?.length || 0,
+    mp4: portalMedia?.mp4?.length || 0,
+  });
+  console.log('[PortalViewer] digitalContentUrl:', digitalContentUrl);
+
   const allVideos = [
-    ...portalMedia.youtube.map(url => ({ type: 'youtube' as const, url })),
-    ...portalMedia.vimeo.map(url => ({ type: 'vimeo' as const, url })),
-    ...portalMedia.cloudflare.map(url => ({ type: 'cloudflare' as const, url })),
-    ...portalMedia.mp4.map(url => ({ type: 'mp4' as const, url })),
+    ...(portalMedia?.youtube || []).map(url => ({ type: 'youtube' as const, url })),
+    ...(portalMedia?.vimeo || []).map(url => ({ type: 'vimeo' as const, url })),
+    ...(portalMedia?.cloudflare || []).map(url => ({ type: 'cloudflare' as const, url })),
+    ...(portalMedia?.mp4 || []).map(url => ({ type: 'mp4' as const, url })),
   ];
 
-  const allAudios = portalMedia.mp3.map((url, i) => ({ url, title: `Audio ${i + 1}` }));
+  // Build audio list: include digital_content_url if present, plus any mp3s in portal_media
+  // Check if digital_content_url is a PDF
+  const isPDF = digitalContentUrl?.toLowerCase().endsWith('.pdf');
+
+  const allAudios = [
+    ...(digitalContentUrl && !isPDF ? [{ url: digitalContentUrl, title: productTitle }] : []),
+    ...(portalMedia?.mp3 || []).map((url, i) => ({ url, title: `Audio ${i + 1}` }))
+  ];
+
   const currentMedia = mediaType === 'video' ? allVideos : allAudios;
   const totalItems = currentMedia.length;
 
+  console.log('[PortalViewer] Total videos:', allVideos.length, 'Total audios:', allAudios.length);
+  console.log('[PortalViewer] isPDF:', isPDF, 'PDF URL:', digitalContentUrl);
+
   const getEmbedUrl = (item: any) => {
     if (item.type === 'youtube') {
-      const videoId = item.url.includes('youtu.be') 
-        ? item.url.split('/').pop() 
+      // Fix: Handle query parameters properly
+      const videoId = item.url.includes('youtu.be')
+        ? item.url.split('/').pop().split('?')[0]
         : new URL(item.url).searchParams.get('v');
-      return `https://www.youtube.com/embed/${videoId}`;
+      const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      console.log('[PortalViewer] YouTube embed URL:', embedUrl);
+      return embedUrl;
     }
     if (item.type === 'vimeo') {
-      const videoId = item.url.split('/').pop();
+      const videoId = item.url.split('/').pop().split('?')[0];
       return `https://player.vimeo.com/video/${videoId}`;
     }
     return item.url;
@@ -49,8 +74,54 @@ export function PortalViewer({ portalMedia, productTitle }: PortalViewerProps) {
   const goNext = () => setCurrentIndex((i) => (i + 1) % totalItems);
   const goPrev = () => setCurrentIndex((i) => (i - 1 + totalItems) % totalItems);
 
+  console.log('[PortalViewer] ===== RENDERING =====');
+  console.log('[PortalViewer] mediaType:', mediaType);
+  console.log('[PortalViewer] currentIndex:', currentIndex);
+  console.log('[PortalViewer] totalItems:', totalItems);
+
+  // If it's a PDF ebook, display PDF viewer
+  if (isPDF && digitalContentUrl) {
+    console.log('[PortalViewer] Displaying PDF viewer for:', digitalContentUrl);
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
+          <div className="p-4 bg-gray-50 border-b border-gray-200">
+            <h3 className="font-semibold text-lg" style={{ fontFamily: 'Optima, serif' }}>{productTitle}</h3>
+            <p className="text-sm text-gray-600" style={{ fontFamily: 'Avenir Next, sans-serif' }}>PDF Document</p>
+          </div>
+          <div className="aspect-[3/4] max-h-[800px]">
+            <iframe
+              src={digitalContentUrl}
+              className="w-full h-full"
+              title={productTitle}
+            />
+          </div>
+          <div className="p-4 bg-gray-50 border-t border-gray-200">
+            <a
+              href={digitalContentUrl}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-4 py-2 bg-[#8B7355] text-white rounded-md hover:bg-[#6B5545] transition-colors"
+              style={{ fontFamily: 'Avenir Next, sans-serif' }}
+            >
+              Download PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (totalItems === 0) {
-    return <div className="text-center py-12 bg-gray-50 rounded-lg"><p className="text-gray-600">No media available for this retreat</p></div>;
+    console.log('[PortalViewer] ❌ NO ITEMS TO DISPLAY');
+    return <div className="text-center py-12 bg-gray-50 rounded-lg"><p className="text-gray-600">No media available for this product</p></div>;
+  }
+
+  console.log('[PortalViewer] Current item:', currentMedia[currentIndex]);
+  if (mediaType === 'video' && allVideos[currentIndex]) {
+    const embedUrl = getEmbedUrl(allVideos[currentIndex]);
+    console.log('[PortalViewer] Video embed URL:', embedUrl);
   }
 
   return (
@@ -100,7 +171,7 @@ export function PortalViewer({ portalMedia, productTitle }: PortalViewerProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+      <div className="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto">
         {currentMedia.map((item, index) => (
           <button
             key={index}

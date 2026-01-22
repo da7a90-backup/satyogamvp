@@ -1,532 +1,597 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { Session } from 'next-auth';
+import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { COUNTRIES } from '@/lib/constants';
 
-// Types
-interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  country: string;
-  address: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  cardNumber: string;
-  expiryDate: string;
-  cvv: string;
+interface MembershipCheckoutClientProps {
+  tier: string;
+  frequency: string;
+  trial: boolean;
+  session: Session;
 }
 
-interface FormErrors {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  cardNumber?: string;
-  expiryDate?: string;
-  cvv?: string;
+declare global {
+  interface Window {
+    Tilopay: any;
+    jQuery: any;
+    $: any;
+  }
 }
 
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-}
-
-interface OrderSummary {
-  plan: string;
-  subtotal: number;
-  discount: number;
-  total: number;
-  discountCode: string;
-}
-
-// Order Summary Component
-const OrderSummary: React.FC<{
-  plan: string;
-  subtotal: number;
-  discount: number;
-  total: number;
-  discountCode: string;
-  onRemoveDiscount: () => void;
-}> = ({ plan, subtotal, discount, total, discountCode, onRemoveDiscount }) => {
-  return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200">
-      <h2 className="text-xl font-bold mb-4">Level 1: {plan}</h2>
-      
-      <div className="mb-6">
-        <div className="text-3xl font-bold">${total}<span className="text-lg font-normal text-gray-500">/mo</span></div>
-        <div className="text-sm text-gray-500 mt-1">10 days Gyani free trial</div>
-      </div>
-      
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Includes:</h3>
-        <ul className="space-y-2">
-          <li className="flex items-center">
-            <svg className="h-5 w-5 text-gray-900 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Featured Teaching</span>
-          </li>
-          <li className="flex items-center">
-            <svg className="h-5 w-5 text-gray-900 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Full-Length Teachings Library / Satsangs</span>
-          </li>
-        </ul>
-        <button className="text-purple-600 text-sm font-medium mt-3">View more</button>
-      </div>
-      
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Discount code</h3>
-        {discountCode ? (
-          <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
-            <span className="font-medium">"{discountCode}"</span>
-            <button onClick={onRemoveDiscount} className="text-purple-600 font-medium">Remove</button>
-          </div>
-        ) : (
-          <div className="relative">
-            <input 
-              type="text" 
-              className="w-full p-2 border border-gray-300 rounded"
-              placeholder="Enter discount code"
-            />
-            <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-              Apply
-            </button>
-          </div>
-        )}
-      </div>
-      
-      <div className="border-t border-gray-200 pt-4 mb-4">
-        <div className="flex justify-between mb-2">
-          <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
-        </div>
-        {discountCode && (
-          <div className="flex justify-between text-green-600 mb-2">
-            <span>Discount "{discountCode}"</span>
-            <span>-${discount.toFixed(2)}</span>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex justify-between font-bold text-lg">
-        <span>Total</span>
-        <span>${total.toFixed(2)}</span>
-      </div>
-    </div>
-  );
+// Pricing map - displays per-month price based on billing frequency
+const PRICING = {
+  gyani: { monthly: 20, annual: 15 },        // $20/mo billed monthly, $15/mo billed annually ($180/year)
+  pragyani: { monthly: 100, annual: 83 },    // $100/mo billed monthly, $83/mo billed annually ($996/year)
+  pragyani_plus: { monthly: 142, annual: 142 }, // $142/mo billed annually only ($1704/year)
 };
 
-// Contact Information Form Component
-const ContactInformationForm: React.FC<{
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  errors: FormErrors;
-}> = ({ formData, setFormData, errors }) => {
-  return (
-    <div className="mb-8">
-      <h2 className="text-xl font-medium text-purple-600 mb-4">Contact information</h2>
-      
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium mb-1">
-            First name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="firstName"
-            type="text"
-            value={formData.firstName}
-            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-            className={`w-full p-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="First name"
-          />
-          {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
-        </div>
-        
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium mb-1">
-            Last name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="lastName"
-            type="text"
-            value={formData.lastName}
-            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-            className={`w-full p-2 border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="Last name"
-          />
-          {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
-        </div>
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="email" className="block text-sm font-medium mb-1">
-          Email <span className="text-red-500">*</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
-          className={`w-full p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded`}
-          placeholder="you@company.com"
-        />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="country" className="block text-sm font-medium mb-1">
-          Country
-        </label>
-        <select
-          id="country"
-          value={formData.country}
-          onChange={(e) => setFormData({...formData, country: e.target.value})}
-          className="w-full p-2 border border-gray-300 rounded appearance-none"
-        >
-          <option value="">Select one...</option>
-          <option value="US">United States</option>
-          <option value="CA">Canada</option>
-          <option value="CR">Costa Rica</option>
-          <option value="MX">Mexico</option>
-          <option value="UK">United Kingdom</option>
-        </select>
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="address" className="block text-sm font-medium mb-1">
-          Street adress
-        </label>
-        <input
-          id="address"
-          type="text"
-          value={formData.address}
-          onChange={(e) => setFormData({...formData, address: e.target.value})}
-          className="w-full p-2 border border-gray-300 rounded"
-          placeholder="Insert adress"
-        />
-      </div>
-      
-      <div className="mb-4">
-        <label htmlFor="city" className="block text-sm font-medium mb-1">
-          City
-        </label>
-        <input
-          id="city"
-          type="text"
-          value={formData.city}
-          onChange={(e) => setFormData({...formData, city: e.target.value})}
-          className="w-full p-2 border border-gray-300 rounded"
-          placeholder="Insert city"
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium mb-1">
-            State / Province
-          </label>
-          <input
-            id="state"
-            type="text"
-            value={formData.state}
-            onChange={(e) => setFormData({...formData, state: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
-            placeholder="First name"
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="postalCode" className="block text-sm font-medium mb-1">
-            ZIP / Postal code
-          </label>
-          <input
-            id="postalCode"
-            type="text"
-            value={formData.postalCode}
-            onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
-            placeholder="Last name"
-          />
-        </div>
-      </div>
-    </div>
-  );
+// Tier display names
+const TIER_NAMES = {
+  gyani: 'Gyani',
+  pragyani: 'Pragyani',
+  pragyani_plus: 'Pragyani Plus',
 };
 
-// Subscription Plan Component
-const SubscriptionPlanForm: React.FC<{
-  plans: SubscriptionPlan[];
-  selectedPlan: string;
-  setSelectedPlan: (id: string) => void;
-}> = ({ plans, selectedPlan, setSelectedPlan }) => {
-  return (
-    <div className="mb-8">
-      <h2 className="text-xl font-medium text-purple-600 mb-4">Choose your plan</h2>
-      <p className="text-gray-700 mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-      
-      <div className="space-y-4">
-        {plans.map((plan) => (
-          <div key={plan.id} className="border border-gray-200 rounded-lg p-4">
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="radio"
-                className="form-radio h-5 w-5 text-gray-900"
-                checked={selectedPlan === plan.id}
-                onChange={() => setSelectedPlan(plan.id)}
-              />
-              <div className="ml-3">
-                <div className="flex items-center">
-                  <span className="font-medium">{plan.name}</span>
-                  <span className="ml-2 text-gray-700">${plan.price}</span>
-                </div>
-                <p className="text-sm text-gray-500">{plan.description}</p>
-              </div>
-            </label>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Payment Information Form Component
-const PaymentInformationForm: React.FC<{
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  errors: FormErrors;
-  processing: boolean;
-}> = ({ formData, setFormData, errors, processing }) => {
-  return (
-    <div>
-      <h2 className="text-xl font-medium text-purple-600 mb-4">Payment information</h2>
-      
-      <div className="mb-4">
-        <label htmlFor="cardNumber" className="block text-sm font-medium mb-1">
-          Card number <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-          </div>
-          <input
-            id="cardNumber"
-            type="text"
-            value={formData.cardNumber}
-            onChange={(e) => setFormData({...formData, cardNumber: e.target.value})}
-            className={`w-full pl-10 pr-3 py-2 border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="0000 0000 0000 0000"
-          />
-        </div>
-        {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber}</p>}
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="expiryDate" className="block text-sm font-medium mb-1">
-            Expiry
-          </label>
-          <input
-            id="expiryDate"
-            type="text"
-            value={formData.expiryDate}
-            onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
-            className={`w-full p-2 border ${errors.expiryDate ? 'border-red-500' : 'border-gray-300'} rounded`}
-            placeholder="MM/YY"
-          />
-          {errors.expiryDate && <p className="text-red-500 text-sm mt-1">{errors.expiryDate}</p>}
-        </div>
-        
-        <div>
-          <label htmlFor="cvv" className="block text-sm font-medium mb-1">
-            CVV
-          </label>
-          <input
-            id="cvv"
-            type="text"
-            value={formData.cvv}
-            onChange={(e) => setFormData({...formData, cvv: e.target.value})}
-            className={`w-full p-2 border ${errors.cvv ? 'border-red-500' : 'border-gray-300'} rounded`}
-            maxLength={4}
-          />
-          {errors.cvv && <p className="text-red-500 text-sm mt-1">{errors.cvv}</p>}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Main Checkout Client Component
-export default function MembershipCheckoutClient() {
+export default function MembershipCheckoutClient({
+  tier,
+  frequency,
+  trial,
+  session,
+}: MembershipCheckoutClientProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sdkInitialized, setSdkInitialized] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const planParam = searchParams.get('plan') || 'gyani';
-  
+  const responseTilopayRef = useRef<HTMLDivElement>(null);
+
   // Form state
-  const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    country: '',
+  const [formData, setFormData] = useState({
+    firstName: session.user?.name?.split(' ')[0] || '',
+    lastName: session.user?.name?.split(' ').slice(1).join(' ') || '',
+    email: session.user?.email || '',
     address: '',
     city: '',
     state: '',
     postalCode: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
+    country: 'US',
+    telephone: '',
   });
-  
-  // Validation errors
-  const [errors, setErrors] = useState<FormErrors>({});
-  
-  // Processing state
-  const [processing, setProcessing] = useState(false);
-  
-  // Subscription plans
-  const [subscriptionPlans] = useState<SubscriptionPlan[]>([
-    {
-      id: 'gyani-monthly',
-      name: 'Gyani $20',
-      price: 20,
-      description: 'Monthly subscription'
-    },
-    {
-      id: 'gyani-yearly',
-      name: 'Gyani $200',
-      price: 200,
-      description: 'Yearly subscription'
-    }
-  ]);
-  
-  // Selected plan
-  const [selectedPlan, setSelectedPlan] = useState<string>('gyani-monthly');
-  
-  // Order summary details
-  const [orderSummary, setOrderSummary] = useState<OrderSummary>({
-    plan: 'Gyani',
-    subtotal: 110.00,
-    discount: 10.00,
-    total: 100.00,
-    discountCode: 'WELCOME10'
-  });
-  
-  // Remove discount code
-  const handleRemoveDiscount = () => {
-    setOrderSummary({
-      ...orderSummary,
-      discountCode: '',
-      discount: 0,
-      total: orderSummary.subtotal
+
+  // Get amount based on tier and frequency
+  const amount = PRICING[tier as keyof typeof PRICING][frequency as 'monthly' | 'annual'];
+  const tierName = TIER_NAMES[tier as keyof typeof TIER_NAMES];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
     });
   };
-  
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Form validation
-    const newErrors: FormErrors = {};
-    if (!formData.firstName) newErrors.firstName = 'First name is required';
-    if (!formData.lastName) newErrors.lastName = 'Last name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    if (!formData.cardNumber) newErrors.cardNumber = 'Card number is required';
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    
-    // Clear errors and start processing
-    setErrors({});
-    setProcessing(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
+
+  // Load Tilopay SDK
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://app.tilopay.com/sdk/v2/sdk_tpay.min.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('Tilopay SDK loaded');
+      setIsLoading(false);
+    };
+    script.onerror = () => {
+      setError('Failed to load payment SDK. Please refresh the page.');
+      setIsLoading(false);
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const initializeTilopaySDK = async () => {
+    try {
+      // Validate required fields
+      if (!formData.firstName || !formData.lastName || !formData.email) {
+        alert('Please fill in your name and email address');
+        return;
+      }
+
+      if (!formData.address || !formData.city || !formData.state || !formData.postalCode) {
+        alert('Please fill in your complete billing address');
+        return;
+      }
+
+      setProcessing(true);
+      setError(null);
+
+      console.log('Initializing Tilopay SDK for membership:', { tier, frequency, trial });
+
+      // Create payment via backend
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/payments/membership`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.user.accessToken}`,
+          },
+          body: JSON.stringify({
+            tier,
+            frequency,
+            trial: trial && tier === 'gyani',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to create payment');
+      }
+
+      const data = await response.json();
+      console.log('Got payment data from backend:', data);
+
+      // Initialize Tilopay SDK V2
+      console.log('Calling Tilopay.Init with params:', {
+        token: data.tilopay_key,
+        currency: data.currency,
+        amount: data.amount,
+        orderNumber: data.order_number,
+        subscription: data.is_subscription ? 1 : 0,
+      });
+
+      const initialize = await window.Tilopay.Init({
+        token: data.tilopay_key,
+        currency: data.currency,
+        amount: data.amount,
+        orderNumber: data.order_number,
+        capture: '1',
+        redirect: `${window.location.origin}/dashboard/user?upgrade=success`,
+        subscription: data.is_subscription ? 1 : 0, // CRITICAL: 1 for monthly recurring, 0 for annual one-time
+        // Billing information (required for payment processing)
+        billToFirstName: data.first_name,
+        billToLastName: data.last_name,
+        billToEmail: data.customer_email,
+        billToAddress: formData.address,
+        billToAddress2: '',
+        billToCity: formData.city,
+        billToState: formData.state,
+        billToZipPostCode: formData.postalCode,
+        billToCountry: formData.country,
+        billToTelephone: formData.telephone || '',
+      });
+
+      console.log('Tilopay.Init response:', initialize);
+
+      // Check if initialization was successful
+      if (!initialize || initialize.message !== 'Success') {
+        const errorMsg = initialize?.message || 'SDK initialization failed - no response';
+        console.error('Tilopay initialization failed:', errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      // Auto-select first payment method if available
+      if (initialize.methods && initialize.methods.length > 0) {
+        setTimeout(() => {
+          const methodSelect = document.getElementById('tlpy_payment_method') as HTMLSelectElement;
+          if (methodSelect) {
+            methodSelect.value = initialize.methods[0].id;
+            console.log('Auto-selected payment method:', initialize.methods[0].id);
+          }
+        }, 100);
+      }
+
+      setSdkInitialized(true);
       setProcessing(false);
-      // Redirect to thank you page
-      router.push('/membership/thank-you');
-    }, 2000);
+    } catch (err: any) {
+      console.error('Payment initialization error:', err);
+      setError(err.message || 'Failed to initialize payment. Please try again.');
+      setProcessing(false);
+    }
   };
 
-  return (
-    <>
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link href="/membership" className="inline-flex items-center text-gray-500 hover:text-gray-800">
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back
-          </Link>
-        </div>
+  const handleProceedToPayment = async () => {
+    await initializeTilopaySDK();
+  };
+
+  const handlePayment = async () => {
+    if (!sdkInitialized) {
+      alert('Please click "Proceed to Payment" first to load the payment form');
+      return;
+    }
+
+    // Validate form fields before submitting
+    const paymentMethod = (document.getElementById('tlpy_payment_method') as HTMLSelectElement)?.value;
+    const cardNumber = (document.getElementById('tlpy_cc_number') as HTMLInputElement)?.value;
+    const cvv = (document.getElementById('tlpy_cvv') as HTMLInputElement)?.value;
+    const expDate = (document.getElementById('tlpy_cc_expiration_date') as HTMLInputElement)?.value;
+
+    console.log('Form validation:', {
+      paymentMethod,
+      cardNumber: cardNumber ? 'PRESENT' : 'MISSING',
+      cvv: cvv ? 'PRESENT' : 'MISSING',
+      expDate: expDate ? 'PRESENT' : 'MISSING',
+    });
+
+    if (!paymentMethod) {
+      alert('Please select a payment method');
+      return;
+    }
+
+    if (!cardNumber || !cvv || !expDate) {
+      alert('Please fill in all card details');
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      setError(null);
+
+      console.log('Starting payment...');
+      await window.Tilopay.startPayment();
+      // Tilopay will redirect to success URL or webhook will process
+      console.log('Payment initiated successfully');
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      setError(err.message || 'Payment failed. Please try again.');
+      setProcessing(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
-      
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Left Column - Form */}
-          <div className="md:col-span-2">
-            <form onSubmit={handleSubmit}>
-              <ContactInformationForm 
-                formData={formData}
-                setFormData={setFormData}
-                errors={errors}
-              />
-              
-              <SubscriptionPlanForm 
-                plans={subscriptionPlans}
-                selectedPlan={selectedPlan}
-                setSelectedPlan={setSelectedPlan}
-              />
-              
-              <PaymentInformationForm 
-                formData={formData}
-                setFormData={setFormData}
-                errors={errors}
-                processing={processing}
-              />
-              
-              <div className="mt-8 flex justify-end space-x-4">
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FAF8F1] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-[#942017] mb-2" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+            Complete Your {tierName} Membership
+          </h1>
+          <p className="text-[#414651]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+            {frequency === 'monthly' ? 'Monthly' : 'Annual'} Subscription
+            {trial && ' • 10-Day Free Trial'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2 bg-white rounded-lg border border-[#D2D6DB] p-6">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-semibold text-red-800" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Error</h3>
+                  <p className="text-sm text-red-700" style={{ fontFamily: 'Avenir Next, sans-serif' }}>{error}</p>
+                </div>
+              </div>
+            )}
+
+            <h2 className="text-xl font-bold text-[#942017] mb-6" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Billing Information</h2>
+
+            {/* Billing Form */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    First Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                  style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                  Address *
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="Street address"
+                  className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                  style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    City *
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    State *
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    placeholder="CA"
+                    className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    ZIP Code *
+                  </label>
+                  <input
+                    type="text"
+                    name="postalCode"
+                    value={formData.postalCode}
+                    onChange={handleInputChange}
+                    placeholder="12345"
+                    className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    Country *
+                  </label>
+                  <select
+                    name="country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    required
+                  >
+                    {COUNTRIES.map((country) => (
+                      <option key={country.code} value={country.code}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    Phone (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    name="telephone"
+                    value={formData.telephone}
+                    onChange={handleInputChange}
+                    placeholder="+1 (555) 123-4567"
+                    className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Proceed to Payment Button */}
+            {!sdkInitialized && (
+              <div className="mt-8">
                 <button
-                  type="button"
-                  onClick={() => router.back()}
-                  className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 font-medium"
+                  onClick={handleProceedToPayment}
                   disabled={processing}
+                  className="w-full bg-[#942017] text-white py-3 px-4 rounded-md font-semibold hover:bg-[#7D1A13] disabled:bg-[#D2D6DB] disabled:cursor-not-allowed transition-colors"
+                  style={{ fontFamily: 'Avenir Next, sans-serif' }}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-gray-900 text-white rounded-md font-medium hover:bg-gray-800 disabled:opacity-70"
-                  disabled={processing}
-                >
-                  {processing ? 'Processing...' : 'Confirm payment'}
+                  {processing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Loading Payment Form...
+                    </span>
+                  ) : (
+                    'Proceed to Payment'
+                  )}
                 </button>
               </div>
-            </form>
+            )}
+
+            {/* Payment Form (injected by Tilopay SDK) */}
+            {sdkInitialized && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-[#942017] mb-6" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Payment Details</h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                      Payment Method
+                    </label>
+                    <select
+                      id="tlpy_payment_method"
+                      className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                      style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    ></select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                      Card Number
+                    </label>
+                    <div id="tlpy_cc_number" className="w-full"></div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                        Expiry Date
+                      </label>
+                      <div id="tlpy_cc_expiration_date" className="w-full"></div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                        CVV
+                      </label>
+                      <div id="tlpy_cvv" className="w-full"></div>
+                    </div>
+                  </div>
+
+                  {/* 3DS iframe container */}
+                  <div id="responseTilopay" ref={responseTilopayRef}></div>
+                </div>
+
+                <div className="mt-8">
+                  <button
+                    onClick={handlePayment}
+                    disabled={processing}
+                    className="w-full bg-[#942017] text-white py-3 px-4 rounded-md font-semibold hover:bg-[#7D1A13] disabled:bg-[#D2D6DB] disabled:cursor-not-allowed transition-colors"
+                    style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                  >
+                    {processing ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Processing Payment...
+                      </span>
+                    ) : (
+                      `Pay $${frequency === 'monthly' ? amount : amount * 12}`
+                    )}
+                  </button>
+                </div>
+
+                <p className="text-xs text-[#6B7280] text-center mt-4" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                  Your payment is secure and encrypted. By completing this purchase, you agree to our Terms of Service.
+                </p>
+              </div>
+            )}
           </div>
-          
-          {/* Right Column - Order Summary */}
-          <div>
-            <OrderSummary 
-              plan={orderSummary.plan}
-              subtotal={orderSummary.subtotal}
-              discount={orderSummary.discount}
-              total={orderSummary.total}
-              discountCode={orderSummary.discountCode}
-              onRemoveDiscount={handleRemoveDiscount}
-            />
+
+          {/* Order Summary Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg border border-[#D2D6DB] p-6 sticky top-4">
+              <h2 className="text-xl font-bold text-[#942017] mb-4" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Order Summary</h2>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#6B7280]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Plan:</span>
+                  <span className="font-semibold text-[#414651]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>{tierName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#6B7280]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Billing:</span>
+                  <span className="font-semibold capitalize text-[#414651]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>{frequency}</span>
+                </div>
+                {trial && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#6B7280]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Trial:</span>
+                    <span className="font-semibold text-[#059669]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>10 days free</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-[#D2D6DB] pt-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-bold text-[#414651]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    {frequency === 'monthly' ? 'Monthly Total' : 'Annual Total'}
+                  </span>
+                  <span className="text-2xl font-bold text-[#942017]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    ${frequency === 'monthly' ? amount : amount * 12}
+                  </span>
+                </div>
+                <p className="text-xs text-[#6B7280] mt-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                  {frequency === 'monthly' ? 'Billed monthly' : `Billed annually ($${amount}/month)`}
+                </p>
+              </div>
+
+              {trial && (
+                <div className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-lg p-4 mb-4">
+                  <div className="flex items-start gap-2">
+                    <Check className="w-5 h-5 text-[#059669] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#065F46]" style={{ fontFamily: 'Avenir Next, sans-serif' }}>10-Day Free Trial</h3>
+                      <p className="text-xs text-[#047857] mt-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                        You won't be charged today. Your first payment of ${frequency === 'monthly' ? amount : amount * 12} will be processed after your trial ends.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2 text-xs text-[#6B7280]">
+                <p className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-[#059669] flex-shrink-0 mt-0.5" />
+                  <span style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    {frequency === 'monthly' ? 'Cancel anytime' : 'Full year access'}
+                  </span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-[#059669] flex-shrink-0 mt-0.5" />
+                  <span style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    Instant access to all {tierName} features
+                  </span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-[#059669] flex-shrink-0 mt-0.5" />
+                  <span style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                    Secure payment processing
+                  </span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from .core.config import settings
 from .core.database import engine, Base
-from .routers import auth, users, teachings, courses, retreats, events, products, payments, email, admin, forms, blog
+from .routers import auth, users, teachings, courses, retreats, book_groups, events, products, cart, payments, email, admin, forms, blog, search, analytics, forum, hidden_tags, dynamic_forms, testimonials, audit_logs, recommendations, cron
 from .routers import static_pages, static_content, online_retreats, faq, form_templates, admin_static_content
 
 
@@ -38,18 +38,29 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(audit_logs.router, prefix="/api/audit-logs", tags=["Audit Logs"])
 app.include_router(teachings.router, prefix="/api/teachings", tags=["Teachings"])
 app.include_router(courses.router, prefix="/api/courses", tags=["Courses"])
 app.include_router(retreats.router, prefix="/api/retreats", tags=["Retreats"])
+app.include_router(book_groups.router, prefix="/api/book-groups", tags=["Book Groups"])
 app.include_router(events.router, prefix="/api/events", tags=["Events"])
 app.include_router(products.router, prefix="/api/products", tags=["Products & Store"])
+app.include_router(testimonials.router, prefix="/api/testimonials", tags=["Testimonials"])
+app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
+app.include_router(cart.router, prefix="/api/cart", tags=["Cart"])
 app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
+app.include_router(cron.router, prefix="/api/cron", tags=["Cron Jobs"])
 app.include_router(email.router, prefix="/api/email", tags=["Email Marketing"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(forms.router, prefix="/api/forms", tags=["Forms"])
+app.include_router(dynamic_forms.router, prefix="/api", tags=["Dynamic Forms"])
+app.include_router(forum.router, prefix="/api/forum", tags=["Forum"])
 app.include_router(form_templates.router, prefix="/api/form-templates", tags=["Form Templates"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(admin_static_content.router, prefix="/api/admin/content", tags=["Admin Static Content"])
 app.include_router(blog.router, prefix="/api/blog", tags=["Blog"])
+app.include_router(search.router, prefix="/api/search", tags=["Search"])
+app.include_router(hidden_tags.router, prefix="/api/hidden-tags", tags=["Hidden Tags"])
 
 # Static Content APIs
 app.include_router(static_pages.router, prefix="/api/pages", tags=["Static Pages"])

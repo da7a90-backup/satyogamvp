@@ -9,8 +9,15 @@ import uuid
 from ..core.database import get_db
 from ..core.deps import require_admin
 from ..models.user import User
-from ..models.event import Event, EventType
-from ..schemas.event import EventCreate, EventUpdate, EventResponse
+from ..models.event import Event, EventType, EventSession, LocationType, EventStructure
+from ..schemas.event import (
+    EventCreate,
+    EventUpdate,
+    EventResponse,
+    EventSessionCreate,
+    EventSessionUpdate,
+    EventSessionResponse
+)
 from ..services.media_service import MediaService
 
 router = APIRouter()
@@ -57,7 +64,7 @@ async def get_events(
     result = []
     for event in events:
         # Determine the event URL based on type and location
-        if event.type.value == "retreat" and event.location and "online" in event.location.lower():
+        if event.type.value.lower() == "retreat" and event.location and "online" in event.location.lower():
             event_url = f"/retreats/online/{event.slug}"
         else:
             event_url = f"/calendar/{event.slug}"
@@ -84,6 +91,112 @@ async def get_events(
         result.append(event_data)
 
     return {"events": result, "total": total, "skip": skip, "limit": limit}
+
+
+@router.get("/happening-now")
+async def get_happening_now(
+    db: Session = Depends(get_db),
+):
+    """
+    Get any event or session that is happening right now.
+    Returns the current live event/session for display on the dashboard.
+
+    This checks:
+    1. Events where start_datetime <= now <= end_datetime
+    2. For structured events, checks if there's a specific session happening now
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    now = datetime.utcnow()
+    logger.info(f"Checking for happening now events at {now}")
+
+    # Find all published events that are currently active (between start and end times)
+    active_events = db.query(Event).filter(
+        Event.is_published == True,
+        Event.start_datetime <= now,
+        Event.end_datetime >= now
+    ).all()
+
+    logger.info(f"Found {len(active_events)} active events")
+
+    if not active_events:
+        return {
+            "happening_now": None,
+            "message": "No events happening right now"
+        }
+
+    # Initialize media service
+    media_service = MediaService(db)
+
+    # For each active event, check if there's a specific session happening now
+    for event in active_events:
+        # Get sessions for structured events
+        if event.event_structure in [EventStructure.DAY_BY_DAY, EventStructure.WEEK_BY_WEEK]:
+            # Check if any session is happening now
+            for session in event.sessions:
+                if session.session_date and session.start_time:
+                    # Parse session datetime
+                    session_datetime = datetime.combine(
+                        session.session_date.date() if isinstance(session.session_date, datetime) else session.session_date,
+                        datetime.strptime(session.start_time, "%H:%M").time()
+                    )
+                    session_end = session_datetime + timedelta(minutes=session.duration_minutes or 90)
+
+                    if session_datetime <= now <= session_end:
+                        logger.info(f"Found happening now session: {session.title}")
+                        # Return the specific session happening now
+                        return {
+                            "happening_now": {
+                                "type": "session",
+                                "event": {
+                                    "id": str(event.id),
+                                    "slug": event.slug,
+                                    "title": event.title,
+                                    "type": event.type.value,
+                                    "location_type": event.location_type.value if event.location_type else "online",
+                                },
+                                "session": {
+                                    "id": str(session.id),
+                                    "title": session.title,
+                                    "description": session.description,
+                                    "session_date": session.session_date.isoformat() if session.session_date else None,
+                                    "start_time": session.start_time,
+                                    "duration_minutes": session.duration_minutes,
+                                    "zoom_link": session.zoom_link or event.zoom_link,
+                                    "video_url": session.video_url,
+                                }
+                            }
+                        }
+
+        # For simple events or recurring events, just return the event itself
+        logger.info(f"Found happening now event: {event.title}")
+        event_data = {
+            "happening_now": {
+                "type": "event",
+                "event": {
+                    "id": str(event.id),
+                    "slug": event.slug,
+                    "title": event.title,
+                    "description": event.description,
+                    "type": event.type.value,
+                    "location_type": event.location_type.value if event.location_type else "online",
+                    "start_datetime": event.start_datetime.isoformat() if event.start_datetime else None,
+                    "end_datetime": event.end_datetime.isoformat() if event.end_datetime else None,
+                    "zoom_link": event.zoom_link,
+                    "thumbnail_url": event.thumbnail_url,
+                }
+            }
+        }
+
+        # Resolve media URLs
+        event_data["happening_now"]["event"] = media_service.resolve_dict(event_data["happening_now"]["event"])
+        return event_data
+
+    return {
+        "happening_now": None,
+        "message": "No events happening right now"
+    }
 
 
 @router.get("/{slug}")
@@ -155,14 +268,30 @@ async def create_event(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    """Create a new event (admin only)."""
+    """Create a new event with optional sessions (admin only)."""
     # Check if slug already exists
     existing = db.query(Event).filter(Event.slug == event_data.slug).first()
     if existing:
         raise HTTPException(status_code=400, detail="Event with this slug already exists")
 
-    event = Event(**event_data.model_dump())
+    # Extract sessions data before creating event
+    sessions_data = event_data.sessions
+    event_dict = event_data.model_dump(exclude={'sessions'})
+
+    # Create event
+    event = Event(**event_dict)
     db.add(event)
+    db.flush()  # Flush to get event.id without committing
+
+    # Create sessions if provided
+    if sessions_data:
+        for session_data in sessions_data:
+            session = EventSession(
+                event_id=event.id,
+                **session_data.model_dump()
+            )
+            db.add(session)
+
     db.commit()
     db.refresh(event)
 
@@ -234,3 +363,101 @@ async def get_all_events_admin(
         "skip": skip,
         "limit": limit
     }
+
+
+# ============================================================================
+# EVENT SESSION ENDPOINTS - Managing Individual Sessions
+# ============================================================================
+
+@router.post("/admin/events/{event_id}/sessions", response_model=EventSessionResponse)
+async def create_event_session(
+    event_id: str,
+    session_data: EventSessionCreate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create a new session for an event (admin only)."""
+    # Verify event exists
+    event = db.query(Event).filter(Event.id == uuid.UUID(event_id)).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # Create session
+    session = EventSession(
+        event_id=uuid.UUID(event_id),
+        **session_data.model_dump()
+    )
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    return EventSessionResponse.model_validate(session)
+
+
+@router.put("/admin/events/{event_id}/sessions/{session_id}", response_model=EventSessionResponse)
+async def update_event_session(
+    event_id: str,
+    session_id: str,
+    session_data: EventSessionUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update an event session (admin only)."""
+    session = db.query(EventSession).filter(
+        EventSession.id == uuid.UUID(session_id),
+        EventSession.event_id == uuid.UUID(event_id)
+    ).first()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Update fields
+    for field, value in session_data.model_dump(exclude_unset=True).items():
+        setattr(session, field, value)
+
+    session.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(session)
+
+    return EventSessionResponse.model_validate(session)
+
+
+@router.delete("/admin/events/{event_id}/sessions/{session_id}")
+async def delete_event_session(
+    event_id: str,
+    session_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete an event session (admin only)."""
+    session = db.query(EventSession).filter(
+        EventSession.id == uuid.UUID(session_id),
+        EventSession.event_id == uuid.UUID(event_id)
+    ).first()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    db.delete(session)
+    db.commit()
+
+    return {"message": "Session deleted successfully"}
+
+
+@router.get("/admin/events/{event_id}/sessions", response_model=List[EventSessionResponse])
+async def get_event_sessions(
+    event_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get all sessions for an event (admin only)."""
+    # Verify event exists
+    event = db.query(Event).filter(Event.id == uuid.UUID(event_id)).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    sessions = db.query(EventSession).filter(
+        EventSession.event_id == uuid.UUID(event_id)
+    ).order_by(EventSession.session_number).all()
+
+    return [EventSessionResponse.model_validate(session) for session in sessions]

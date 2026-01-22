@@ -14,7 +14,7 @@ interface PageProps {
 
 async function getRetreatData(slug: string) {
   try {
-    const res = await fetch(`${FASTAPI_URL}/api/online-retreats/${slug}`, {
+    const res = await fetch(`${FASTAPI_URL}/api/retreats/${slug}`, {
       cache: 'no-store'
     });
 
@@ -150,7 +150,7 @@ export default async function Page({ params }: PageProps) {
 
 export async function generateStaticParams() {
   try {
-    const res = await fetch(`${FASTAPI_URL}/api/online-retreats`, {
+    const res = await fetch(`${FASTAPI_URL}/api/retreats/?retreat_type=online`, {
       cache: 'no-store'
     });
 

@@ -45,8 +45,7 @@ const HeroSection = ({ videoUrl, logoUrl, logoAlt, subtitle, onScrollClick }: He
 
   return (
     <section
-      className="relative w-full h-full flex items-center justify-center overflow-hidden"
-      style={{ margin: 0, padding: 0 }}
+      className="relative w-full h-screen min-h-screen lg:h-[115vh] lg:min-h-[115vh] flex items-center justify-center overflow-hidden m-0 p-0"
     >
       {/* Background Video */}
       <video

@@ -305,3 +305,216 @@ export async function uploadBlogImage(file: File): Promise<{ url: string; filena
 
   return response.json();
 }
+
+// ============================================================================
+// Blog Comment API Functions
+// ============================================================================
+
+export interface BlogCommentUserInfo {
+  id: string;
+  full_name: string;
+  email: string;
+  profile_image?: string;
+}
+
+export interface BlogComment {
+  id: string;
+  blog_post_id: string;
+  user_id: string;
+  user: BlogCommentUserInfo;
+  content: string;
+  is_approved: boolean;
+  parent_comment_id?: string;
+  created_at: string;
+  updated_at?: string;
+  replies: BlogComment[];
+}
+
+export interface BlogCommentListResponse {
+  comments: BlogComment[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+/**
+ * Get comments for a blog post
+ */
+export async function getBlogPostComments(
+  postId: string,
+  page: number = 1,
+  page_size: number = 20,
+  include_unapproved: boolean = false
+): Promise<BlogCommentListResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: page_size.toString(),
+    include_unapproved: include_unapproved.toString(),
+  });
+
+  const token = getAuthToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(
+    `${FASTAPI_URL}/api/blog/posts/${postId}/comments?${params}`,
+    { headers }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch comments');
+  }
+
+  return response.json();
+}
+
+/**
+ * Create a new comment on a blog post (authenticated users)
+ */
+export async function createBlogComment(
+  postId: string,
+  content: string,
+  parentCommentId?: string
+): Promise<BlogComment> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const response = await fetch(`${FASTAPI_URL}/api/blog/posts/${postId}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      content,
+      parent_comment_id: parentCommentId,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to create comment');
+  }
+
+  return response.json();
+}
+
+/**
+ * Update a comment (author or admin only)
+ */
+export async function updateBlogComment(
+  commentId: string,
+  content?: string,
+  isApproved?: boolean
+): Promise<BlogComment> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const updateData: Record<string, any> = {};
+  if (content !== undefined) updateData.content = content;
+  if (isApproved !== undefined) updateData.is_approved = isApproved;
+
+  const response = await fetch(`${FASTAPI_URL}/api/blog/comments/${commentId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(updateData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update comment');
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete a comment (author or admin only)
+ */
+export async function deleteBlogComment(commentId: string): Promise<void> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const response = await fetch(`${FASTAPI_URL}/api/blog/comments/${commentId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to delete comment');
+  }
+}
+
+/**
+ * Approve a comment (admin only)
+ */
+export async function approveBlogComment(commentId: string): Promise<BlogComment> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const response = await fetch(`${FASTAPI_URL}/api/blog/comments/${commentId}/approve`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to approve comment');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get all comments across all posts (admin only)
+ */
+export async function getAllBlogComments(
+  page: number = 1,
+  page_size: number = 20,
+  isApproved?: boolean
+): Promise<BlogCommentListResponse> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: page_size.toString(),
+  });
+
+  if (isApproved !== undefined) {
+    params.append('is_approved', isApproved.toString());
+  }
+
+  const response = await fetch(`${FASTAPI_URL}/api/blog/comments?${params}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch all comments');
+  }
+
+  return response.json();
+}

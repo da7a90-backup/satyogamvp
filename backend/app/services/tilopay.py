@@ -27,6 +27,7 @@ class TilopayService:
         self.base_url = settings.TILOPAY_BASE_URL
         self.redirect_url = settings.TILOPAY_REDIRECT_URL
         self.cancel_url = settings.TILOPAY_CANCEL_URL
+        self.webhook_url = settings.TILOPAY_WEBHOOK_URL
 
     def _generate_signature(self, data: Dict[str, Any]) -> str:
         """Generate signature for Tilopay request."""
@@ -113,6 +114,7 @@ class TilopayService:
                 "currency": currency,
                 "description": description,
                 "orderId": order_id or f"ORD-{datetime.utcnow().timestamp()}",
+                "callbackUrl": self.webhook_url,  # Add webhook callback URL
             }
 
             if customer_email:
@@ -136,6 +138,7 @@ class TilopayService:
                     "orderId": payment_data["orderId"],
                     "email": customer_email,
                     "name": customer_name,
+                    "callbackUrl": self.webhook_url,  # Include in returned data
                     "signature": payment_data["signature"],
                 },
                 "order_id": payment_data["orderId"],

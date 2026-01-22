@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Calendar, MapPin, Globe, Flag } from 'lucide-react';
 import StandardSection from '../shared/StandardSection';
+import DashboardHappeningNow from '../dashboard/DashboardHappeningNow';
 // Event data interface
 export interface EventData {
   id: string;
@@ -330,6 +331,9 @@ const CalendarPage = ({ events = [] }: CalendarPageProps) => {
             gap: '24px'
           }}
         >
+          {/* Happening Now Section */}
+          <DashboardHappeningNow />
+
           {/* Filter Buttons */}
           <div
             className="flex flex-col justify-center items-center w-full"

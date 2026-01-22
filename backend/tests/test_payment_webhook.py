@@ -452,6 +452,168 @@ def test_grant_product_access_prevents_duplicates(
 
 
 # ============================================================================
+# RETREAT REGISTRATION FROM METADATA TESTS
+# ============================================================================
+
+def test_create_retreat_registration_from_metadata_lifetime(
+    db_session: Session,
+    mock_session_local,
+    test_user_with_profile: User,
+    test_retreat: Retreat,
+):
+    """Test that retreat registration is created from payment metadata (lifetime access)."""
+    # Create payment WITH metadata but NO existing registration
+    payment = Payment(
+        user_id=test_user_with_profile.id,
+        amount=199.99,
+        currency="USD",
+        status=PaymentStatus.COMPLETED,
+        payment_type=PaymentType.RETREAT,
+        reference_id=str(test_retreat.id),
+        payment_metadata={"access_type": "lifetime"},  # This is the key!
+        tilopay_transaction_id="TXN-META-001",
+    )
+    db_session.add(payment)
+    db_session.commit()
+
+    # Verify no registration exists yet
+    existing = (
+        db_session.query(RetreatRegistration)
+        .filter(
+            RetreatRegistration.user_id == test_user_with_profile.id,
+            RetreatRegistration.retreat_id == test_retreat.id,
+        )
+        .first()
+    )
+    assert existing is None, "Registration should not exist before webhook processing"
+
+    # Call the access granting function (simulating webhook)
+    grant_access_after_payment(
+        payment_id=str(payment.id),
+        user_id=str(test_user_with_profile.id),
+        payment_type=PaymentType.RETREAT.value,
+        reference_id=str(test_retreat.id),
+    )
+
+    # Verify registration was created
+    registration = (
+        db_session.query(RetreatRegistration)
+        .filter(
+            RetreatRegistration.user_id == test_user_with_profile.id,
+            RetreatRegistration.retreat_id == test_retreat.id,
+        )
+        .first()
+    )
+
+    assert registration is not None, "Registration should be created from metadata"
+    assert registration.payment_id == payment.id
+    assert registration.status == RegistrationStatus.CONFIRMED
+    assert registration.access_type == AccessType.LIFETIME
+    assert registration.access_expires_at is None  # Lifetime has no expiration
+
+
+def test_create_retreat_registration_from_metadata_limited(
+    db_session: Session,
+    mock_session_local,
+    test_user_with_profile: User,
+    test_retreat: Retreat,
+):
+    """Test that retreat registration is created from payment metadata (12-day limited access)."""
+    # Create payment WITH metadata but NO existing registration
+    payment = Payment(
+        user_id=test_user_with_profile.id,
+        amount=49.99,
+        currency="USD",
+        status=PaymentStatus.COMPLETED,
+        payment_type=PaymentType.RETREAT,
+        reference_id=str(test_retreat.id),
+        payment_metadata={"access_type": "limited_12day"},  # 12-day access
+        tilopay_transaction_id="TXN-META-002",
+    )
+    db_session.add(payment)
+    db_session.commit()
+
+    # Verify no registration exists yet
+    existing = (
+        db_session.query(RetreatRegistration)
+        .filter(
+            RetreatRegistration.user_id == test_user_with_profile.id,
+            RetreatRegistration.retreat_id == test_retreat.id,
+        )
+        .first()
+    )
+    assert existing is None, "Registration should not exist before webhook processing"
+
+    # Call the access granting function (simulating webhook)
+    grant_access_after_payment(
+        payment_id=str(payment.id),
+        user_id=str(test_user_with_profile.id),
+        payment_type=PaymentType.RETREAT.value,
+        reference_id=str(test_retreat.id),
+    )
+
+    # Verify registration was created
+    registration = (
+        db_session.query(RetreatRegistration)
+        .filter(
+            RetreatRegistration.user_id == test_user_with_profile.id,
+            RetreatRegistration.retreat_id == test_retreat.id,
+        )
+        .first()
+    )
+
+    assert registration is not None, "Registration should be created from metadata"
+    assert registration.payment_id == payment.id
+    assert registration.status == RegistrationStatus.CONFIRMED
+    assert registration.access_type == AccessType.LIMITED_12DAY
+    assert registration.access_expires_at is not None  # Should have expiration
+    # Verify expiration is 12 days after retreat end date
+    expected_expiration = test_retreat.end_date + timedelta(days=12)
+    assert registration.access_expires_at == expected_expiration
+
+
+def test_no_registration_without_metadata(
+    db_session: Session,
+    mock_session_local,
+    test_user_with_profile: User,
+    test_retreat: Retreat,
+):
+    """Test that registration is NOT created if payment metadata is missing."""
+    # Create payment WITHOUT metadata
+    payment = Payment(
+        user_id=test_user_with_profile.id,
+        amount=199.99,
+        currency="USD",
+        status=PaymentStatus.COMPLETED,
+        payment_type=PaymentType.RETREAT,
+        reference_id=str(test_retreat.id),
+        payment_metadata=None,  # No metadata!
+        tilopay_transaction_id="TXN-NO-META",
+    )
+    db_session.add(payment)
+    db_session.commit()
+
+    # Call the access granting function
+    grant_access_after_payment(
+        payment_id=str(payment.id),
+        user_id=str(test_user_with_profile.id),
+        payment_type=PaymentType.RETREAT.value,
+        reference_id=str(test_retreat.id),
+    )
+
+    # Verify registration was NOT created
+    registration = (
+        db_session.query(RetreatRegistration)
+        .filter(
+            RetreatRegistration.user_id == test_user_with_profile.id,
+            RetreatRegistration.retreat_id == test_retreat.id,
+        )
+        .first()
+    )
+    assert registration is None, "Registration should not be created without metadata"
+
+
+# ============================================================================
 # EDGE CASES AND ERROR HANDLING
 # ============================================================================
 

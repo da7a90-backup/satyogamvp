@@ -719,11 +719,13 @@ export const BlogPage: React.FC<BlogPageProps> = ({
 interface BlogPostPageProps {
   post: BlogPost;
   relatedPosts?: BlogPost[];
+  basePath?: string;
 }
 
 export const BlogPostPage: React.FC<BlogPostPageProps> = ({
   post,
   relatedPosts = [],
+  basePath = '/blog',
 }) => {
   if (!post) return null;
 
@@ -800,7 +802,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({
       <div className="max-w-3xl mx-auto px-4 py-12 md:py-20">
         {/* Back Button */}
         <Link
-          href="/blog"
+          href={basePath}
           className="inline-flex items-center gap-2 mb-8 text-sm font-semibold transition-colors"
           style={{ color: '#7D1A13', ...avenirNext }}
         >
@@ -817,7 +819,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({
 
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 mb-8 text-base" style={{ ...avenirNext }}>
-          <Link href="/blog" className="hover:text-[#7D1A13] transition-colors">
+          <Link href={basePath} className="hover:text-[#7D1A13] transition-colors">
             Blog
           </Link>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -934,7 +936,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({
           {/* Tags */}
           <div className="flex items-center gap-2">
             <Link
-              href={`/blog?category=${post.category}`}
+              href={`${basePath}?category=${post.category}`}
               className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors text-sm font-semibold"
               style={{ ...avenirNext }}
             >

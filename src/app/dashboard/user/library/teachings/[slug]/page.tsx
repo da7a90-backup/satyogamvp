@@ -103,7 +103,7 @@ export default async function DashboardTeachingDetailPage({
 
   // Get auth token for FastAPI requests
   // @ts-ignore - accessToken is added by our auth callback
-  const token = session.accessToken as string | undefined;
+  const token = session.user.accessToken as string | undefined;
 
   // Fetch teaching from FastAPI backend
   const teaching = await getTeachingBySlug(slug, token);

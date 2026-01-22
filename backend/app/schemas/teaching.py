@@ -17,15 +17,21 @@ class TeachingBase(BaseModel):
     dash_preview_duration: Optional[int] = None  # minutes
     video_url: Optional[str] = None
     audio_url: Optional[str] = None
-    cloudflare_ids: List[str] = []
-    podbean_ids: List[str] = []
-    youtube_ids: List[str] = []
+    cloudflare_ids: Optional[List[str]] = []
+    podbean_ids: Optional[List[str]] = []
+    youtube_ids: Optional[List[str]] = []
     text_content: Optional[str] = None
     thumbnail_url: Optional[str] = None
     duration: Optional[int] = None
     published_date: Optional[datetime] = None
     category: Optional[str] = None
-    tags: List[str] = []
+    tags: Optional[List[str]] = []
+    topic: Optional[str] = None
+    filter_tags: Optional[List[str]] = []
+    hidden_tag: Optional[str] = None
+    featured: Optional[str] = None
+    of_the_month: Optional[str] = None
+    pinned: Optional[str] = None
 
 
 class TeachingCreate(TeachingBase):
@@ -53,6 +59,12 @@ class TeachingUpdate(BaseModel):
     published_date: Optional[datetime] = None
     category: Optional[str] = None
     tags: Optional[List[str]] = None
+    topic: Optional[str] = None
+    filter_tags: Optional[List[str]] = None
+    hidden_tag: Optional[str] = None
+    featured: Optional[str] = None
+    of_the_month: Optional[str] = None
+    pinned: Optional[str] = None
 
 
 class TeachingResponse(TeachingBase):

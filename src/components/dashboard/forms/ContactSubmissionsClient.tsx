@@ -39,7 +39,7 @@ export default function ContactSubmissionsClient() {
       const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
       const res = await fetch(`${FASTAPI_URL}/api/forms/admin/contact-submissions`, {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`,
+          'Authorization': `Bearer ${session?.user?.accessToken}`,
         },
       });
 
@@ -72,7 +72,7 @@ export default function ContactSubmissionsClient() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.accessToken}`,
+            'Authorization': `Bearer ${session?.user?.accessToken}`,
           },
           body: JSON.stringify({ response }),
         }
@@ -99,7 +99,7 @@ export default function ContactSubmissionsClient() {
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${session?.accessToken}`,
+            'Authorization': `Bearer ${session?.user?.accessToken}`,
           },
         }
       );

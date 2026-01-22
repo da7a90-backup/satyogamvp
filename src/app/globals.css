@@ -99,6 +99,18 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide scrollbar utility */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Add to your global.css file */
 
 .markdown-preview pre {

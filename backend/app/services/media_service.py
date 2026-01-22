@@ -4,6 +4,7 @@ Media Service - Resolves original image paths to Cloudflare CDN URLs
 from sqlalchemy.orm import Session
 from app.models.static_content import MediaAsset
 from typing import Dict, Any, Optional, List
+from urllib.parse import quote
 
 
 class MediaService:
@@ -19,14 +20,33 @@ class MediaService:
         if not original_path:
             return ""
 
+        # If already a full URL (starts with http:// or https://), return as-is
+        if original_path.startswith('http://') or original_path.startswith('https://'):
+            return original_path
+
         # Check cache first
         if original_path in self._cache:
             return self._cache[original_path]
 
-        # Query database (case-insensitive)
-        from sqlalchemy import func
+        # Normalize the path - try both with and without leading slash
+        paths_to_try = [original_path]
+
+        # If path doesn't start with /, also try with / prefix
+        if not original_path.startswith('/'):
+            paths_to_try.append(f"/{original_path}")
+        # If path starts with /, also try without / prefix
+        elif original_path.startswith('/'):
+            paths_to_try.append(original_path[1:])
+
+        # Query database (case-insensitive, try all path variations)
+        from sqlalchemy import func, or_
+        conditions = [
+            func.lower(MediaAsset.original_path) == path.lower()
+            for path in paths_to_try
+        ]
+
         asset = self.db.query(MediaAsset).filter(
-            func.lower(MediaAsset.original_path) == original_path.lower(),
+            or_(*conditions),
             MediaAsset.is_active == True
         ).first()
 
@@ -42,9 +62,13 @@ class MediaService:
             self._cache[original_path] = cdn_url
             return cdn_url
 
-        # Fallback to original path for development
-        print(f"⚠️  No CDN URL found for: {original_path}")
-        return original_path
+        # Fallback: Return empty string to prevent 404 errors
+        # Admin can fix this by uploading the image through the content management UI
+        print(f"⚠️  No CDN URL found for: {original_path} - returning empty string to prevent 404")
+
+        # Cache empty string
+        self._cache[original_path] = ""
+        return ""
 
     def resolve_dict(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Recursively replace image paths with CDN URLs in a dictionary"""
@@ -87,10 +111,10 @@ class MediaService:
     @staticmethod
     def _is_image_path(value: str) -> bool:
         """Check if string looks like an image/video path"""
-        if not value or not value.startswith('/'):
+        if not value:
             return False
 
-        # Check for common media extensions
+        # Check for common media extensions (allow paths with or without leading slash)
         media_extensions = [
             '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg',
             '.mp4', '.webm', '.mov', '.pdf'

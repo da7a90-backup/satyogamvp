@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { productsApi, type Product } from '@/lib/store-api';
+import { staticContentAPI } from '@/lib/static-content-api';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Bookmark, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
@@ -86,10 +87,30 @@ export default function StorePage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [pageContent, setPageContent] = useState({
+    eyebrow: 'STORE',
+    title: 'The Dharma Bandhara',
+    description: ''
+  });
 
   useEffect(() => {
+    loadPageContent();
     loadProducts();
   }, []);
+
+  const loadPageContent = async () => {
+    try {
+      console.log("Fetching store page content from API...");
+      const data = await staticContentAPI.getPage('store');
+      setPageContent({
+        eyebrow: data.header?.eyebrow || 'STORE',
+        title: data.header?.heading || 'The Dharma Bandhara',
+        description: data.header?.description || ''
+      });
+    } catch (error) {
+      console.error('Failed to load page content:', error);
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -192,11 +213,10 @@ export default function StorePage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <p className="text-sm tracking-[0.2em] text-[#8B7355] mb-4">STORE</p>
-          <h1 className="text-4xl md:text-5xl font-serif mb-4">The Dharma Bandhara</h1>
+          <p className="text-sm tracking-[0.2em] text-[#8B7355] mb-4">{pageContent.eyebrow}</p>
+          <h1 className="text-4xl md:text-5xl font-serif mb-4">{pageContent.title}</h1>
           <p className="w-full text-gray-700 leading-relaxed">
-            The Sat Yoga Online Store is a treasure trove of life-altering knowledge, in the form of unrepeatable retreats,
-            paradigm-shifting books, beautiful guided meditations, as well as the popular Reading the Sages audio collections.
+            {pageContent.description}
           </p>
         </div>
 

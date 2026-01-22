@@ -56,7 +56,7 @@ export default function FavouritesClient({ favorites: initialFavorites }: Favour
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F1] p-8">
+    <div className="min-h-screen lg:min-h-[125vh] bg-[#FAF8F1] p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

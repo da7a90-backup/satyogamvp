@@ -48,6 +48,7 @@ class Teaching(Base):
     tags = Column(JSON_TYPE, nullable=True, default=[])
     topic = Column(String(100), nullable=True, index=True)  # Main topic for filtering (e.g., "Consciousness", "Meditation", "Yoga")
     filter_tags = Column(JSON_TYPE, nullable=True, default=[])  # Additional filterable tags for extensibility
+    hidden_tag = Column(String(255), nullable=True, index=True)  # For marketing pages (e.g., 'homepage', 'about/shunyamurti')
     view_count = Column(Integer, default=0, nullable=False)
 
     # Feature flags

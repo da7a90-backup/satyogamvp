@@ -95,3 +95,60 @@ class BlogPostListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+# Blog Comment Schemas
+class BlogCommentBase(BaseModel):
+    """Base blog comment schema."""
+    content: str = Field(..., min_length=1)
+    parent_comment_id: Optional[str] = None
+
+
+class BlogCommentCreate(BlogCommentBase):
+    """Schema for creating a blog comment."""
+    pass
+
+
+class BlogCommentUpdate(BaseModel):
+    """Schema for updating a blog comment."""
+    content: Optional[str] = Field(None, min_length=1)
+    is_approved: Optional[bool] = None
+
+
+class BlogCommentUserInfo(BaseModel):
+    """Schema for user info in comment response."""
+    id: str
+    full_name: str
+    email: str
+    profile_image: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BlogCommentResponse(BlogCommentBase):
+    """Schema for blog comment response."""
+    id: str
+    blog_post_id: str
+    user_id: str
+    user: BlogCommentUserInfo
+    is_approved: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    replies: list['BlogCommentResponse'] = []
+
+    class Config:
+        from_attributes = True
+
+
+# Update forward reference
+BlogCommentResponse.model_rebuild()
+
+
+class BlogCommentListResponse(BaseModel):
+    """Schema for paginated blog comments list."""
+    comments: list[BlogCommentResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

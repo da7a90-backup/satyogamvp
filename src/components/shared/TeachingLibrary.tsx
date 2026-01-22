@@ -91,7 +91,8 @@ interface TeachingLibrarySectionProps {
   showAllTeachings?: boolean; // If true, show all teachings (not limited to 9)
   listFormat?: 'pagination' | 'infinite'; // Display format
   userTier?: string; // For tier-based access control
-  isDashboard?: boolean; // Flag for dashboard-specific features
+  isDashboard?: boolean; // Flag for dashboard-specific features (affects card URLs)
+  showFeaturedCard?: boolean; // Control featured card visibility separately
 }
 
 const TeachingLibrarySection = ({
@@ -100,6 +101,7 @@ const TeachingLibrarySection = ({
   listFormat = 'pagination',
   userTier,
   isDashboard = false,
+  showFeaturedCard = true,
 }: TeachingLibrarySectionProps) => {
   const [activeCategory, setActiveCategory] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,18 +162,18 @@ const TeachingLibrarySection = ({
   };
 
   return (
-    <section 
-      className="w-full py-16 lg:py-28 px-4 lg:px-16"
+    <section
+      className="w-full py-8 sm:py-12 md:py-16 lg:py-28 px-4 sm:px-6 md:px-8 lg:px-16"
       style={{ backgroundColor: '#FAF8F1' }}
     >
       <div className="max-w-[1312px] mx-auto">
         {/* Header */}
         {data.sectionTitle && (
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
             <h2
+              className="text-xl sm:text-2xl"
               style={{
                 fontFamily: 'Optima, Georgia, serif',
-                fontSize: '24px',
                 fontWeight: 700,
                 lineHeight: '32px',
                 color: '#000000'
@@ -199,25 +201,25 @@ const TeachingLibrarySection = ({
         )}
 
         {/* Featured Teaching Card - NOW CLICKABLE */}
-        {!isDashboard && (
+        {showFeaturedCard && (
         <Link
-          href={`/teachings/${data.featuredTeaching.slug}`}
-          className="bg-white border rounded-lg mb-8 overflow-hidden block hover:shadow-lg transition-shadow"
+          href={isDashboard ? `/dashboard/user/teachings/${data.featuredTeaching.slug}` : `/teachings/${data.featuredTeaching.slug}`}
+          className="bg-white border rounded-lg mb-6 sm:mb-8 overflow-hidden block hover:shadow-lg transition-shadow"
           style={{ borderColor: '#D2D6DB' }}
         >
           <div className="flex flex-col lg:flex-row">
             {/* Featured Image */}
-            <div className="relative lg:w-[744px] flex-shrink-0" style={{ aspectRatio: '16/9' }}>
+            <div className="relative lg:w-[744px] flex-shrink-0 bg-black" style={{ aspectRatio: '16/9' }}>
               <img
                 src={data.featuredTeaching.thumbnail}
                 alt={data.featuredTeaching.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
               {/* Play Button Overlay */}
               {(data.featuredTeaching.mediaType === 'video' || data.featuredTeaching.mediaType === 'audio') && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative">
-                    <div 
+                    <div
                       className="absolute inset-0"
                       style={{
                         width: '200px',
@@ -227,10 +229,10 @@ const TeachingLibrarySection = ({
                         filter: 'blur(20px)'
                       }}
                     />
-                    <div 
-                      className="relative w-16 h-16 rounded-full bg-white flex items-center justify-center"
+                    <div
+                      className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center"
                     >
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 20 20" fill="none">
                         <path d="M5 3l12 7-12 7V3z" fill="#000000"/>
                       </svg>
                     </div>
@@ -243,14 +245,13 @@ const TeachingLibrarySection = ({
                   e.preventDefault();
                   handleBookmark();
                 }}
-                className="absolute top-4 right-4 w-[52px] h-[52px] rounded-full flex items-center justify-center hover:bg-white/50 transition-colors"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 w-11 h-11 sm:w-[52px] sm:h-[52px] rounded-full flex items-center justify-center hover:bg-white/50 transition-colors"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.4)'
                 }}
               >
                 <svg
-                  width="20"
-                  height="20"
+                  className="w-5 h-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#FFFFFF"
@@ -262,11 +263,10 @@ const TeachingLibrarySection = ({
             </div>
 
             {/* Featured Content */}
-            <div className="p-6 flex flex-col justify-end flex-1">
-              <div className="flex items-center gap-4 mb-6">
-                <span style={{
+            <div className="p-4 sm:p-6 flex flex-col justify-end flex-1">
+              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 flex-wrap">
+                <span className="text-xs sm:text-sm" style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 600,
                   lineHeight: '20px',
                   color: '#7D1A13'
@@ -274,13 +274,12 @@ const TeachingLibrarySection = ({
                   {data.featuredTeaching.date}
                 </span>
                 <div className="flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
                     <circle cx="8" cy="8" r="6" stroke="#535862" strokeWidth="1.5"/>
                     <path d="M8 4v4l2.5 1.5" stroke="#535862" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  <span style={{
+                  <span className="text-xs sm:text-sm" style={{
                     fontFamily: 'Avenir Next, sans-serif',
-                    fontSize: '14px',
                     fontWeight: 600,
                     lineHeight: '20px',
                     color: '#384250'
@@ -293,10 +292,9 @@ const TeachingLibrarySection = ({
               <div className="flex-1 flex flex-col justify-between">
                 <div>
                   <h3
-                    className="mb-2"
+                    className="mb-2 text-lg sm:text-xl"
                     style={{
                       fontFamily: 'Inter, sans-serif',
-                      fontSize: '20px',
                       fontWeight: 700,
                       lineHeight: '140%',
                       color: '#111927'
@@ -305,9 +303,9 @@ const TeachingLibrarySection = ({
                     {data.featuredTeaching.title}
                   </h3>
                   <p
+                    className="text-base sm:text-lg"
                     style={{
                       fontFamily: 'Avenir Next, sans-serif',
-                      fontSize: '18px',
                       fontWeight: 500,
                       lineHeight: '28px',
                       color: '#384250'
@@ -317,14 +315,13 @@ const TeachingLibrarySection = ({
                   </p>
                 </div>
 
-                <div className="mt-6 flex justify-end">
+                <div className="mt-4 sm:mt-6 flex justify-end">
                   <button
-                    className="px-3.5 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+                    className="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-lg hover:opacity-90 transition-opacity text-sm"
                     style={{
                       backgroundColor: '#7D1A13',
                       boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
                       fontFamily: 'Avenir Next, sans-serif',
-                      fontSize: '14px',
                       fontWeight: 600,
                       color: '#FFFFFF'
                     }}
@@ -339,16 +336,19 @@ const TeachingLibrarySection = ({
         )}
 
         {/* Category Tabs */}
-        <div className="mb-8">
-          <div 
-            className="border-b flex gap-3"
-            style={{ borderColor: '#E9EAEB' }}
+        <div className="mb-6 sm:mb-8 -mx-4 sm:mx-0">
+          <div
+            className="border-b flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide px-4 sm:px-0"
+            style={{
+              borderColor: '#E9EAEB',
+              WebkitOverflowScrolling: 'touch'
+            }}
           >
             {data.categories.map((category, index) => (
               <button
                 key={index}
                 onClick={() => setActiveCategory(index)}
-                className="pb-3 px-1 relative"
+                className="pb-3 px-2 sm:px-1 relative whitespace-nowrap flex-shrink-0 min-h-[44px] flex items-center"
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '14px',
@@ -373,11 +373,11 @@ const TeachingLibrarySection = ({
         </div>
 
         {/* Controls */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-6">
           <p
+            className="text-base sm:text-lg"
             style={{
               fontFamily: 'Avenir Next, sans-serif',
-              fontSize: '18px',
               fontWeight: 600,
               lineHeight: '28px',
               color: '#111927'
@@ -385,7 +385,7 @@ const TeachingLibrarySection = ({
           >
             {filteredTeachings.length} Items
             {showAllTeachings && listFormat === 'pagination' && totalPages > 1 && (
-              <span style={{ color: '#717680', fontSize: '16px', marginLeft: '8px' }}>
+              <span className="text-sm sm:text-base" style={{ color: '#717680', marginLeft: '8px' }}>
                 (Page {currentPage} of {totalPages})
               </span>
             )}
@@ -423,7 +423,7 @@ const TeachingLibrarySection = ({
         </div>
 
         {/* Teaching Grid with Overlay */}
-        <div className={`relative ${!data.isLoggedIn ? 'pb-[480px]' : ''}`}>
+        <div className={`relative ${!data.isLoggedIn ? 'pb-[480px] min-h-[1200px]' : ''}`}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {paginatedTeachings.map((teaching) => (
               <TeachingCard
@@ -437,24 +437,24 @@ const TeachingLibrarySection = ({
 
           {/* Pagination Controls */}
           {showAllTeachings && listFormat === 'pagination' && totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-12">
+            <div className="flex justify-center items-center gap-2 sm:gap-4 mt-8 sm:mt-12">
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-3 sm:px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderColor: '#D5D7DA',
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 600,
                   color: '#414651'
                 }}
               >
-                Previous
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </button>
 
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                   // Show first page, last page, current page, and pages around current
                   if (
@@ -466,13 +466,12 @@ const TeachingLibrarySection = ({
                       <button
                         key={page}
                         onClick={() => goToPage(page)}
-                        className="w-10 h-10 rounded-lg transition-colors"
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg transition-colors text-sm"
                         style={{
                           backgroundColor: page === currentPage ? '#7D1A13' : '#FFFFFF',
                           color: page === currentPage ? '#FFFFFF' : '#414651',
                           border: page === currentPage ? 'none' : '1px solid #D5D7DA',
                           fontFamily: 'Avenir Next, sans-serif',
-                          fontSize: '14px',
                           fontWeight: 600,
                         }}
                       >
@@ -480,7 +479,7 @@ const TeachingLibrarySection = ({
                       </button>
                     );
                   } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <span key={page} className="flex items-center">...</span>;
+                    return <span key={page} className="flex items-center text-sm">...</span>;
                   }
                   return null;
                 })}
@@ -489,12 +488,11 @@ const TeachingLibrarySection = ({
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-3 sm:px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderColor: '#D5D7DA',
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 600,
                   color: '#414651'
                 }}
@@ -505,11 +503,11 @@ const TeachingLibrarySection = ({
           )}
 
           {/* Login CTA Overlay */}
-          {!data.isLoggedIn && !isDashboard && (
-            <div 
+          {!isDashboard && (
+            <div
               className="absolute left-0 right-0 flex flex-col items-center px-4 lg:px-16"
               style={{
-                bottom: 0,
+                top: '800px',
                 paddingTop: '100px',
                 paddingBottom: '100px',
                 background: 'linear-gradient(180deg, rgba(250, 248, 241, 0) 0%, rgba(250, 248, 241, 0.7) 20%, rgba(250, 248, 241, 0.9) 40%, #FAF8F1 60%, #FAF8F1 100%)',
@@ -676,21 +674,18 @@ const TeachingCard = ({
       data-testid="teaching-card"
     >
       {/* Thumbnail */}
-      <div className="relative h-[202px]">
+      <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
         <img
           src={teaching.thumbnail}
           alt={teaching.title}
-          className="w-full h-full object-cover"
-          style={{
-            background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2))'
-          }}
+          className="w-full h-full object-contain"
         />
 
         {/* Play Button Overlay */}
         {(teaching.mediaType === 'video' || teaching.mediaType === 'audio') && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative">
-              <div 
+              <div
                 className="absolute inset-0"
                 style={{
                   width: '128px',
@@ -703,10 +698,10 @@ const TeachingCard = ({
                   left: '50%'
                 }}
               />
-              <div 
-                className="relative w-16 h-16 rounded-full bg-white flex items-center justify-center"
+              <div
+                className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <svg className="w-4 h-4 sm:w-4 sm:h-4" viewBox="0 0 16 16" fill="none">
                   <path d="M4 2l10 6-10 6V2z" fill="#000000"/>
                 </svg>
               </div>
@@ -715,9 +710,9 @@ const TeachingCard = ({
         )}
 
         {/* Access Badge */}
-        <div className="absolute top-[14px] left-[15px]">
-          <div 
-            className="px-2.5 py-1 rounded-lg flex items-center gap-1 border"
+        <div className="absolute top-2 left-2 sm:top-[14px] sm:left-[15px]">
+          <div
+            className="px-2 sm:px-2.5 py-1 rounded-lg flex items-center gap-1 border text-xs sm:text-sm"
             style={{
               backgroundColor: '#FFFFFF',
               borderColor: '#D5D7DA',
@@ -726,12 +721,11 @@ const TeachingCard = ({
           >
             {teaching.accessType === 'restricted' ? (
               <>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
                   <path d="M3 5V4a3 3 0 016 0v1m-7 0h8a1 1 0 011 1v4a1 1 0 01-1 1H2a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="#414651" strokeWidth="1.2"/>
                 </svg>
                 <span style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 500,
                   lineHeight: '20px',
                   color: '#414651'
@@ -741,13 +735,12 @@ const TeachingCard = ({
               </>
             ) : teaching.accessType === 'preview' ? (
               <>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
                   <circle cx="6" cy="6" r="5" stroke="#414651" strokeWidth="1.2"/>
                   <path d="M6 3v3l2 1" stroke="#414651" strokeWidth="1.2" strokeLinecap="round"/>
                 </svg>
                 <span style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 500,
                   lineHeight: '20px',
                   color: '#414651'
@@ -757,13 +750,12 @@ const TeachingCard = ({
               </>
             ) : (
               <>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
                   <circle cx="6" cy="6" r="5" stroke="#414651" strokeWidth="1.2"/>
                   <path d="M6 3v3l2 1" stroke="#414651" strokeWidth="1.2" strokeLinecap="round"/>
                 </svg>
                 <span style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 500,
                   lineHeight: '20px',
                   color: '#414651'
@@ -781,14 +773,13 @@ const TeachingCard = ({
             e.preventDefault();
             onBookmark();
           }}
-          className="absolute top-4 right-4 w-[52px] h-[52px] rounded-full flex items-center justify-center hover:bg-white/50 transition-colors"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 w-11 h-11 sm:w-[52px] sm:h-[52px] rounded-full flex items-center justify-center hover:bg-white/50 transition-colors"
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.4)'
           }}
         >
           <svg
-            width="20"
-            height="20"
+            className="w-5 h-5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="#FFFFFF"
@@ -800,12 +791,11 @@ const TeachingCard = ({
       </div>
 
       {/* Content */}
-      <div className="p-6 flex flex-col flex-1">
+      <div className="p-4 sm:p-6 flex flex-col flex-1">
         {/* Meta Info */}
-        <div className="flex items-center gap-4 mb-4">
-          <span style={{
+        <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4 flex-wrap">
+          <span className="text-xs sm:text-sm" style={{
             fontFamily: 'Avenir Next, sans-serif',
-            fontSize: '14px',
             fontWeight: 600,
             lineHeight: '20px',
             color: '#7D1A13'
@@ -815,13 +805,12 @@ const TeachingCard = ({
           <div className="flex items-center gap-2">
             {teaching.pageCount ? (
               <>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
                   <path d="M3 1h6l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#535862" strokeWidth="1.2"/>
                   <path d="M9 1v3h3" stroke="#535862" strokeWidth="1.2"/>
                 </svg>
-                <span style={{
+                <span className="text-xs sm:text-sm" style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 600,
                   lineHeight: '20px',
                   color: '#384250'
@@ -831,13 +820,12 @@ const TeachingCard = ({
               </>
             ) : (
               <>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
                   <circle cx="8" cy="8" r="6" stroke="#535862" strokeWidth="1.5"/>
                   <path d="M8 4v4l2.5 1.5" stroke="#535862" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
-                <span style={{
+                <span className="text-xs sm:text-sm" style={{
                   fontFamily: 'Avenir Next, sans-serif',
-                  fontSize: '14px',
                   fontWeight: 600,
                   lineHeight: '20px',
                   color: '#384250'
@@ -851,10 +839,9 @@ const TeachingCard = ({
 
         {/* Title */}
         <h3
-          className="mb-2"
+          className="mb-2 text-base sm:text-lg md:text-xl"
           style={{
             fontFamily: 'Avenir Next, sans-serif',
-            fontSize: '20px',
             fontWeight: 600,
             lineHeight: '30px',
             color: '#000000'
@@ -865,10 +852,9 @@ const TeachingCard = ({
 
         {/* Description */}
         <p
-          className="flex-1"
+          className="flex-1 text-sm sm:text-base md:text-lg"
           style={{
             fontFamily: 'Avenir Next, sans-serif',
-            fontSize: '18px',
             fontWeight: 500,
             lineHeight: '28px',
             color: '#384250',

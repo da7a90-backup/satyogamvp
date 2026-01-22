@@ -7,27 +7,38 @@ import {
   XCircleIcon,
   ClockIcon,
   EyeIcon,
-  FunnelIcon
+  FunnelIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
+import ApprovalPaymentModal from '@/components/forms/ApprovalPaymentModal';
 
-interface Application {
+interface FormSubmission {
   id: string;
+  form_template_id: string;
   user_id: string | null;
-  type: 'retreat_onsite' | 'scholarship' | 'general';
-  status: 'pending' | 'reviewed' | 'approved' | 'rejected';
-  form_data: Record<string, any>;
-  notes: string | null;
+  answers: Record<string, any>;
+  files: Record<string, any> | null;
+  submitter_email: string | null;
+  submitter_name: string | null;
+  status: 'pending' | 'reviewed' | 'approved' | 'payment_sent' | 'paid' | 'rejected';
+  reviewer_notes: string | null;
   submitted_at: string;
   reviewed_at: string | null;
+  retreat_id: string | null;
+  payment_amount: number | null;
+  payment_id: string | null;
+  order_id: string | null;
+  payment_link_sent_at: string | null;
 }
 
 export default function RetreatApplicationsClient() {
   const { data: session } = useSession();
-  const [applications, setApplications] = useState<Application[]>([]);
+  const [applications, setApplications] = useState<FormSubmission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<FormSubmission | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [notes, setNotes] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
@@ -38,7 +49,10 @@ export default function RetreatApplicationsClient() {
   const fetchApplications = async () => {
     try {
       const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-      let url = `${FASTAPI_URL}/api/forms/admin/applications`;
+
+      // Fetch retreat application forms
+      // TODO: Replace with form_template_id for retreat applications when we have them seeded
+      let url = `${FASTAPI_URL}/api/form-templates/submissions/all`;
 
       if (statusFilter !== 'all') {
         url += `?status=${statusFilter}`;
@@ -46,13 +60,15 @@ export default function RetreatApplicationsClient() {
 
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`,
+          'Authorization': `Bearer ${session?.user?.accessToken}`,
         },
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setApplications(data);
+        const result = await response.json();
+        if (result.success && result.data) {
+          setApplications(result.data);
+        }
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
@@ -61,27 +77,32 @@ export default function RetreatApplicationsClient() {
     }
   };
 
-  const viewApplication = (application: Application) => {
+  const viewApplication = (application: FormSubmission) => {
     setSelectedApplication(application);
-    setNotes(application.notes || '');
+    setNotes(application.reviewer_notes || '');
     setShowModal(true);
   };
 
-  const updateApplicationStatus = async (status: Application['status']) => {
+  const openApprovalModal = (application: FormSubmission) => {
+    setSelectedApplication(application);
+    setShowApprovalModal(true);
+  };
+
+  const updateApplicationStatus = async (status: FormSubmission['status']) => {
     if (!selectedApplication) return;
 
     setUpdatingStatus(true);
     try {
       const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
       const response = await fetch(
-        `${FASTAPI_URL}/api/forms/admin/applications/${selectedApplication.id}`,
+        `${FASTAPI_URL}/api/form-templates/submissions/${selectedApplication.id}`,
         {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.accessToken}`,
+            'Authorization': `Bearer ${session?.user?.accessToken}`,
           },
-          body: JSON.stringify({ status, notes }),
+          body: JSON.stringify({ status, reviewer_notes: notes }),
         }
       );
 
@@ -101,12 +122,23 @@ export default function RetreatApplicationsClient() {
       pending: 'bg-yellow-100 text-yellow-800',
       reviewed: 'bg-blue-100 text-blue-800',
       approved: 'bg-green-100 text-green-800',
+      payment_sent: 'bg-purple-100 text-purple-800',
+      paid: 'bg-emerald-100 text-emerald-800',
       rejected: 'bg-red-100 text-red-800',
+    };
+
+    const labels = {
+      pending: 'Pending',
+      reviewed: 'Reviewed',
+      approved: 'Approved',
+      payment_sent: 'Payment Sent',
+      paid: 'Paid',
+      rejected: 'Rejected',
     };
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {labels[status as keyof typeof labels] || status}
       </span>
     );
   };
@@ -117,6 +149,10 @@ export default function RetreatApplicationsClient() {
     switch (status) {
       case 'approved':
         return <CheckCircleIcon {...iconProps} className="text-green-600 w-5 h-5" />;
+      case 'payment_sent':
+        return <CurrencyDollarIcon {...iconProps} className="text-purple-600 w-5 h-5" />;
+      case 'paid':
+        return <CheckCircleIcon {...iconProps} className="text-emerald-600 w-5 h-5" />;
       case 'rejected':
         return <XCircleIcon {...iconProps} className="text-red-600 w-5 h-5" />;
       case 'pending':
@@ -143,19 +179,29 @@ export default function RetreatApplicationsClient() {
         </p>
       </div>
 
-      {/* Filter */}
-      <div className="mb-4 flex items-center gap-2">
+      {/* Filters */}
+      <div className="mb-4 flex items-center gap-4">
         <FunnelIcon className="w-5 h-5 text-gray-500" />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
         >
-          <option value="all">All Applications</option>
+          <option value="all">All Statuses</option>
           <option value="pending">Pending</option>
+          <option value="zoom_scheduled">Zoom Scheduled</option>
           <option value="reviewed">Reviewed</option>
           <option value="approved">Approved</option>
+          <option value="paid">Paid</option>
           <option value="rejected">Rejected</option>
+        </select>
+        <select
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+        >
+          <option value="all">All Retreats</option>
+          <option value="shakti">Shakti</option>
+          <option value="darshan">Darshan</option>
+          <option value="sevadhari">Sevadhari</option>
         </select>
       </div>
 
@@ -186,15 +232,15 @@ export default function RetreatApplicationsClient() {
               <tr key={application.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {application.form_data?.personalInfo?.firstName || 'N/A'} {application.form_data?.personalInfo?.lastName || ''}
+                    {application.submitter_name || 'N/A'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {application.form_data?.personalInfo?.email || 'No email'}
+                    {application.submitter_email || 'No email'}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {application.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    Retreat Application
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -257,10 +303,25 @@ export default function RetreatApplicationsClient() {
                 </label>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <pre className="text-sm whitespace-pre-wrap">
-                    {JSON.stringify(selectedApplication.form_data, null, 2)}
+                    {JSON.stringify(selectedApplication.answers, null, 2)}
                   </pre>
                 </div>
               </div>
+
+              {/* Payment Info (if applicable) */}
+              {selectedApplication.payment_amount && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-purple-900 mb-2">Payment Information</h4>
+                  <p className="text-sm text-purple-800">
+                    <strong>Amount:</strong> ${selectedApplication.payment_amount.toFixed(2)}
+                  </p>
+                  {selectedApplication.payment_link_sent_at && (
+                    <p className="text-sm text-purple-800">
+                      <strong>Link Sent:</strong> {new Date(selectedApplication.payment_link_sent_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Notes */}
               <div>
@@ -278,13 +339,23 @@ export default function RetreatApplicationsClient() {
 
               {/* Action Buttons */}
               <div className="flex gap-2">
-                <button
-                  onClick={() => updateApplicationStatus('approved')}
-                  disabled={updatingStatus}
-                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition"
-                >
-                  Approve
-                </button>
+                {selectedApplication.status === 'pending' || selectedApplication.status === 'reviewed' ? (
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      openApprovalModal(selectedApplication);
+                    }}
+                    disabled={updatingStatus}
+                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2"
+                  >
+                    <CurrencyDollarIcon className="w-5 h-5" />
+                    Approve & Send Payment Link
+                  </button>
+                ) : (
+                  <div className="flex-1 text-center text-sm text-gray-600 py-2">
+                    Payment link already sent or status changed
+                  </div>
+                )}
                 <button
                   onClick={() => updateApplicationStatus('rejected')}
                   disabled={updatingStatus}
@@ -303,6 +374,25 @@ export default function RetreatApplicationsClient() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Approval Payment Modal */}
+      {showApprovalModal && selectedApplication && session?.user?.accessToken && (
+        <ApprovalPaymentModal
+          isOpen={showApprovalModal}
+          onClose={() => setShowApprovalModal(false)}
+          submission={{
+            id: selectedApplication.id,
+            submitter_name: selectedApplication.submitter_name || 'Unknown',
+            submitter_email: selectedApplication.submitter_email || '',
+            form_template_id: selectedApplication.form_template_id,
+          }}
+          onSuccess={() => {
+            setShowApprovalModal(false);
+            fetchApplications();
+          }}
+          accessToken={session.user.accessToken}
+        />
       )}
     </div>
   );

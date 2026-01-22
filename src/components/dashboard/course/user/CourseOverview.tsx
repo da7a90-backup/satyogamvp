@@ -1,852 +1,450 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeftIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  CheckIcon,
-  CheckCircleIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
-import { courseApi } from "@/lib/courseApi";
-import { courseProgressApi } from "@/lib/courseProgressApi";
-import ReactMarkdown from "react-markdown";
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ChevronDown, ChevronRight, Play, FileText, Edit, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { getCourseBySlug } from '@/lib/courses-api';
+import { Course, CourseComponent, ComponentCategory } from '@/types/course';
 
 interface CourseOverviewProps {
   slug: string;
   isAuthenticated: boolean;
 }
 
-// Interface for the progress data as stored in component state
-interface ProgressData {
-  [key: string]: {
-    started: boolean;
-    completed: boolean;
-    progress: number; // 0-100
-  };
-}
-
-// Define the progress data structure from API
-interface ClassProgress {
-  classId: number;
-  orderIndex: number;
-  video: number;
-  keyConcepts: number;
-  writingPrompts: number;
-  additionalMaterials: number;
-  completed: boolean;
-  lastAccessed: string | null;
-}
-
-interface CourseProgressData {
-  id: number;
-  attributes: {
-    tracking: {
-      classes: ClassProgress[];
-      started: boolean;
-      completed: boolean;
-      startDate: string | null;
-      lastAccessDate: string | null;
-    };
-    enrolledDate: string;
-  };
-}
-
-const CourseOverview = ({ slug, isAuthenticated }: CourseOverviewProps) => {
-  const [course, setCourse] = useState<any>(null);
-  const [classes, setClasses] = useState<any[]>([]);
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<ProgressData>({});
-  const [isCourseCompleted, setIsCourseCompleted] = useState(false);
+export default function CourseOverview({ slug, isAuthenticated }: CourseOverviewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [course, setCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
 
-  // Store the full progress data for calculating overall percentage
-  const progressDataRef = useRef<CourseProgressData | null>(null);
-
-  // Fetch course data and progress
+  // Check for payment redirect parameters
   useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        setIsLoading(true);
-        const response = await courseApi.getCourseBySlug(slug);
+    const checkPaymentRedirect = async () => {
+      const code = searchParams.get('code');
+      const order = searchParams.get('order');
+      const tilopayTransaction = searchParams.get('tilopay-transaction');
 
-        if (!response) {
-          setError("Course not found");
-          return;
-        }
+      // If payment redirect parameters are present, verify the payment
+      if (code && order && tilopayTransaction) {
+        console.log('Payment redirect detected:', { code, order, tilopayTransaction });
+        setVerifyingPayment(true);
 
-        setCourse(response);
+        try {
+          // Get JWT token from session
+          const sessionResponse = await fetch('/api/auth/session');
+          const session = await sessionResponse.json();
 
-        // After setting the course, fetch the classes
-        if (response.id) {
-          fetchClasses(response.id.toString());
+          // JWT is stored as accessToken in NextAuth session
+          const jwtToken = session?.user?.accessToken || session?.user?.jwt;
 
-          // Fetch progress data if user is authenticated
-          if (isAuthenticated) {
-            await fetchCourseProgress(response.id.toString());
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching course:", err);
-        setError("Failed to load course details");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const fetchClasses = async (courseId: string) => {
-      try {
-        const response = await courseApi.getClasses(courseId);
-
-        if (response.data && response.data.length > 0) {
-          // Sort classes by orderIndex
-          const sortedClasses = [...response.data].sort(
-            (a, b) => a.attributes.orderIndex - b.attributes.orderIndex
-          );
-
-          setClasses(sortedClasses);
-          // Expand the Welcome section by default
-          setExpandedSections(["welcome"]);
-        } else {
-          console.log("No classes found for this course");
-          setClasses([]);
-        }
-      } catch (err) {
-        console.error("Error fetching classes:", err);
-        setError("Failed to load course classes");
-      }
-    };
-
-    // Function to fetch and process course progress data
-    const fetchCourseProgress = async (courseId: string) => {
-      try {
-        const progressData = await courseProgressApi.getUserCourseProgress(
-          courseId
-        );
-
-        if (
-          progressData &&
-          progressData.attributes &&
-          progressData.attributes.tracking
-        ) {
-          // Store full progress data for calculations
-          progressDataRef.current = progressData;
-
-          // Check if course is completed from API data
-          setIsCourseCompleted(progressData.attributes.tracking.completed);
-
-          // Transform progress data to the format our component uses
-          const formattedProgress: ProgressData = {};
-
-          const tracking = progressData.attributes.tracking;
-
-          // Set introduction progress
-          formattedProgress["introduction"] = {
-            started: tracking.started,
-            completed: tracking.started, // Assume intro is complete if course is started
-            progress: tracking.started ? 100 : 0,
-          };
-
-          // Process each class's components
-          if (tracking.classes && Array.isArray(tracking.classes)) {
-            tracking.classes.forEach((classItem) => {
-              // For each component in the class (video, keyConcepts, writingPrompts, additionalMaterials)
-              // Create progress entries with the format: "orderIndex.componentNumber"
-              const componentMapping = {
-                video: 1,
-                keyConcepts: 2,
-                writingPrompts: 3,
-                additionalMaterials: 4,
-              };
-
-              Object.entries(componentMapping).forEach(
-                ([componentName, componentNumber]) => {
-                  // Create the key in format "orderIndex.componentNumber" (e.g., "1.1", "1.2", etc.)
-                  const key = `${classItem.orderIndex}.${componentNumber}`;
-
-                  // Get the progress value (0-1) for this component
-                  const progressValue = classItem[
-                    componentName as keyof ClassProgress
-                  ] as number;
-
-                  // Store formatted progress data
-                  formattedProgress[key] = {
-                    started: progressValue > 0,
-                    completed: progressValue >= 0.99, // Consider it complete at 99%
-                    progress: Math.round(progressValue * 100),
-                  };
-                }
-              );
-            });
+          if (!jwtToken) {
+            console.error('No JWT token in session', session);
+            setVerifyingPayment(false);
+            return;
           }
 
-          setProgress(formattedProgress);
-        } else {
-          console.log("No progress data found or invalid structure");
+          console.log('Confirming payment with backend...');
+
+          // Call backend to confirm payment and enroll
+          const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/payments/confirm-redirect`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${jwtToken}`,
+            },
+            body: JSON.stringify({
+              code,
+              order,
+              'tilopay-transaction': tilopayTransaction,
+              brand: searchParams.get('brand'),
+              'last-digits': searchParams.get('last-digits'),
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Payment confirmed and enrolled:', data);
+
+            // Clean URL by removing payment parameters
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+
+            // Reload course data to reflect enrollment
+            loadCourse();
+          } else {
+            const errorData = await response.json();
+            console.error('Payment confirmation failed:', errorData);
+            setError('Payment confirmation failed. Please contact support.');
+          }
+        } catch (err) {
+          console.error('Error confirming payment:', err);
+          setError('Failed to confirm payment. Please contact support.');
+        } finally {
+          setVerifyingPayment(false);
         }
-      } catch (err) {
-        console.error("Error fetching course progress:", err);
       }
     };
 
-    if (slug) {
-      fetchCourse();
+    if (isAuthenticated) {
+      checkPaymentRedirect();
     }
-  }, [slug, isAuthenticated]);
+  }, [searchParams, isAuthenticated]);
 
-  // Toggle section expansion (except for addendum if course is not completed)
-  const toggleSection = (sectionId: string) => {
-    // Don't toggle addendum if course is not completed
-    if (sectionId === "course-addendum" && !isCourseCompleted) {
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
       return;
     }
 
-    setExpandedSections((prevIds) =>
-      prevIds.includes(sectionId)
-        ? prevIds.filter((id) => id !== sectionId)
-        : [...prevIds, sectionId]
+    loadCourse();
+  }, [slug, isAuthenticated]);
+
+  const loadCourse = async () => {
+    try {
+      setLoading(true);
+      const data = await getCourseBySlug(slug);
+      setCourse(data);
+
+      // Expand first class by default
+      if (data.classes && data.classes.length > 0) {
+        setExpandedClasses(new Set([data.classes[0].id]));
+      }
+    } catch (err) {
+      console.error('Failed to load course:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleClass = (classId: string) => {
+    const newExpanded = new Set(expandedClasses);
+    if (newExpanded.has(classId)) {
+      newExpanded.delete(classId);
+    } else {
+      newExpanded.add(classId);
+    }
+    setExpandedClasses(newExpanded);
+  };
+
+  // Format duration for individual components
+  const formatDuration = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, '0')}:00 hours`;
+    }
+    return `${minutes} minutes`;
+  };
+
+  // Calculate total duration across all classes and components
+  const getTotalDuration = (): string => {
+    if (!course?.classes) return '0:00 min';
+
+    let totalSeconds = 0;
+    course.classes.forEach((cls) => {
+      cls.components.forEach((comp) => {
+        totalSeconds += comp.duration || 0;
+      });
+    });
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')} min`;
+  };
+
+  const getComponentIcon = (category?: ComponentCategory) => {
+    switch (category) {
+      case ComponentCategory.VIDEO_LESSON:
+        return <Play className="w-4 h-4 text-[#942017]" />;
+      case ComponentCategory.KEY_CONCEPTS:
+        return <FileText className="w-4 h-4 text-gray-600" />;
+      case ComponentCategory.WRITING_PROMPTS:
+        return <Edit className="w-4 h-4 text-gray-600" />;
+      case ComponentCategory.ADDITIONAL_MATERIALS:
+        return <FileText className="w-4 h-4 text-gray-600" />;
+      default:
+        return <FileText className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const getComponentActionButton = (component: CourseComponent) => {
+    const progress = component.progress;
+
+    // Completed - show only text with no button (Image 29 style)
+    if (progress?.completed) {
+      return (
+        <span className="text-sm text-green-600 font-medium">100% completed</span>
+      );
+    }
+
+    // In progress - show percentage + Continue button (Image 29 style)
+    if (progress?.progress_percentage && progress.progress_percentage > 0) {
+      const displayPercentage = Math.round(progress.progress_percentage);
+      return (
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-600 font-medium">{displayPercentage}% completed</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleComponentClick(component.id);
+            }}
+            className="px-4 py-1.5 bg-[#942017] text-white text-sm rounded hover:bg-[#7a1a13] transition"
+          >
+            Continue
+          </button>
+        </div>
+      );
+    }
+
+    // Not started - show Start button (Image 29 style)
+    return (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleComponentClick(component.id);
+        }}
+        className="px-4 py-1.5 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 transition"
+      >
+        Start
+      </button>
     );
   };
 
-  // Get total duration for the course
-  const getTotalDuration = (): string => {
-    let totalMinutes = 0;
-
-    classes.forEach((classItem) => {
-      if (classItem.attributes.duration) {
-        totalMinutes += parseInt(classItem.attributes.duration, 10) || 0;
-      }
-    });
-
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:00`;
-    } else {
-      return `${minutes}:00`;
-    }
+  const handleComponentClick = (componentId: string) => {
+    router.push(`/dashboard/user/courses/${slug}/component/${componentId}`);
   };
 
-  // Get progress for a specific component
-  const getComponentProgress = (classIndex: number, componentIndex: number) => {
-    const key = `${classIndex}.${componentIndex}`;
-    return progress[key] || { started: false, completed: false, progress: 0 };
-  };
-
-  // Calculate course completion percentage
-  const getCourseCompletionPercentage = (): number => {
-    // If no progress data or not authenticated, return 0
-    if (!isAuthenticated || Object.keys(progress).length === 0) {
-      return 0;
-    }
-
-    // Calculate using the actual progress values from each component
-    let totalProgressSum = 0;
-    let totalComponents = 0;
-
-    // Loop through all progress entries except introduction
-    Object.entries(progress).forEach(([key, value]) => {
-      if (key !== "introduction") {
-        totalComponents++;
-        totalProgressSum += value.progress; // Use the actual percentage (0-100)
-      }
-    });
-
-    // Calculate average progress across all components
-    const averageProgress =
-      totalComponents > 0 ? totalProgressSum / totalComponents : 0;
-
-    // Return rounded percentage
-    return Math.round(averageProgress);
-  };
-
-  // Handle component clicks
-  const handleComponentClick = (classIndex: number, componentIndex: number) => {
-    // Get progress for this component
-    const componentProgress = getComponentProgress(classIndex, componentIndex);
-
-    // If component is started but not completed, continue
-    if (componentProgress.started && !componentProgress.completed) {
-      router.push(
-        `/dashboard/user/courses/${slug}/class/${classIndex}/component/${componentIndex}`
-      );
-    }
-    // If component is not started, mark as started and navigate
-    else if (!componentProgress.started) {
-      router.push(
-        `/dashboard/user/courses/${slug}/class/${classIndex}/component/${componentIndex}`
-      );
-    }
-    // If completed, just navigate
-    else {
-      router.push(
-        `/dashboard/user/courses/${slug}/class/${classIndex}/component/${componentIndex}`
-      );
-    }
-  };
-
-  const handleIntroductionClick = () => {
-    router.push(`/dashboard/user/courses/${slug}/introduction`);
-  };
-
-  const handleAddendumClick = () => {
-    // Only navigate if course is completed
-    if (isCourseCompleted) {
-      router.push(`/dashboard/user/courses/${slug}/addendum`);
-    }
-  };
-
-  // Helper function to render progress indicator for a component
-  const renderProgressIndicator = (componentProgress: {
-    started: boolean;
-    completed: boolean;
-    progress: number;
-  }) => {
-    if (componentProgress.completed) {
-      // Completed (checkmark)
-      return (
-        <div className="flex items-center">
-          <CheckIcon className="h-5 w-5 text-purple-600" />
+  if (loading || verifyingPayment) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#f8f7f4]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#942017] mx-auto mb-4"></div>
+          <p className="text-gray-600">{verifyingPayment ? 'Verifying payment and enrolling...' : 'Loading course...'}</p>
         </div>
-      );
-    } else if (componentProgress.started) {
-      // In progress (circle with progress)
-      return (
-        <div className="relative h-5 w-5 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-2 border-gray-300"></div>
-          <div
-            className="absolute inset-0 rounded-full border-2 border-purple-600"
-            style={{
-              clipPath: `inset(0 0 0 ${100 - componentProgress.progress}%)`,
-            }}
-          ></div>
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#f8f7f4]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to load course</h2>
+          <p className="text-gray-600 mb-4">{error || 'Course not found'}</p>
+          <button
+            onClick={loadCourse}
+            className="px-4 py-2 bg-[#942017] text-white rounded hover:bg-[#7a1a13]"
+          >
+            Retry
+          </button>
         </div>
-      );
-    } else {
-      // Not started (empty circle)
-      return (
-        <div className="h-5 w-5 rounded-full border-2 border-gray-300"></div>
-      );
-    }
-  };
+      </div>
+    );
+  }
+
+  if (!course.can_access) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#f8f7f4]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-4">You need to enroll in this course to access its content.</p>
+          <button
+            onClick={() => router.push(`/store/${slug}`)}
+            className="px-4 py-2 bg-[#942017] text-white rounded hover:bg-[#7a1a13]"
+          >
+            View Course Details
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const totalClasses = course.classes?.length || 0;
+  const totalDuration = getTotalDuration();
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Back button */}
-      <div className="container mx-auto px-4 py-4">
-        <Link
-          href="/dashboard/user/courses"
-          className="text-gray-600 hover:text-gray-900 flex items-center"
+    <div className="min-h-screen bg-[#FAF8F1]">
+      {/* Header Section with Back Button */}
+      <div className="px-4 md:px-8 pt-4 md:pt-8 pb-0">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 text-[#7D1A13] text-sm font-semibold mb-4 md:mb-6 hover:text-[#942017] transition"
         >
-          <ArrowLeftIcon className="h-4 w-4 mr-1" />
+          <ArrowLeft className="w-5 h-5" />
           Back
-        </Link>
+        </button>
       </div>
 
-      {/* Course header with featured image as background */}
-      <div
-        className="bg-gray-800 text-white relative"
-        style={{
-          backgroundImage: course?.attributes.featuredImage?.data
-            ? `url(${getImageUrl(
-                course.attributes.featuredImage.data.attributes.url
-              )})`
-            : "none",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {/* Dark overlay to ensure text readability */}
-        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-
-        <div className="container mx-auto px-4 py-16 relative z-10 text-center">
-          <div className="mb-2 text-sm font-medium">Course</div>
-          <h1 className="text-4xl font-bold mb-4">
-            {course?.attributes.title}
-          </h1>
-          {course?.attributes.subtitle && (
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              {course.attributes.subtitle}
-            </p>
-          )}
+      {/* Course Header Banner */}
+      <div className="px-4 md:px-8 pb-6 md:pb-8">
+        <div
+          className="relative h-[236px] md:h-[272px] rounded-lg overflow-hidden flex items-center justify-center"
+          style={{
+            backgroundImage: course.thumbnail_url
+              ? `linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${course.thumbnail_url})`
+              : 'linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5))',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        >
+          <div className="text-center px-8 md:px-16 py-12 md:py-16">
+            <p className="text-base md:text-lg font-semibold text-white mb-4 md:mb-6">{course.subtitle || 'Course'}</p>
+            <h1 className="text-2xl md:text-4xl font-semibold text-white mb-4 md:mb-6 tracking-tight">{course.title}</h1>
+            <p className="text-sm md:text-base font-medium text-white">{course.description || ''}</p>
+          </div>
         </div>
       </div>
 
-      {/* Introduction content - Now directly below the course title and image */}
-      {course?.attributes.introduction && (
-        <div className="container mx-auto px-4 py-8">
-          <div className="prose max-w-none">
-            <ReactMarkdown>{course.attributes.introduction}</ReactMarkdown>
-          </div>
-        </div>
-      )}
-
-      {/* Course content - No longer inside a tab */}
-      <div className="container mx-auto px-4 py-6">
-        <h2 className="text-xl font-bold mb-2">Course content</h2>
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-sm text-gray-600">
-            {classes.length} {classes.length === 1 ? "class" : "classes"}
-          </div>
-          <div className="text-sm text-gray-600">{getTotalDuration()} min</div>
-        </div>
-
-        {/* Welcome section */}
-        <div className="space-y-4">
-          <div className="border border-gray-200 rounded-md overflow-hidden">
-            <button
-              onClick={() => toggleSection("welcome")}
-              className="w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50"
-            >
-              <div className="flex items-center">
-                {expandedSections.includes("welcome") ? (
-                  <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
-                ) : (
-                  <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
-                )}
-                <span className="font-medium">Welcome!</span>
-              </div>
-            </button>
-
-            {expandedSections.includes("welcome") && (
-              <div className="border-t border-gray-200 divide-y divide-gray-200">
-                <div
-                  className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                  onClick={handleIntroductionClick}
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 flex justify-center">
-                      {renderProgressIndicator(
-                        progress["introduction"] || {
-                          started: false,
-                          completed: false,
-                          progress: 0,
-                        }
-                      )}
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium">Introduction</span>
-                      <div className="text-xs text-gray-500 mt-1">
-                        15 minutes
-                      </div>
-                    </div>
-                  </div>
-
-                  {progress["introduction"]?.completed ? (
-                    <div className="flex items-center">
-                      <div className="w-full bg-purple-100 h-1 rounded-full">
-                        <div
-                          className="bg-purple-600 h-1 rounded-full"
-                          style={{ width: "100%" }}
-                        ></div>
-                      </div>
-                      <span className="ml-2 text-sm">100% completed</span>
-                    </div>
-                  ) : progress["introduction"]?.started ? (
-                    <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800">
-                      Continue
-                    </button>
-                  ) : (
-                    <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                      Start
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+      {/* Course Content Section */}
+      <div className="px-4 md:px-8 pt-0 md:pt-8 pb-8">
+        <div className="max-w-full">
+          {/* Course Content Header */}
+          <div className="pb-4 border-b border-[#D2D6DB] mb-6">
+            <h2 className="text-lg md:text-xl font-semibold text-black">Course content</h2>
           </div>
 
-          {/* Class sections */}
-          {classes.map((classItem) => {
-            const classId = `class-${classItem.id}`;
-            const isExpanded = expandedSections.includes(classId);
-            const classIndex = classItem.attributes.orderIndex;
+          {/* Classes Count and Duration */}
+          <div className="flex items-center justify-between pb-4 mb-6">
+            <span className="text-base md:text-lg font-semibold text-black">{totalClasses} classes</span>
+            <span className="text-base md:text-lg font-semibold text-black text-right">{totalDuration}</span>
+          </div>
 
-            return (
+          {/* Classes List */}
+          <div className="space-y-4">
+            {course.classes?.map((courseClass) => (
               <div
-                key={classItem.id}
-                className="border border-gray-200 rounded-md overflow-hidden"
+                key={courseClass.id}
+                className="bg-white rounded-lg border border-[#D2D6DB] overflow-hidden"
               >
-                {/* Class header (always visible) */}
+                {/* Class Header */}
                 <button
-                  onClick={() => toggleSection(classId)}
-                  className="w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50"
+                  onClick={() => toggleClass(courseClass.id)}
+                  className="w-full flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition text-left"
                 >
-                  <div className="flex items-center">
-                    {isExpanded ? (
-                      <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
-                    ) : (
-                      <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
-                    )}
-                    <span className="font-medium">
-                      Class {classIndex} - {classItem.attributes.title}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {classItem.attributes.duration || "150"} min
-                  </div>
+                  <span className="text-base md:text-lg font-semibold md:font-bold text-black pr-4">{courseClass.title}</span>
+                  {expandedClasses.has(courseClass.id) ? (
+                    <ChevronDown className="w-4 h-4 text-[#A4A7AE] flex-shrink-0 transform rotate-180" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-[#A4A7AE] flex-shrink-0 rotate-90" />
+                  )}
                 </button>
 
-                {/* Class content (visible when expanded) */}
-                {isExpanded && (
-                  <div className="border-t border-gray-200 divide-y divide-gray-200">
-                    {/* Video section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 1)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 1)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.1 Video: {classItem.attributes.title}
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
-                          </div>
-                        </div>
-                      </div>
+                {/* Components List */}
+                {expandedClasses.has(courseClass.id) && (
+                  <div className="border-t border-[#D2D6DB] px-4 py-2 space-y-4">
+                    {courseClass.components.map((component, index) => {
+                      const isCompleted = component.progress?.completed;
+                      const isInProgress = component.progress && component.progress.progress_percentage > 0;
+                      const progressPercentage = component.progress?.progress_percentage || 0;
 
-                      {getComponentProgress(classIndex, 1).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
-                          </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
-                        </div>
-                      ) : getComponentProgress(classIndex, 1).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 1).progress
-                                }%`,
-                              }}
-                            ></div>
-                          </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
-                          </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
+                      return (
+                        <div
+                          key={component.id}
+                          className="border-b border-[#D4D4D4] pb-4 last:border-b-0"
+                        >
+                          {/* Component Row */}
+                          <div className="flex flex-col gap-3">
+                            {/* Top Row: Checkbox + Title + Duration */}
+                            <div className="flex items-start gap-3">
+                              {/* Checkbox */}
+                              <div className="flex-shrink-0 mt-0.5">
+                                {isCompleted ? (
+                                  <div className="w-5 h-5 rounded-full bg-[#F0B7B6] flex items-center justify-center">
+                                    <CheckCircle2 className="w-3 h-3 text-[#942017]" />
+                                  </div>
+                                ) : isInProgress ? (
+                                  <div className="w-5 h-5 rounded-full border-2 border-[#942017] flex items-center justify-center">
+                                    <div className="w-2 h-2 rounded-full bg-[#942017]"></div>
+                                  </div>
+                                ) : (
+                                  <div className="w-5 h-5 rounded-full border border-[#D5D7DA]"></div>
+                                )}
+                              </div>
 
-                    {/* Key Concepts section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 2)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 2)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.2 Key Concepts
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
-                          </div>
-                        </div>
-                      </div>
+                              {/* Title and Duration */}
+                              <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
+                                <p className="text-sm md:text-base font-semibold text-[#414651] leading-6">
+                                  {component.title}
+                                </p>
+                                {component.duration && (
+                                  <span className="text-sm md:text-base font-medium text-[#414651] whitespace-nowrap">
+                                    {formatDuration(component.duration)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
 
-                      {getComponentProgress(classIndex, 2).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
-                          </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
-                        </div>
-                      ) : getComponentProgress(classIndex, 2).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 2).progress
-                                }%`,
-                              }}
-                            ></div>
-                          </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
-                          </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
+                            {/* Bottom Row: Progress Bar + Badge/Button */}
+                            {(isInProgress || isCompleted) && (
+                              <div className="flex items-center gap-4 pl-8">
+                                {/* Progress Bar */}
+                                <div className="flex-1 h-1 bg-[#EEEEEE] rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-[#942017] transition-all duration-300"
+                                    style={{
+                                      width: `${progressPercentage}%`,
+                                    }}
+                                  />
+                                </div>
+                                {/* Percentage Badge */}
+                                <span className="text-xs md:text-sm text-black whitespace-nowrap font-normal">
+                                  {Math.round(progressPercentage)}% completed
+                                </span>
+                              </div>
+                            )}
 
-                    {/* Writing Prompts section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 3)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 3)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.3 Writing Prompts & Further Reflection
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
+                            {/* Action Button */}
+                            <div className="pl-8">
+                              {isCompleted ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleComponentClick(component.id);
+                                  }}
+                                  className="w-full md:w-auto px-3 py-2 bg-white border border-[#D5D7DA] text-[#414651] text-sm font-semibold rounded-lg hover:bg-gray-50 transition shadow-[0px_1px_2px_rgba(16,24,40,0.05),inset_0px_0px_0px_1px_rgba(10,13,18,0.18),inset_0px_-2px_0px_rgba(10,13,18,0.05)]"
+                                >
+                                  Review
+                                </button>
+                              ) : isInProgress ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleComponentClick(component.id);
+                                  }}
+                                  className="w-full md:w-auto px-3 py-2 bg-[#7D1A13] text-white text-sm font-semibold rounded-lg hover:bg-[#942017] transition shadow-[0px_1px_2px_rgba(16,24,40,0.05),inset_0px_0px_0px_1px_rgba(10,13,18,0.18),inset_0px_-2px_0px_rgba(10,13,18,0.05)]"
+                                >
+                                  Continue
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleComponentClick(component.id);
+                                  }}
+                                  className="w-full md:w-auto px-3 py-2 bg-white border border-[#D5D7DA] text-[#414651] text-sm font-semibold rounded-lg hover:bg-gray-50 transition shadow-[0px_1px_2px_rgba(16,24,40,0.05),inset_0px_0px_0px_1px_rgba(10,13,18,0.18),inset_0px_-2px_0px_rgba(10,13,18,0.05)]"
+                                >
+                                  Start
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-
-                      {getComponentProgress(classIndex, 3).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
-                          </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
-                        </div>
-                      ) : getComponentProgress(classIndex, 3).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 3).progress
-                                }%`,
-                              }}
-                            ></div>
-                          </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
-                          </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Additional Materials section */}
-                    <div
-                      className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleComponentClick(classIndex, 4)}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 flex justify-center">
-                          {renderProgressIndicator(
-                            getComponentProgress(classIndex, 4)
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">
-                            {classIndex}.4 Additional Materials
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            45 minutes
-                          </div>
-                        </div>
-                      </div>
-
-                      {getComponentProgress(classIndex, 4).completed ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-purple-100 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{ width: "100%" }}
-                            ></div>
-                          </div>
-                          <span className="text-sm whitespace-nowrap">
-                            100% completed
-                          </span>
-                        </div>
-                      ) : getComponentProgress(classIndex, 4).started ? (
-                        <div className="flex items-center w-1/3">
-                          <div className="w-full bg-gray-200 h-1 rounded-full mr-2">
-                            <div
-                              className="bg-purple-600 h-1 rounded-full"
-                              style={{
-                                width: `${
-                                  getComponentProgress(classIndex, 4).progress
-                                }%`,
-                              }}
-                            ></div>
-                          </div>
-                          <button className="px-3 py-1 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-800 whitespace-nowrap">
-                            Continue
-                          </button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                          Start
-                        </button>
-                      )}
-                    </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-            );
-          })}
-
-          {/* Course completion section (shown in-place without redirection) */}
-          <div className="border border-gray-200 rounded-md overflow-hidden">
-            <button
-              onClick={() => toggleSection("course-completed")}
-              className="w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50"
-            >
-              <div className="flex items-center">
-                {expandedSections.includes("course-completed") ? (
-                  <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
-                ) : (
-                  <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
-                )}
-                <span className="font-medium">
-                  {getCourseCompletionPercentage() === 100
-                    ? "Course completed"
-                    : "Course completion"}
-                </span>
-              </div>
-              <div className="text-sm text-gray-500">
-                {getCourseCompletionPercentage()}% completed
-              </div>
-            </button>
-
-            {expandedSections.includes("course-completed") && (
-              <div className="border-t border-gray-200 p-6">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 text-green-600 mb-4">
-                    <CheckCircleIcon className="h-8 w-8" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">
-                    You've completed {getCourseCompletionPercentage()}% of this
-                    course
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    {getCourseCompletionPercentage() === 100
-                      ? "Congratulations on completing this course!"
-                      : "Keep going to complete all course materials."}
-                  </p>
-
-                  {/* Progress bar */}
-                  <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
-                    <div
-                      className="h-2 bg-green-500 rounded-full transition-all duration-300"
-                      style={{ width: `${getCourseCompletionPercentage()}%` }}
-                    ></div>
-                  </div>
-
-                  {/* Certificate button (if course is 100% completed) */}
-                  {getCourseCompletionPercentage() === 100 && (
-                    <button className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                      View Certificate
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+            ))}
           </div>
-
-          {/* Course addendum section (if exists) */}
-          {course?.attributes.addendum && (
-            <div
-              className={`border border-gray-200 rounded-md overflow-hidden ${
-                !isCourseCompleted ? "opacity-70" : ""
-              }`}
-            >
-              <button
-                onClick={() => toggleSection("course-addendum")}
-                className={`w-full text-left px-4 py-3 flex justify-between items-center ${
-                  isCourseCompleted ? "hover:bg-gray-50" : "cursor-not-allowed"
-                }`}
-              >
-                <div className="flex items-center">
-                  {isCourseCompleted ? (
-                    expandedSections.includes("course-addendum") ? (
-                      <ChevronDownIcon className="h-5 w-5 text-gray-400 mr-2" />
-                    ) : (
-                      <ChevronRightIcon className="h-5 w-5 text-gray-400 mr-2" />
-                    )
-                  ) : (
-                    <LockClosedIcon className="h-5 w-5 text-gray-400 mr-2" />
-                  )}
-                  <span className="font-medium">Course addendum</span>
-                </div>
-                {!isCourseCompleted && (
-                  <div className="text-sm text-gray-500">
-                    Unlocks when course is completed
-                  </div>
-                )}
-              </button>
-
-              {expandedSections.includes("course-addendum") &&
-                isCourseCompleted && (
-                  <div
-                    className="border-t border-gray-200 p-6 cursor-pointer"
-                    onClick={handleAddendumClick}
-                  >
-                    <p className="text-gray-700">
-                      Click to view additional resources and insights to deepen
-                      your understanding.
-                    </p>
-                  </div>
-                )}
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
-};
-
-// Helper function to get image URL
-const getImageUrl = (url?: string) => {
-  if (!url) return "";
-
-  // Check if it's an absolute URL
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
-  }
-
-  // Otherwise, it's a relative URL, so prepend the base URL
-  const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "";
-  return `${baseUrl}${url}`;
-};
-
-export default CourseOverview;
+}

@@ -98,48 +98,16 @@ export default function ProductDetailPage() {
     ? [product.featured_image]
     : ['/placeholder-image.jpg'];
 
-  // Mock testimonials data
+  // Testimonials data from API (included in product response)
   const testimonialsData = {
     tagline: "TESTIMONIALS",
     heading: "What Our Community Says",
-    testimonials: [
-      {
-        quote: "This retreat completely transformed my understanding of consciousness and opened new pathways to inner peace.",
-        name: "Sarah Mitchell",
-        location: "California, USA",
-        avatar: "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public"
-      },
-      {
-        quote: "Shunyamurti's teachings are profound yet accessible. This content is an invaluable resource for anyone on the spiritual path.",
-        name: "David Chen",
-        location: "Toronto, Canada",
-        avatar: "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public"
-      },
-      {
-        quote: "The depth and clarity of these teachings have profoundly impacted my daily practice and understanding.",
-        name: "Maria Rodriguez",
-        location: "Madrid, Spain",
-        avatar: "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public"
-      },
-      {
-        quote: "An incredible journey through wisdom that has stayed with me long after completing the retreat.",
-        name: "James Wilson",
-        location: "London, UK",
-        avatar: "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public"
-      },
-      {
-        quote: "Every session brought new insights and revelations. The guided meditations were particularly powerful.",
-        name: "Emma Thompson",
-        location: "Sydney, Australia",
-        avatar: "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public"
-      },
-      {
-        quote: "A life-changing experience that continues to guide my spiritual journey every single day.",
-        name: "Michael Brown",
-        location: "New York, USA",
-        avatar: "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public"
-      }
-    ]
+    testimonials: product?.testimonials?.map(t => ({
+      quote: t.quote,
+      name: t.author_name,
+      location: t.author_location || '',
+      avatar: t.author_avatar_url || "https://imagedelivery.net/5qGjs10y-85hdb5ied9uLw/882a363c-ac1b-40c6-7d7e-c7132b00b200/public"
+    })) || []
   };
 
   return (
@@ -149,7 +117,7 @@ export default function ProductDetailPage() {
         <div className="flex flex-col items-center px-4 lg:px-16 py-20 gap-6 max-w-7xl mx-auto">
           {/* Back Button */}
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push('/store')}
             className="flex items-center gap-2 self-start"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >

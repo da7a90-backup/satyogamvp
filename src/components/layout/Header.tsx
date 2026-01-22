@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, X } from 'lucide-react';
+import SearchModal from '@/components/search/SearchModal';
 
 interface MenuItem {
   label: string;
@@ -74,11 +75,13 @@ function FeatureModal({ isOpen, onClose, message, icon }: {
 
 const Header: React.FC<HeaderProps> = ({ navigation }) => {
   const [showBanner, setShowBanner] = useState(true);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [modalIcon, setModalIcon] = useState<'search' | 'cart'>('search');
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [cartModalOpen, setCartModalOpen] = useState(false);
+  const [cartModalMessage] = useState('Shopping cart functionality is under active development. Try again in a couple of days!');
   const pathname = usePathname();
 
   // Default navigation
@@ -175,11 +178,65 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
     if (!isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  // Handle scroll behavior
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          // Show banner only at top, shrink header when scrolled down
+          if (currentScrollY < 50) {
+            // At top of page - show banner and full header
+            setIsScrolled(false);
+            if (!bannerDismissed) {
+              setShowBanner(true);
+            }
+          } else {
+            // Scrolled down - shrink header and hide banner
+            setIsScrolled(true);
+            setShowBanner(false);
+          }
+
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [bannerDismissed]);
+
+  // Handle keyboard shortcuts (Cmd/Ctrl + K for search)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const handleDropdownToggle = (label: string) => {
     setActiveDropdown(prevState => (prevState === label ? null : label));
@@ -242,7 +299,11 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
   return (
     <header className="sticky top-0 z-[200] font-sans">
       {/* Promotional Banner */}
-      {showBanner && (
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          showBanner ? 'max-h-12' : 'max-h-0'
+        }`}
+      >
         <div
           className="px-4 md:px-8 lg:px-16 h-12 flex items-center justify-center relative text-white"
           style={{ backgroundColor: '#7D1A13' }}
@@ -250,32 +311,45 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           <div className="flex items-center gap-4 w-full max-w-screen-xl justify-center">
             <p className="text-white text-base font-normal leading-6 m-0 text-center">
               Free Meditation Course{' '}
-              <Link 
-                href="/courses" 
+              <Link
+                href="/courses"
                 className="text-white underline font-semibold hover:no-underline"
               >
                 Enroll Now
               </Link>
             </p>
             <button
-              onClick={() => setShowBanner(false)}
-              className="absolute right-4 bg-transparent border-none text-white cursor-pointer p-1 hover:opacity-80"
+              onClick={() => {
+                setShowBanner(false);
+                setBannerDismissed(true);
+              }}
+              className="absolute right-4 bg-transparent border-none text-white cursor-pointer p-1 hover:opacity-80 transition-opacity"
             >
               <CloseIcon />
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Main Navigation */}
-      <nav className="border-b border-black dropdown-container" style={{ backgroundColor: '#FAF8F1' }}>
-        <div className="px-4 md:px-8 lg:px-16 h-16 flex items-center justify-between max-w-screen-2xl mx-auto py-8">
+      <nav className="border-b border-black dropdown-container transition-all duration-300 ease-in-out" style={{ backgroundColor: '#FAF8F1' }}>
+        <div className={`px-4 md:px-8 lg:px-16 flex items-center justify-between max-w-screen-2xl mx-auto transition-all duration-300 ease-in-out ${
+          isScrolled ? 'h-14 py-6' : 'h-16 py-8'
+        }`}>
           {/* Logo */}
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="flex items-center no-underline"
           >
-            <img width={186} height={43} src='/logo_black.svg'/>
+            <img
+              width={186}
+              height={43}
+              src='/logo_black.svg'
+              className={`transition-all duration-300 ease-in-out ${
+                isScrolled ? 'scale-90' : 'scale-100'
+              }`}
+              alt="SatyoGam Logo"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -323,24 +397,17 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
           <div className="flex items-center gap-4">
             {/* Search Button */}
             <button
-              onClick={() => {
-                setModalIcon('search');
-                setModalMessage('Search functionality is under active development. Try again in a couple of days!');
-                setModalOpen(true);
-              }}
+              onClick={() => setSearchModalOpen(true)}
               className="bg-transparent border-none cursor-pointer px-3 py-2 flex items-center text-black hover:opacity-70 transition-opacity"
               aria-label="Search"
+              title="Search (Cmd+K)"
             >
               <SearchIcon />
             </button>
 
             {/* Cart Button */}
             <button
-              onClick={() => {
-                setModalIcon('cart');
-                setModalMessage('Shopping cart functionality is under active development. Try again in a couple of days!');
-                setModalOpen(true);
-              }}
+              onClick={() => setCartModalOpen(true)}
               className="bg-transparent border-none cursor-pointer px-3 py-2 flex items-center text-black hover:opacity-70 transition-opacity"
               aria-label="Cart"
             >
@@ -585,12 +652,18 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         </div>
       )}
 
-      {/* Feature Under Development Modal */}
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+      />
+
+      {/* Cart Feature Under Development Modal */}
       <FeatureModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        message={modalMessage}
-        icon={modalIcon}
+        isOpen={cartModalOpen}
+        onClose={() => setCartModalOpen(false)}
+        message={cartModalMessage}
+        icon="cart"
       />
     </header>
   );

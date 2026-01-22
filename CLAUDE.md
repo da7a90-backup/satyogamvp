@@ -303,3 +303,6 @@ MIXPANEL_TOKEN=your_token
 - never use fallback hardcoded data
 - always retry connexion to vps when it say refused
 - make port 3000 the single port you test with locally if the port is busy kill the process on that port and start a new one on it
+- if you can use tailwind instead of inline style that would be much much better please abide by this rule
+- you should never hardcode or use mock data in this project every again.
+- we use postgers running in a docker locally and another one in the remote server for the production version

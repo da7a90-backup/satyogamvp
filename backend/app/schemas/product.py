@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, UUID4, Field
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 
 class DownloadItem(BaseModel):
@@ -41,8 +41,8 @@ class ProductBase(BaseModel):
     categories: Optional[List[str]] = None
     tags: Optional[List[str]] = None
 
-    # Portal Media for Retreat Packages
-    portal_media: Optional[Dict[str, Any]] = None
+    # Portal Media - can be Dict (retreat packages) or List (guided meditations/audio)
+    portal_media: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
     has_video_category: bool = False
     has_audio_category: bool = False
     product_slug: Optional[str] = None
@@ -89,6 +89,9 @@ class ProductResponse(ProductBase):
 
     # Dynamic field for purchased products
     has_access: Optional[bool] = None
+
+    # Dynamic field for retreat slug (populated at runtime)
+    retreat_slug: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -175,8 +178,10 @@ class CartResponse(BaseModel):
     id: UUID4
     user_id: UUID4
     items: List[CartItemResponse] = []
-    total_items: int = 0
-    total_price: float = 0.0
+    subtotal: float = 0.0
+    tax: float = 0.0
+    total: float = 0.0
+    item_count: int = 0
     created_at: datetime
     updated_at: Optional[datetime]
 
@@ -186,15 +191,49 @@ class CartResponse(BaseModel):
 
 class CheckoutRequest(BaseModel):
     """Schema for checkout request."""
-    cart_id: UUID4
+    billing_email: Optional[str] = None
+    billing_name: Optional[str] = None
+    billing_address: Optional[str] = None
+    billing_city: Optional[str] = None
+    billing_state: Optional[str] = None
+    billing_country: Optional[str] = None
+    billing_postal_code: Optional[str] = None
     payment_method: str = "tilopay"  # Can be extended for other methods
     metadata: Optional[Dict[str, Any]] = None
 
 
 class CheckoutResponse(BaseModel):
     """Schema for checkout response."""
-    order_id: UUID4
+    order_id: str
+    payment_id: str
+    tilopay_key: str
     order_number: str
-    total_amount: float
-    payment_url: str  # Tilopay embedded checkout URL
-    tilopay_token: str
+    amount: float
+    currency: str
+    description: str
+    customer_email: str
+    customer_name: str
+    first_name: str
+    last_name: str
+    address: str
+    city: str
+    state: str
+    zip_code: str
+    country: str
+    telephone: str
+    total: float
+
+
+class PurchaseItemResponse(BaseModel):
+    """Schema for purchased product item."""
+    id: UUID4
+    product: ProductResponse
+    order_id: Optional[UUID4]
+    order_number: Optional[str]
+    amount_paid: Optional[float]
+    granted_at: datetime
+    expires_at: Optional[datetime]
+    is_expired: bool = False
+
+    class Config:
+        from_attributes = True

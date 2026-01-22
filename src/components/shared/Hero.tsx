@@ -9,67 +9,49 @@ interface HeroSectionData {
   heading: string;
   subtext: string;
   background: string;
+  gravity?: string | null;
 }
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+const getGravityClass = (gravity?: string | null): string => {
+  const map: {[key: string]: string} = {
+    'top-left': 'bg-top bg-left',
+    'top-center': 'bg-top',
+    'top-right': 'bg-top bg-right',
+    'center-left': 'bg-center bg-left',
+    'center': 'bg-center',
+    'center-right': 'bg-center bg-right',
+    'bottom-left': 'bg-bottom bg-left',
+    'bottom-center': 'bg-bottom',
+    'bottom-right': 'bg-bottom bg-right'
+  };
+  return gravity && map[gravity] ? map[gravity] : 'bg-top';
+};
 
 // ============================================================================
 // COMPONENT
 // ============================================================================
 
 const StandardHeroSection = ({ data }: { data: HeroSectionData }) => {
+  const gravityClass = getGravityClass(data.gravity);
+
   return (
     <section
-      className="relative w-full flex items-end overflow-hidden h-[55vh] lg:h-screen"
-      style={{
-        minHeight: '400px'
-      }}
+      className="relative w-full h-screen min-h-screen lg:h-[115vh] lg:min-h-[115vh] flex items-end overflow-hidden bg-[#FAF8F1]"
     >
-      {/* Desktop: Blurred background layer to fill space */}
+      {/* Background Image - Cover with dynamic gravity positioning */}
       <div
-        className="absolute inset-0 hidden lg:block"
+        className={`absolute inset-0 bg-cover ${gravityClass}`}
         style={{
-          backgroundImage: `url(${data.background})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(40px)',
-          transform: 'scale(1.1)' // Scale up slightly to hide blur edges
+          backgroundImage: `url(${data.background})`
         }}
       />
 
-      {/* Desktop: Sharp foreground image (contain to show full image) */}
-      <div
-        className="absolute inset-0 hidden lg:block"
-        style={{
-          backgroundImage: `url(${data.background})`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      />
-
-      {/* Mobile: Blurred background layer to fill space */}
-      <div
-        className="absolute inset-0 lg:hidden"
-        style={{
-          backgroundImage: `url(${data.background})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(20px)',
-          transform: 'scale(1.1)' // Scale up slightly to hide blur edges
-        }}
-      />
-
-      {/* Mobile: Sharp foreground image (contain to show full image) */}
-      <div
-        className="absolute inset-0 lg:hidden"
-        style={{
-          backgroundImage: `url(${data.background})`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      />
       {/* Very subtle vignette for text readability */}
-      <div 
+      <div
         className="absolute inset-0"
         style={{
           background: 'radial-gradient(circle at bottom left, rgba(0, 0, 0, 0.3) 0%, transparent 60%)'
@@ -112,59 +94,36 @@ const StandardHeroSection = ({ data }: { data: HeroSectionData }) => {
       }} />
 
       {/* Content Container */}
-      <div 
-        className="relative z-10 w-full flex justify-start items-end pb-16 px-8 lg:px-16"
-        style={{
-          maxWidth: '1440px',
-          margin: '0 auto'
-        }}
-      >
+      <div className="relative z-10 w-full max-w-[1440px] mx-auto flex justify-start items-end pb-16 px-8 lg:px-16">
         {/* Text Content */}
-        <div 
-          className="flex flex-col justify-end items-start gap-8"
-          style={{
-            maxWidth: '840px'
-          }}
-        >
+        <div className="flex flex-col justify-end items-start gap-8 max-w-[840px]">
           {/* Tagline */}
           <div className="w-full flex items-center">
-            <span 
-              className="text-white uppercase tracking-wide font-medium"
-              style={{
-                fontFamily: 'Avenir Next, sans-serif',
-                fontSize: '16px',
-                lineHeight: '24px'
-              }}
-            >
+            <span className="text-white uppercase tracking-wide font-medium text-base leading-6"
+              style={{ fontFamily: 'Avenir Next, sans-serif' }}>
               {data.tagline}
             </span>
           </div>
 
           {/* Main Heading */}
-          <h1 
-            className="text-white w-full"
+          <h1 className="text-white w-full"
             style={{
               fontFamily: 'Optima, Georgia, serif',
               fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
               fontWeight: 550,
               lineHeight: '125%',
               letterSpacing: '-0.02em'
-            }}
-          >
+            }}>
             {data.heading}
           </h1>
 
           {/* Subtext */}
-          <p 
-            className="text-white w-full"
+          <p className="text-white/80 w-full font-medium"
             style={{
               fontFamily: 'Avenir Next, sans-serif',
               fontSize: 'clamp(16px, 2vw, 20px)',
-              fontWeight: 500,
-              lineHeight: '140%',
-              color: 'rgba(255, 255, 255, 0.8)'
-            }}
-          >
+              lineHeight: '140%'
+            }}>
             {data.subtext}
           </p>
         </div>

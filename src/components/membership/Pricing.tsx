@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 // TypeScript interfaces for backend API response
 interface BackendFeature {
@@ -110,6 +112,8 @@ function transformBackendTier(backendTier: BackendTier): PricingTierData {
 interface PricingComparisonProps {}
 
 export default function PricingComparison({}: PricingComparisonProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [pricingData, setPricingData] = useState<PricingPageData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -341,7 +345,17 @@ export default function PricingComparison({}: PricingComparisonProps) {
     });
   };
 
-  const PricingCard = ({ tier, tierData }: { tier: string; tierData: PricingTierData }) => {
+  const PricingCard = ({
+    tier,
+    tierData,
+    router,
+    session,
+  }: {
+    tier: string;
+    tierData: PricingTierData;
+    router: any;
+    session: any;
+  }) => {
     const isDisabled = !isYearly && tierData.yearlyOnly;
     const displayPrice = isYearly ? tierData.yearlyPrice : tierData.monthlyPrice;
 
@@ -628,10 +642,23 @@ export default function PricingComparison({}: PricingComparisonProps) {
           {/* Buttons - anchored at bottom */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: 'auto' }}>
             <button
-              disabled
+              onClick={() => {
+                // Check if user is logged in
+                if (!session) {
+                  router.push('/login?redirect=/membership');
+                  return;
+                }
+
+                // Determine if this is Gyani with trial
+                const trial = tier === 'gyani' ? 'true' : 'false';
+                const frequency = isYearly ? 'annual' : 'monthly';
+
+                // Navigate to checkout with params
+                router.push(`/membership/checkout?tier=${tier}&frequency=${frequency}&trial=${trial}`);
+              }}
               style={{
-                background: '#9CA3AF',
-                color: '#D1D5DB',
+                background: '#7D1A13',
+                color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '10px 16px',
@@ -642,9 +669,11 @@ export default function PricingComparison({}: PricingComparisonProps) {
                 height: '44px',
                 boxShadow:
                   '0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 0px 0px 1px rgba(10, 13, 18, 0.18), inset 0px -2px 0px rgba(10, 13, 18, 0.05)',
-                cursor: 'not-allowed',
-                opacity: 0.6
+                cursor: 'pointer',
+                transition: 'background 0.2s ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#5D0A0D')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#7D1A13')}
             >
               {tier === 'gyani' ? data.startTrialButton : data.signUpButton}
             </button>
@@ -764,7 +793,7 @@ export default function PricingComparison({}: PricingComparisonProps) {
 
         {/* Desktop: Grid Layout */}
         <div className="hidden lg:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px', alignItems: 'stretch' }}>
-          <PricingCard tier="gyani" tierData={data.tiers.gyani} />
+          <PricingCard tier="gyani" tierData={data.tiers.gyani} router={router} session={session} />
 
           <div style={{ position: 'relative' }}>
             {/* Most Recommended Label with Curved Arrow */}
@@ -810,10 +839,10 @@ export default function PricingComparison({}: PricingComparisonProps) {
                 {data.recommendedText}
               </span>
             </div>
-            <PricingCard tier="pragyani" tierData={data.tiers.pragyani} />
+            <PricingCard tier="pragyani" tierData={data.tiers.pragyani} router={router} session={session} />
           </div>
 
-          <PricingCard tier="pragyaniPlus" tierData={data.tiers.pragyaniPlus} />
+          <PricingCard tier="pragyaniPlus" tierData={data.tiers.pragyaniPlus} router={router} session={session} />
         </div>
 
         {/* Mobile: Carousel */}
@@ -892,7 +921,7 @@ export default function PricingComparison({}: PricingComparisonProps) {
                     boxSizing: 'border-box'
                   }}
                 >
-                  <PricingCard tier={tier.key} tierData={tier.data} />
+                  <PricingCard tier={tier.key} tierData={tier.data} router={router} session={session} />
                 </div>
               ))}
             </div>

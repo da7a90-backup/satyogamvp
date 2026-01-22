@@ -10,23 +10,23 @@ from ..core.database import Base
 
 
 class EventType(str, enum.Enum):
-    SATSANG = "satsang"
-    BOOK_GROUP = "book_group"
-    LIVE_EVENT = "live_event"
-    RETREAT = "retreat"
-    COURSE = "course"
+    SATSANG = "SATSANG"
+    BOOK_GROUP = "BOOK_GROUP"
+    LIVE_EVENT = "LIVE_EVENT"
+    RETREAT = "RETREAT"
+    COURSE = "COURSE"
 
 
 class LocationType(str, enum.Enum):
-    ONLINE = "online"
-    ONSITE = "onsite"
+    ONLINE = "ONLINE"
+    ONSITE = "ONSITE"
 
 
 class EventStructure(str, enum.Enum):
     """Defines how event content is organized."""
-    SIMPLE_RECURRING = "simple_recurring"  # Simple recurring events (e.g., Sunday meditation)
-    DAY_BY_DAY = "day_by_day"  # Day-by-day schedule (e.g., online retreats)
-    WEEK_BY_WEEK = "week_by_week"  # Week-by-week schedule (e.g., book groups)
+    SIMPLE_RECURRING = "SIMPLE_RECURRING"  # Simple recurring events (e.g., Sunday meditation)
+    DAY_BY_DAY = "DAY_BY_DAY"  # Day-by-day schedule (e.g., online retreats)
+    WEEK_BY_WEEK = "WEEK_BY_WEEK"  # Week-by-week schedule (e.g., book groups)
 
 
 class Event(Base):
@@ -120,6 +120,7 @@ class UserCalendar(Base):
     user_id = Column(UUID_TYPE, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     event_id = Column(UUID_TYPE, ForeignKey("events.id", ondelete="CASCADE"), nullable=True, index=True)
     retreat_id = Column(UUID_TYPE, ForeignKey("retreats.id", ondelete="CASCADE"), nullable=True, index=True)
+    book_group_id = Column(UUID_TYPE, ForeignKey("book_groups.id", ondelete="CASCADE"), nullable=True, index=True)
     custom_title = Column(String(500), nullable=True)  # if user wants custom name
     added_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reminded_at = Column(DateTime, nullable=True)
@@ -128,3 +129,4 @@ class UserCalendar(Base):
     user = relationship("User", back_populates="calendar_events")
     event = relationship("Event", back_populates="user_calendars")
     retreat = relationship("Retreat")
+    book_group = relationship("BookGroup", foreign_keys=[book_group_id], back_populates="calendar_reminders")

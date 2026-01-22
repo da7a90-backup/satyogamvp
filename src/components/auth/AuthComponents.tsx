@@ -121,20 +121,45 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/dashboar
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showResendVerification, setShowResendVerification] = useState(false);
 
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setShowResendVerification(false);
     setIsLoading(true);
 
     try {
-      // Use NextAuth signIn with credentials provider
+      // First try direct login to FastAPI to get detailed error message
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+      const response = await fetch(`${FASTAPI_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        const errorMessage = data.detail || 'Login failed';
+
+        // Check if error is about unverified email
+        if (errorMessage.toLowerCase().includes('verify') || errorMessage.toLowerCase().includes('verification')) {
+          setShowResendVerification(true);
+          throw new Error(errorMessage);
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      // If FastAPI login succeeded, use NextAuth signIn
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: false, // Don't redirect automatically
+        redirect: false,
       });
 
       if (result?.error) {
@@ -164,7 +189,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/dashboar
   };
 
   return (
-    <div className="h-screen flex overflow-hidden relative">
+    <div className="h-screen lg:h-[125vh] flex overflow-hidden relative">
       {/* Mobile Background Image */}
       <div className="absolute inset-0 lg:hidden">
         <Image
@@ -193,6 +218,14 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, redirectTo = '/dashboar
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 p-3">
               <p className="text-red-700 text-sm">{error}</p>
+              {showResendVerification && (
+                <Link
+                  href={`/verify-email?email=${encodeURIComponent(email)}`}
+                  className="text-[#942017] hover:text-[#7D1A13] text-sm font-semibold mt-2 inline-block"
+                >
+                  Resend verification email →
+                </Link>
+              )}
             </div>
           )}
 
@@ -329,18 +362,77 @@ interface SignupProps {
 
 export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/login' }) => {
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptNewsletter, setAcceptNewsletter] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Disabled for now
+    setError('');
+    setSuccess('');
+
+    // Validation
+    if (!email || !fullName || !password || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (!acceptTerms) {
+      setError('Please accept the Terms of Service and Privacy Policy');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+      const response = await fetch(`${FASTAPI_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          name: fullName,
+          password,
+          accept_newsletter: acceptNewsletter,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Registration failed');
+      }
+
+      setSuccess(data.message || 'Registration successful! Please check your email to verify your account.');
+
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        router.push(redirectTo);
+      }, 3000);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during registration');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialSignup = async (provider: 'google' | 'facebook' | 'apple') => {
@@ -348,7 +440,7 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/login'
   };
 
   return (
-    <div className="h-screen flex overflow-hidden relative">
+    <div className="h-screen lg:h-[125vh] flex overflow-hidden relative">
       {/* Mobile Background Image */}
       <div className="absolute inset-0 lg:hidden">
         <Image
@@ -380,6 +472,12 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/login'
             </div>
           )}
 
+          {success && (
+            <div className="bg-green-50 border-l-4 border-green-500 p-3">
+              <p className="text-green-700 text-sm">{success}</p>
+            </div>
+          )}
+
           {/* Form */}
           <div className="flex flex-col gap-3">
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -391,26 +489,40 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/login'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                required
               />
 
               <FormInput
-                id="username"
-                label="Username"
+                id="fullName"
+                label="Full Name"
                 type="text"
-                placeholder="Choose a username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+                required
               />
 
               <FormInput
                 id="password"
-                label="Confirm Password"
+                label="Password"
                 type="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
+                required
+              />
+
+              <FormInput
+                id="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                required
               />
 
               {/* Checkboxes */}
@@ -446,20 +558,19 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, redirectTo = '/login'
                 </div>
               </div>
 
-              {/* Disabled Sign Up Button with Tooltip */}
-              <div className="relative group">
-                <button
-                  type="button"
-                  disabled
-                  className="w-full bg-[#F5F5F5] border border-[#E9EAEB] rounded-lg px-4 py-2 font-semibold text-[#A4A7AE] cursor-not-allowed shadow-[0px_1px_2px_rgba(10,13,18,0.05)]"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  Sign up
-                </button>
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                  Temporarily disabled
-                </div>
-              </div>
+              {/* Sign Up Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full rounded-lg px-4 py-2 font-semibold shadow-[0px_1px_2px_rgba(10,13,18,0.05)] transition-colors ${
+                  isLoading
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#942017] text-white hover:bg-[#7D1A13]'
+                }`}
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {isLoading ? 'Creating account...' : 'Sign up'}
+              </button>
             </form>
 
             {/* Separator */}

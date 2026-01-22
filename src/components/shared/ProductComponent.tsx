@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Info, X } from 'lucide-react';
 
 // ============================================================================
@@ -23,26 +25,30 @@ interface ProductComponentData {
   retreatType: 'onsite' | 'online';
   tagline: string;
   title: string;
-  
+
   // Pricing
   basePrice: number; // Base price for limited access
   priceOptions?: PriceOption[]; // For online retreats with multiple access types
   memberDiscountPercentage?: number; // e.g., 10 for 10% discount
   scholarshipAvailable?: boolean;
   scholarshipDeadline?: string;
-  
+  contributionTooltip?: string; // Tooltip text explaining the contribution
+
   // Online retreat specific
   fixedDate?: string;
   location?: string;
   accessDescription?: string;
-  
+  retreatSlug?: string; // For constructing payment URL
+
   // Onsite retreat specific
   description?: string;
   accommodation?: string;
   meals?: string;
   dateLabel?: string;
   dateOptions?: string[];
-  
+  formSlug?: string; // Slug of the application form
+  retreatId?: string; // Database ID of the retreat
+
   // Common fields
   memberLabel: string;
   memberOptions: string[];
@@ -102,27 +108,40 @@ function ActionModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: (
 // ============================================================================
 
 const ProductComponent = ({ data }: { data: ProductComponentData }) => {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedAccessType, setSelectedAccessType] = useState(0);
   const [isMember, setIsMember] = useState(false);
   const [showScholarship, setShowScholarship] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Check user's membership tier on mount
+  useEffect(() => {
+    if (session?.user?.membership) {
+      // Check if user has Gyani or higher membership (paying members)
+      const payingMembershipTiers = ['GYANI', 'PRAGYANI', 'PRAGYANI_PLUS'];
+      const isPayingMember = payingMembershipTiers.includes(session.user.membership);
+      setIsMember(isPayingMember);
+    }
+  }, [session]);
 
   // Calculate current price based on selections
   const getCurrentPrice = () => {
     let price = data.basePrice;
-    
+
     // If there are price options (online retreats), use selected option price
     if (data.priceOptions && data.priceOptions.length > 0) {
       price = data.priceOptions[selectedAccessType].price;
     }
-    
+
     // Apply member discount if applicable
     if (isMember && data.memberDiscountPercentage) {
       price = price * (1 - data.memberDiscountPercentage / 100);
     }
-    
+
     return price;
   };
 
@@ -134,6 +153,34 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
   const handleAction = (message: string) => {
     setModalMessage(message);
     setModalOpen(true);
+  };
+
+  const handlePurchaseClick = () => {
+    // For online retreats, navigate to payment page with access type
+    if (data.retreatType === 'online' && data.retreatSlug && data.priceOptions) {
+      const accessType = data.priceOptions[selectedAccessType].type; // 'limited' or 'lifetime'
+      router.push(`/dashboard/user/online-retreats/${data.retreatSlug}/payment?accessType=${accessType}`);
+    }
+    // For onsite retreats, navigate to application form with member discount flag
+    else if (data.retreatType === 'onsite' && data.formSlug) {
+      // Pass isMember flag to application form so it can include in submission
+      const queryParams = new URLSearchParams({
+        form: data.formSlug,
+        memberDiscount: isMember ? 'true' : 'false',
+      });
+      if (data.retreatId) {
+        queryParams.append('retreatId', data.retreatId);
+      }
+      router.push(`/apply?${queryParams.toString()}`);
+    }
+    // Fallback if form slug is missing
+    else if (data.retreatType === 'onsite') {
+      router.push(`/apply`);
+    }
+    // Fallback for legacy/incomplete data
+    else {
+      handleAction('Online retreat booking functionality is under active development. Please check back in a couple of days or contact us for more information.');
+    }
   };
 
   return (
@@ -246,7 +293,21 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
 
             {/* Price with Discount */}
             <div className="flex items-center mb-2" style={{ gap: '8px' }}>
-              <Info size={20} style={{ color: '#6B7280' }} />
+              <div
+                className="relative"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >
+                <Info size={20} style={{ color: '#6B7280', cursor: 'pointer' }} />
+                {showTooltip && data.contributionTooltip && (
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50">
+                    <div className="relative">
+                      {data.contributionTooltip}
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-8 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                )}
+              </div>
               <span
                 style={{
                   fontFamily: 'Optima, Georgia, serif',
@@ -552,7 +613,7 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
             {!showScholarship && (
               <>
                 <button
-                  onClick={() => handleAction('Online retreat booking functionality is under active development. Please check back in a couple of days or contact us for more information.')}
+                  onClick={handlePurchaseClick}
                   className="w-full py-4 rounded-lg font-semibold text-white transition-opacity hover:opacity-90 mb-3 block text-center"
                   style={{
                     backgroundColor: '#7D1A13',
