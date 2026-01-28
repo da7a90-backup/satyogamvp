@@ -43,7 +43,17 @@ def create_refresh_token(data: dict) -> str:
 def decode_token(token: str) -> Optional[dict]:
     """Decode and verify JWT token."""
     try:
+        # Try decoding with backend JWT_SECRET first
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         return payload
     except JWTError:
+        # Fallback: Try decoding with NEXTAUTH_SECRET for NextAuth tokens
+        try:
+            import os
+            nextauth_secret = os.getenv("NEXTAUTH_SECRET")
+            if nextauth_secret:
+                payload = jwt.decode(token, nextauth_secret, algorithms=["HS256"])
+                return payload
+        except JWTError:
+            pass
         return None
