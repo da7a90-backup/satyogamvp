@@ -473,7 +473,14 @@ export default function MembershipCheckoutClient({
                     <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
                       Card Number
                     </label>
-                    <div id="tlpy_cc_number" className="w-full"></div>
+                    <input
+                      type="text"
+                      id="tlpy_cc_number"
+                      name="tlpy_cc_number"
+                      placeholder="4012 0000 0002 0071"
+                      className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                      style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -481,13 +488,28 @@ export default function MembershipCheckoutClient({
                       <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
                         Expiry Date
                       </label>
-                      <div id="tlpy_cc_expiration_date" className="w-full"></div>
+                      <input
+                        type="text"
+                        id="tlpy_cc_expiration_date"
+                        name="tlpy_cc_expiration_date"
+                        placeholder="12/26"
+                        className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                        style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
                         CVV
                       </label>
-                      <div id="tlpy_cvv" className="w-full"></div>
+                      <input
+                        type="text"
+                        id="tlpy_cvv"
+                        name="tlpy_cvv"
+                        placeholder="123"
+                        maxLength={4}
+                        className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                        style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                      />
                     </div>
                   </div>
 
