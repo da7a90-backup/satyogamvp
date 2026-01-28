@@ -137,6 +137,13 @@ export default function MembershipCheckoutClient({
       const data = await response.json();
       console.log('Got payment data from backend:', data);
 
+      // CRITICAL: Show payment form elements FIRST before initializing SDK
+      // This ensures the DOM elements exist when Tilopay.Init tries to find them
+      setSdkInitialized(true);
+
+      // Wait for DOM to update with the payment form elements
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Initialize Tilopay SDK V2
       console.log('Calling Tilopay.Init with params:', {
         token: data.tilopay_key,
@@ -187,11 +194,11 @@ export default function MembershipCheckoutClient({
         }, 100);
       }
 
-      setSdkInitialized(true);
       setProcessing(false);
     } catch (err: any) {
       console.error('Payment initialization error:', err);
       setError(err.message || 'Failed to initialize payment. Please try again.');
+      setSdkInitialized(false); // Reset on error
       setProcessing(false);
     }
   };
