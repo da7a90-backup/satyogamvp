@@ -48,6 +48,69 @@ export default function UserDashboardClient({
     };
   }, []);
 
+  // Handle payment redirect from Tilopay
+  useEffect(() => {
+    const processPaymentRedirect = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const upgrade = params.get('upgrade');
+      const code = params.get('code');
+      const order = params.get('order');
+      const tilopayTransaction = params.get('tilopay-transaction');
+
+      console.log('[PAYMENT_REDIRECT] Checking for payment redirect:', { upgrade, code, order, tilopayTransaction });
+
+      // Only process if we have the upgrade success parameters
+      if (upgrade === 'success' && code && order) {
+        console.log('[PAYMENT_REDIRECT] Processing payment redirect...');
+
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            console.error('[PAYMENT_REDIRECT] No auth token found');
+            return;
+          }
+
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/payments/confirm-redirect`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                order,
+                code,
+                'tilopay-transaction': tilopayTransaction,
+                brand: params.get('brand'),
+                'last-digits': params.get('last-digits'),
+              }),
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('[PAYMENT_REDIRECT] ✅ Payment confirmed successfully:', data);
+
+            // Clean up URL parameters
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+
+            // Reload page to refresh user data (membership tier will be updated)
+            window.location.reload();
+          } else {
+            const error = await response.json();
+            console.error('[PAYMENT_REDIRECT] ❌ Failed to confirm payment:', error);
+          }
+        } catch (error) {
+          console.error('[PAYMENT_REDIRECT] Error processing payment redirect:', error);
+        }
+      }
+    };
+
+    processPaymentRedirect();
+  }, []);
+
   // Get membership tier display
   const getMembershipDisplay = () => {
     const tier = (user?.membershipTier || 'free').toUpperCase();

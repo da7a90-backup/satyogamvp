@@ -1824,6 +1824,105 @@ async def confirm_payment_redirect(
             else:
                 logger.error(f"[CONFIRM_REDIRECT] ❌ Order not found with ID: {payment.reference_id}")
 
+        # Handle membership upgrade
+        elif payment.payment_type == PaymentType.MEMBERSHIP:
+            logger.info(f"[CONFIRM_REDIRECT] ========== Processing Membership Upgrade ==========")
+            logger.info(f"[CONFIRM_REDIRECT] Payment ID: {payment.id}, User: {current_user.id}")
+            logger.info(f"[CONFIRM_REDIRECT] Payment metadata: {payment.payment_metadata}")
+
+            # Get tier and frequency from payment metadata
+            tier = None
+            frequency = None
+            trial_days = 0
+
+            if payment.payment_metadata and isinstance(payment.payment_metadata, dict):
+                tier = payment.payment_metadata.get('tier')
+                frequency = payment.payment_metadata.get('frequency', 'monthly')
+                trial_days = payment.payment_metadata.get('trial_days', 0)
+                logger.info(f"[CONFIRM_REDIRECT] Extracted tier={tier}, frequency={frequency}, trial_days={trial_days}")
+            else:
+                logger.error(f"[CONFIRM_REDIRECT] Payment metadata is missing or invalid: {payment.payment_metadata}")
+
+            if not tier:
+                logger.error(f"[CONFIRM_REDIRECT] Cannot grant membership: no tier in metadata")
+            else:
+                # Validate tier
+                tier_mapping = {
+                    "gyani": MembershipTierEnum.GYANI,
+                    "pragyani": MembershipTierEnum.PRAGYANI,
+                    "pragyani_plus": MembershipTierEnum.PRAGYANI_PLUS,
+                }
+
+                if tier in tier_mapping:
+                    membership_tier_enum = tier_mapping[tier]
+
+                    # Calculate subscription dates
+                    from datetime import datetime, timedelta
+                    start_date = datetime.utcnow()
+
+                    # Determine subscription status and dates based on trial
+                    if trial_days > 0:
+                        # Trial subscription: user gets access immediately, but first charge is after trial
+                        subscription_status = SubscriptionStatus.TRIAL
+                        trial_end_date = start_date + timedelta(days=trial_days)
+                        end_date = None
+                        logger.info(f"[CONFIRM_REDIRECT] Trial period: {trial_days} days, trial ends on {trial_end_date}")
+                    else:
+                        # Regular subscription: charged immediately
+                        subscription_status = SubscriptionStatus.ACTIVE
+                        trial_end_date = None
+                        if frequency == "monthly":
+                            end_date = start_date + timedelta(days=30)
+                        else:  # annual
+                            end_date = start_date + timedelta(days=365)
+
+                    # Update user membership - grant access immediately (even during trial)
+                    current_user.membership_tier = membership_tier_enum
+                    current_user.membership_start_date = start_date
+                    current_user.membership_end_date = end_date if end_date else trial_end_date
+
+                    # Create or update subscription record
+                    subscription = (
+                        db.query(Subscription)
+                        .filter(
+                            Subscription.user_id == current_user.id,
+                            Subscription.tier == membership_tier_enum,
+                            Subscription.status.in_([
+                                SubscriptionStatus.ACTIVE,
+                                SubscriptionStatus.TRIAL,
+                            ])
+                        )
+                        .first()
+                    )
+
+                    if subscription:
+                        # Update existing subscription
+                        subscription.status = subscription_status
+                        subscription.start_date = start_date
+                        subscription.end_date = end_date
+                        subscription.trial_end_date = trial_end_date
+                        subscription.payment_id = payment.id
+                        logger.info(f"[CONFIRM_REDIRECT] Updated existing subscription: {subscription.id}")
+                    else:
+                        # Create new subscription
+                        subscription = Subscription(
+                            user_id=current_user.id,
+                            tier=membership_tier_enum,
+                            frequency=frequency,
+                            status=subscription_status,
+                            start_date=start_date,
+                            end_date=end_date,
+                            trial_end_date=trial_end_date,
+                            payment_id=payment.id,
+                        )
+                        db.add(subscription)
+                        logger.info(f"[CONFIRM_REDIRECT] Created new subscription for tier {tier}")
+
+                    db.commit()
+                    logger.info(f"[CONFIRM_REDIRECT] ✅✅✅ SUCCESS! Membership upgraded: user={current_user.id}, tier={tier}, frequency={frequency}, status={subscription_status}")
+                else:
+                    logger.error(f"[CONFIRM_REDIRECT] Invalid tier: {tier}")
+
         logger.info(f"[CONFIRM_REDIRECT] ========== Payment Redirect Confirmation Complete ==========")
         return {
             "success": True,
