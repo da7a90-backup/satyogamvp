@@ -137,13 +137,6 @@ export default function MembershipCheckoutClient({
       const data = await response.json();
       console.log('Got payment data from backend:', data);
 
-      // CRITICAL: Show payment form elements FIRST before initializing SDK
-      // This ensures the DOM elements exist when Tilopay.Init tries to find them
-      setSdkInitialized(true);
-
-      // Wait for DOM to update with the payment form elements
-      await new Promise(resolve => setTimeout(resolve, 100));
-
       // Initialize Tilopay SDK V2
       console.log('Calling Tilopay.Init with params:', {
         token: data.tilopay_key,
@@ -182,6 +175,9 @@ export default function MembershipCheckoutClient({
         console.error('Tilopay initialization failed:', errorMsg);
         throw new Error(errorMsg);
       }
+
+      // SDK initialized successfully - show the payment form
+      setSdkInitialized(true);
 
       // Auto-select first payment method if available
       if (initialize.methods && initialize.methods.length > 0) {
@@ -457,10 +453,9 @@ export default function MembershipCheckoutClient({
               </div>
             )}
 
-            {/* Payment Form (injected by Tilopay SDK) */}
-            {sdkInitialized && (
-              <div className="mt-8">
-                <h2 className="text-xl font-bold text-[#942017] mb-6" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Payment Details</h2>
+            {/* Payment Form (injected by Tilopay SDK) - Always rendered but hidden until SDK initialized */}
+            <div className="mt-8" style={{ display: sdkInitialized ? 'block' : 'none' }}>
+              <h2 className="text-xl font-bold text-[#942017] mb-6" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Payment Details</h2>
 
                 <div className="space-y-4">
                   <div>
@@ -521,8 +516,7 @@ export default function MembershipCheckoutClient({
                 <p className="text-xs text-[#6B7280] text-center mt-4" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
                   Your payment is secure and encrypted. By completing this purchase, you agree to our Terms of Service.
                 </p>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Order Summary Sidebar */}
