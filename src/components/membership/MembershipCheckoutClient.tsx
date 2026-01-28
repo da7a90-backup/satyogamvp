@@ -45,6 +45,8 @@ export default function MembershipCheckoutClient({
   const [error, setError] = useState<string | null>(null);
   const [sdkInitialized, setSdkInitialized] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [savedCards, setSavedCards] = useState<any[]>([]);
   const router = useRouter();
   const responseTilopayRef = useRef<HTMLDivElement>(null);
 
@@ -176,20 +178,24 @@ export default function MembershipCheckoutClient({
         throw new Error(errorMsg);
       }
 
-      // SDK initialized successfully - show the payment form
-      setSdkInitialized(true);
-
-      // Auto-select first payment method if available
-      if (initialize.methods && initialize.methods.length > 0) {
+      // Store payment methods and saved cards
+      if (initialize.methods) {
+        setPaymentMethods(initialize.methods);
+        // Auto-select first payment method if available
         setTimeout(() => {
           const methodSelect = document.getElementById('tlpy_payment_method') as HTMLSelectElement;
-          if (methodSelect) {
+          if (methodSelect && initialize.methods.length > 0) {
             methodSelect.value = initialize.methods[0].id;
             console.log('Auto-selected payment method:', initialize.methods[0].id);
           }
         }, 100);
       }
+      if (initialize.cards) {
+        setSavedCards(initialize.cards);
+      }
 
+      // SDK initialized successfully - show the payment form
+      setSdkInitialized(true);
       setProcessing(false);
     } catch (err: any) {
       console.error('Payment initialization error:', err);
@@ -454,7 +460,7 @@ export default function MembershipCheckoutClient({
             )}
 
             {/* Payment Form (injected by Tilopay SDK) - Always rendered but hidden until SDK initialized */}
-            <div className="mt-8" style={{ display: sdkInitialized ? 'block' : 'none' }}>
+            <div className="payFormTilopay mt-8" style={{ display: sdkInitialized ? 'block' : 'none' }}>
               <h2 className="text-xl font-bold text-[#942017] mb-6" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Payment Details</h2>
 
                 <div className="space-y-4">
@@ -464,52 +470,63 @@ export default function MembershipCheckoutClient({
                     </label>
                     <select
                       id="tlpy_payment_method"
+                      name="tlpy_payment_method"
                       className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
                       style={{ fontFamily: 'Avenir Next, sans-serif' }}
-                    ></select>
+                    >
+                      <option value="">Select payment method</option>
+                      {paymentMethods.map((method) => (
+                        <option key={method.id} value={method.id}>
+                          {method.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      id="tlpy_cc_number"
-                      name="tlpy_cc_number"
-                      placeholder="4012 0000 0002 0071"
-                      className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
-                      style={{ fontFamily: 'Avenir Next, sans-serif' }}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Card Payment Fields */}
+                  <div id="tlpy_card_payment_div">
                     <div>
                       <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
-                        Expiry Date
+                        Card Number
                       </label>
                       <input
                         type="text"
-                        id="tlpy_cc_expiration_date"
-                        name="tlpy_cc_expiration_date"
-                        placeholder="12/26"
+                        id="tlpy_cc_number"
+                        name="tlpy_cc_number"
+                        placeholder="4012 0000 0002 0071"
                         className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
                         style={{ fontFamily: 'Avenir Next, sans-serif' }}
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
-                        CVV
-                      </label>
-                      <input
-                        type="text"
-                        id="tlpy_cvv"
-                        name="tlpy_cvv"
-                        placeholder="123"
-                        maxLength={4}
-                        className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
-                        style={{ fontFamily: 'Avenir Next, sans-serif' }}
-                      />
+
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                          Expiry Date
+                        </label>
+                        <input
+                          type="text"
+                          id="tlpy_cc_expiration_date"
+                          name="tlpy_cc_expiration_date"
+                          placeholder="12/26"
+                          className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                          style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#414651] mb-1" style={{ fontFamily: 'Avenir Next, sans-serif' }}>
+                          CVV
+                        </label>
+                        <input
+                          type="text"
+                          id="tlpy_cvv"
+                          name="tlpy_cvv"
+                          placeholder="123"
+                          maxLength={4}
+                          className="w-full px-3 py-2 border border-[#D5D7DA] rounded-md focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+                          style={{ fontFamily: 'Avenir Next, sans-serif' }}
+                        />
+                      </div>
                     </div>
                   </div>
 
