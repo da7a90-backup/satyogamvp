@@ -128,7 +128,7 @@ const UserSidebar = () => {
             className="w-full flex items-center justify-between px-3 py-2 rounded transition-colors bg-white text-[#374151] hover:bg-gray-50"
           >
             <div className="flex items-center gap-3">
-              <Image src="/shopping-cart-01 (1).png" alt="" width={20} height={20} />
+              <Image src="/shopping-cart-01-1.png" alt="" width={20} height={20} />
               <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Cart</span>
             </div>
             {totalItems > 0 && (
@@ -147,7 +147,7 @@ const UserSidebar = () => {
                 : 'bg-white text-[#374151] hover:bg-gray-50'
             }`}
           >
-            <Image src="/shopping-cart-01 (1).png" alt="" width={20} height={20} />
+            <Image src="/shopping-cart-01-1.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>My Purchases</span>
           </Link>
 
@@ -159,7 +159,7 @@ const UserSidebar = () => {
                 : 'bg-white text-[#374151] hover:bg-gray-50'
             }`}
           >
-            <Image src="/heart (1).png" alt="" width={20} height={20} />
+            <Image src="/heart-1.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>My Favourites</span>
           </Link>
           <Link
@@ -170,7 +170,7 @@ const UserSidebar = () => {
                 : 'bg-white text-[#374151] hover:bg-gray-50'
             }`}
           >
-            <Image src="/clock-fast-forward (1).png" alt="" width={20} height={20} />
+            <Image src="/clock-fast-forward-1.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>My History</span>
           </Link>
           <Link
@@ -181,7 +181,7 @@ const UserSidebar = () => {
                 : 'bg-white text-[#374151] hover:bg-gray-50'
             }`}
           >
-            <Image src="/calendar (1).png" alt="" width={20} height={20} />
+            <Image src="/calendar-1.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Calendar</span>
           </Link>
           <Link
@@ -222,7 +222,7 @@ const UserSidebar = () => {
             className="w-full flex items-center justify-between px-3 py-2 rounded bg-white text-[#374151] hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <Image src="/building-08 (1).png" alt="" width={20} height={20} />
+              <Image src="/building-08-1.png" alt="" width={20} height={20} />
               <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Library</span>
             </div>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`transition-transform ${isLibraryExpanded ? '' : 'rotate-180'}`}>
@@ -290,13 +290,13 @@ const UserSidebar = () => {
                   : 'bg-white text-[#374151] hover:bg-gray-50'
               }`}
             >
-              <Image src="/annotation-heart (1).png" alt="" width={20} height={20} />
+              <Image src="/annotation-heart-1.png" alt="" width={20} height={20} />
               <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Shunyamurti Recommends</span>
             </Link>
           ) : (
             <div className="flex items-center justify-between px-3 py-2 rounded bg-white text-[#9CA3AF] cursor-not-allowed opacity-60 mt-1">
               <div className="flex items-center gap-3">
-                <Image src="/annotation-heart (1).png" alt="" width={20} height={20} className="opacity-50" />
+                <Image src="/annotation-heart-1.png" alt="" width={20} height={20} className="opacity-50" />
                 <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Shunyamurti Recommends</span>
               </div>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -313,7 +313,7 @@ const UserSidebar = () => {
                 : 'bg-white text-[#374151] hover:bg-gray-50'
             }`}
           >
-            <Image src="/feather (1).png" alt="" width={20} height={20} />
+            <Image src="/feather-1.png" alt="" width={20} height={20} />
             <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Book Groups</span>
           </Link>
          {/*  <Link
@@ -355,13 +355,13 @@ const UserSidebar = () => {
                   : 'bg-white text-[#374151] hover:bg-gray-50'
               }`}
             >
-              <Image src="/message-chat-square (1).png" alt="" width={20} height={20} />
+              <Image src="/message-chat-square-1.png" alt="" width={20} height={20} />
               <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Forum</span>
             </Link>
           ) : (
             <div className="flex items-center justify-between px-3 py-2 rounded bg-white text-[#9CA3AF] cursor-not-allowed opacity-60">
               <div className="flex items-center gap-3">
-                <Image src="/message-chat-square (1).png" alt="" width={20} height={20} className="opacity-50" />
+                <Image src="/message-chat-square-1.png" alt="" width={20} height={20} className="opacity-50" />
                 <span className="text-sm font-medium capitalize" style={{ fontFamily: 'Avenir Next, sans-serif' }}>Forum</span>
               </div>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
