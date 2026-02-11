@@ -239,7 +239,15 @@ def get_categories(
         ).order_by(desc(ForumThread.last_post_at)).first()
 
         category_response = {
-            **category.__dict__,
+            "id": str(category.id),
+            "name": category.name,
+            "slug": category.slug,
+            "description": category.description,
+            "icon": category.icon,
+            "order": category.order,
+            "is_active": category.is_active,
+            "created_at": category.created_at,
+            "updated_at": category.updated_at,
             "thread_count": thread_count,
             "post_count": post_count,
             "latest_thread": {
