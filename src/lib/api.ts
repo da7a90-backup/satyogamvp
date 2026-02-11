@@ -1,7 +1,6 @@
 import { getFastapiUrl } from './api-utils';
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 const STRAPI_API_TOKEN = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN
-const FASTAPI_URL = getFastapiUrl();
 
 export async function submitApplication(data: any) {
   try {
@@ -16,7 +15,7 @@ export async function submitApplication(data: any) {
       headers['Authorization'] = `Bearer ${authToken}`;
     }
 
-    const response = await fetch(`${FASTAPI_URL}/forms/application`, {
+    const response = await fetch(`${getFastapiUrl()}/forms/application`, {
       method: 'POST',
       headers,
       body: JSON.stringify({

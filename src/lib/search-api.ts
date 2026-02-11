@@ -4,7 +4,6 @@ import { getFastapiUrl } from './api-utils';
  * Handles unified search across all content types
  */
 
-const API_URL = getFastapiUrl();
 
 export interface SearchResult {
   id: string;
@@ -60,7 +59,7 @@ export async function searchSite(query: string, limit: number = 5): Promise<Sear
       limit: limit.toString(),
     });
 
-    const response = await fetch(`${API_URL}/api/search?${params.toString()}`, {
+    const response = await fetch(`${getFastapiUrl()}/api/search?${params.toString()}`, {
       headers: {
         'Content-Type': 'application/json',
       },

@@ -4,8 +4,6 @@
 
 import { getFastapiUrl } from './api-utils';
 
-const FASTAPI_URL = getFastapiUrl();
-
 export interface ForumCategory {
   id: string;
   name: string;
@@ -117,6 +115,7 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = await getAuthToken();
+  const apiUrl = getFastapiUrl(); // Call at request time, not module load time
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -127,7 +126,7 @@ async function apiRequest<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${FASTAPI_URL}${endpoint}`, {
+  const response = await fetch(`${apiUrl}${endpoint}`, {
     ...options,
     headers,
     credentials: 'include',
@@ -150,10 +149,11 @@ export const forumApi = {
   // File Upload
   async uploadFile(file: File): Promise<{ url: string; filename: string; content_type: string; size: number }> {
     const token = await getAuthToken();
+    const apiUrl = getFastapiUrl();
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${FASTAPI_URL}/api/forum/upload`, {
+    const response = await fetch(`${apiUrl}/api/forum/upload`, {
       method: 'POST',
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),

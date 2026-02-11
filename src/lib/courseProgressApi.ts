@@ -4,7 +4,6 @@ import { getFastapiUrl } from './api-utils';
  * Track user progress through courses
  */
 
-const FASTAPI_URL = getFastapiUrl();
 
 // Helper to get auth token
 const getAuthToken = (): string | null => {
@@ -26,7 +25,7 @@ const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(`${FASTAPI_URL}${endpoint}`, {
+  const response = await fetch(`${getFastapiUrl()}${endpoint}`, {
     ...options,
     headers,
   });

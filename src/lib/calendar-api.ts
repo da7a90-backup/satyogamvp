@@ -28,7 +28,7 @@ export async function getMyCalendar(
     searchParams.append("limit", params.limit.toString());
   }
 
-  const url = `${FASTAPI_URL}/api/users/my-calendar${
+  const url = `${getFastapiUrl()}/api/users/my-calendar${
     searchParams.toString() ? `?${searchParams.toString()}` : ""
   }`;
 

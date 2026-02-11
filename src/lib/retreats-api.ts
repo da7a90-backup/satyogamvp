@@ -4,7 +4,6 @@ import { getFastapiUrl } from './api-utils';
  * Handles all communication with the FastAPI backend for retreats
  */
 
-const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Get authentication token from localStorage
@@ -242,7 +241,7 @@ export async function getRetreats(
     params.append('retreat_type', retreatType);
   }
 
-  const url = `${FASTAPI_URL}/api/retreats/?${params}`;
+  const url = `${getFastapiUrl()}/api/retreats/?${params}`;
   console.log('[Retreats API] Fetching from URL:', url);
   console.log('[Retreats API] Headers:', headers);
 
@@ -279,7 +278,7 @@ export async function getRetreats(
  */
 export async function getRetreatBySlug(slug: string): Promise<Retreat> {
   const headers = getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/retreats/${slug}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/retreats/${slug}`, {
     headers,
     credentials: 'include',
   });
@@ -307,9 +306,9 @@ export async function getMyRegistrations(): Promise<{
   // Debug: log token
   const token = getAuthToken();
   console.log('[Retreats API] Token exists:', !!token, token?.substring(0, 20));
-  console.log('[Retreats API] Fetching my-registrations from:', `${FASTAPI_URL}/api/retreats/my-registrations`);
+  console.log('[Retreats API] Fetching my-registrations from:', `${getFastapiUrl()}/api/retreats/my-registrations`);
 
-  const response = await fetch(`${FASTAPI_URL}/api/retreats/my-registrations`, {
+  const response = await fetch(`${getFastapiUrl()}/api/retreats/my-registrations`, {
     headers,
     credentials: 'include',
   });
@@ -342,7 +341,7 @@ export async function registerForRetreat(
   paymentId?: string
 ): Promise<{ message: string; registration: any }> {
   const headers = getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/retreats/register`, {
+  const response = await fetch(`${getFastapiUrl()}/api/retreats/register`, {
     method: 'POST',
     headers,
     credentials: 'include',
@@ -373,7 +372,7 @@ export async function cancelRegistration(
 ): Promise<{ message: string }> {
   const headers = getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/retreats/cancel/${registrationId}`,
+    `${getFastapiUrl()}/api/retreats/cancel/${registrationId}`,
     {
       method: 'POST',
       headers,
@@ -405,7 +404,7 @@ export async function getRetreatMembers(
 }>; total: number }> {
   const headers = getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/retreats/${slug}/members`,
+    `${getFastapiUrl()}/api/retreats/${slug}/members`,
     {
       headers,
       credentials: 'include',
@@ -438,7 +437,7 @@ export async function getForumPosts(
   });
 
   const response = await fetch(
-    `${FASTAPI_URL}/api/retreats/${slug}/forum?${params}`,
+    `${getFastapiUrl()}/api/retreats/${slug}/forum?${params}`,
     {
       headers,
       credentials: 'include',
@@ -478,7 +477,7 @@ export async function createForumPost(
     if (category) body.category = category;
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/retreats/${slug}/forum`, {
+  const response = await fetch(`${getFastapiUrl()}/api/retreats/${slug}/forum`, {
     method: 'POST',
     headers,
     credentials: 'include',
@@ -505,7 +504,7 @@ export async function likeForumPost(
 ): Promise<{ message: string; like_count: number }> {
   const headers = getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/retreats/${slug}/forum/${postId}/like`,
+    `${getFastapiUrl()}/api/retreats/${slug}/forum/${postId}/like`,
     {
       method: 'POST',
       headers,
@@ -533,7 +532,7 @@ export async function unlikeForumPost(
 ): Promise<{ message: string; like_count: number }> {
   const headers = getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/retreats/${slug}/forum/${postId}/like`,
+    `${getFastapiUrl()}/api/retreats/${slug}/forum/${postId}/like`,
     {
       method: 'DELETE',
       headers,
@@ -558,7 +557,7 @@ export async function unlikeForumPost(
  */
 export async function addToCalendar(retreatId: string): Promise<{ message: string }> {
   const headers = getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/calendar/add-retreat`, {
+  const response = await fetch(`${getFastapiUrl()}/api/calendar/add-retreat`, {
     method: 'POST',
     headers,
     credentials: 'include',

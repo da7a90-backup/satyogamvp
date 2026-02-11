@@ -24,7 +24,6 @@ import {
   BookGroupStatus,
 } from '@/types/book-group';
 
-const API_URL = getFastapiUrl();
 
 /**
  * Get authorization token from localStorage
@@ -78,7 +77,7 @@ export async function getBookGroups(params?: {
   if (params?.page_size) query.append('page_size', params.page_size.toString());
   if (params?.search) query.append('search', params.search);
 
-  const url = `${API_URL}/api/book-groups?${query.toString()}`;
+  const url = `${getFastapiUrl()}/api/book-groups?${query.toString()}`;
   const response = await fetch(url, {
     headers: getHeaders(),
   });
@@ -90,7 +89,7 @@ export async function getBookGroups(params?: {
  * Get the featured "Coming up" book group
  */
 export async function getFeaturedBookGroup(): Promise<FeaturedBookGroup | null> {
-  const url = `${API_URL}/api/book-groups/featured`;
+  const url = `${getFastapiUrl()}/api/book-groups/featured`;
   const response = await fetch(url, {
     headers: getHeaders(),
   });
@@ -102,7 +101,7 @@ export async function getFeaturedBookGroup(): Promise<FeaturedBookGroup | null> 
  * Get full book group portal with all sessions
  */
 export async function getBookGroupPortal(slug: string): Promise<BookGroupPortal> {
-  const url = `${API_URL}/api/book-groups/${slug}`;
+  const url = `${getFastapiUrl()}/api/book-groups/${slug}`;
   const response = await fetch(url, {
     headers: getHeaders(),
   });
@@ -114,7 +113,7 @@ export async function getBookGroupPortal(slug: string): Promise<BookGroupPortal>
  * Check if user has access to a book group
  */
 export async function checkBookGroupAccess(slug: string): Promise<BookGroupAccessCheck> {
-  const url = `${API_URL}/api/book-groups/${slug}/access`;
+  const url = `${getFastapiUrl()}/api/book-groups/${slug}/access`;
   const response = await fetch(url, {
     headers: getHeaders(),
   });
@@ -129,7 +128,7 @@ export async function addCalendarReminder(
   slug: string,
   data: CalendarReminderCreate
 ): Promise<CalendarReminderResponse> {
-  const url = `${API_URL}/api/book-groups/${slug}/calendar-reminder`;
+  const url = `${getFastapiUrl()}/api/book-groups/${slug}/calendar-reminder`;
   const response = await fetch(url, {
     method: 'POST',
     headers: getHeaders(),
@@ -145,7 +144,7 @@ export async function addCalendarReminder(
  * Get all book groups (admin only)
  */
 export async function getAllBookGroupsAdmin(): Promise<BookGroupAdmin[]> {
-  const url = `${API_URL}/api/book-groups/admin/all`;
+  const url = `${getFastapiUrl()}/api/book-groups/admin/all`;
   const response = await fetch(url, {
     headers: getHeaders(),
   });
@@ -157,7 +156,7 @@ export async function getAllBookGroupsAdmin(): Promise<BookGroupAdmin[]> {
  * Create a new book group (admin only)
  */
 export async function createBookGroup(data: BookGroupCreate): Promise<BookGroup> {
-  const url = `${API_URL}/api/book-groups`;
+  const url = `${getFastapiUrl()}/api/book-groups`;
   const response = await fetch(url, {
     method: 'POST',
     headers: getHeaders(),
@@ -174,7 +173,7 @@ export async function updateBookGroup(
   bookGroupId: string,
   data: BookGroupUpdate
 ): Promise<BookGroup> {
-  const url = `${API_URL}/api/book-groups/${bookGroupId}`;
+  const url = `${getFastapiUrl()}/api/book-groups/${bookGroupId}`;
   const response = await fetch(url, {
     method: 'PUT',
     headers: getHeaders(),
@@ -188,7 +187,7 @@ export async function updateBookGroup(
  * Delete a book group (admin only)
  */
 export async function deleteBookGroup(bookGroupId: string): Promise<{ success: boolean; message: string }> {
-  const url = `${API_URL}/api/book-groups/${bookGroupId}`;
+  const url = `${getFastapiUrl()}/api/book-groups/${bookGroupId}`;
   const response = await fetch(url, {
     method: 'DELETE',
     headers: getHeaders(),
@@ -204,7 +203,7 @@ export async function createSession(
   bookGroupId: string,
   data: BookGroupSessionCreate
 ): Promise<BookGroupSession> {
-  const url = `${API_URL}/api/book-groups/${bookGroupId}/sessions`;
+  const url = `${getFastapiUrl()}/api/book-groups/${bookGroupId}/sessions`;
   const response = await fetch(url, {
     method: 'POST',
     headers: getHeaders(),
@@ -222,7 +221,7 @@ export async function updateSession(
   sessionId: string,
   data: BookGroupSessionUpdate
 ): Promise<BookGroupSession> {
-  const url = `${API_URL}/api/book-groups/${bookGroupId}/sessions/${sessionId}`;
+  const url = `${getFastapiUrl()}/api/book-groups/${bookGroupId}/sessions/${sessionId}`;
   const response = await fetch(url, {
     method: 'PUT',
     headers: getHeaders(),
@@ -239,7 +238,7 @@ export async function deleteSession(
   bookGroupId: string,
   sessionId: string
 ): Promise<{ success: boolean; message: string }> {
-  const url = `${API_URL}/api/book-groups/${bookGroupId}/sessions/${sessionId}`;
+  const url = `${getFastapiUrl()}/api/book-groups/${bookGroupId}/sessions/${sessionId}`;
   const response = await fetch(url, {
     method: 'DELETE',
     headers: getHeaders(),
@@ -255,7 +254,7 @@ export async function markBookGroupCompleted(
   bookGroupId: string,
   data: BookGroupMarkCompleted
 ): Promise<{ success: boolean; message: string }> {
-  const url = `${API_URL}/api/book-groups/${bookGroupId}/mark-completed`;
+  const url = `${getFastapiUrl()}/api/book-groups/${bookGroupId}/mark-completed`;
   const response = await fetch(url, {
     method: 'POST',
     headers: getHeaders(),
@@ -277,7 +276,7 @@ export async function convertToProduct(
   product_id: string;
   product_slug: string;
 }> {
-  const url = `${API_URL}/api/book-groups/${bookGroupId}/convert-to-product`;
+  const url = `${getFastapiUrl()}/api/book-groups/${bookGroupId}/convert-to-product`;
   const response = await fetch(url, {
     method: 'POST',
     headers: getHeaders(),

@@ -3,7 +3,6 @@ import { getFastapiUrl } from './api-utils';
  * Blog API client for FastAPI backend
  */
 
-const FASTAPI_URL = getFastapiUrl();
 
 export interface BlogCategory {
   id: string;
@@ -77,7 +76,7 @@ export async function getBlogPosts(
   if (category_id) params.append('category_id', category_id);
   if (is_featured !== undefined) params.append('is_featured', is_featured.toString());
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/posts?${params}`);
+  const response = await fetch(`${getFastapiUrl()}/api/blog/posts?${params}`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch blog posts');
@@ -90,7 +89,7 @@ export async function getBlogPosts(
  * Get a single blog post by slug
  */
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost> {
-  const response = await fetch(`${FASTAPI_URL}/api/blog/posts/slug/${slug}`);
+  const response = await fetch(`${getFastapiUrl()}/api/blog/posts/slug/${slug}`);
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -106,7 +105,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost> {
  * Get a single blog post by ID
  */
 export async function getBlogPostById(id: string): Promise<BlogPost> {
-  const response = await fetch(`${FASTAPI_URL}/api/blog/posts/${id}`);
+  const response = await fetch(`${getFastapiUrl()}/api/blog/posts/${id}`);
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -127,7 +126,7 @@ export async function createBlogPost(post: Partial<BlogPost>): Promise<BlogPost>
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/posts`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/posts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -153,7 +152,7 @@ export async function updateBlogPost(id: string, post: Partial<BlogPost>): Promi
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/posts/${id}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/posts/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -179,7 +178,7 @@ export async function deleteBlogPost(id: string): Promise<void> {
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/posts/${id}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/posts/${id}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -196,7 +195,7 @@ export async function deleteBlogPost(id: string): Promise<void> {
  * Get all blog categories
  */
 export async function getBlogCategories(): Promise<BlogCategory[]> {
-  const response = await fetch(`${FASTAPI_URL}/api/blog/categories`);
+  const response = await fetch(`${getFastapiUrl()}/api/blog/categories`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch blog categories');
@@ -214,7 +213,7 @@ export async function createBlogCategory(category: Partial<BlogCategory>): Promi
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/categories`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/categories`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -240,7 +239,7 @@ export async function updateBlogCategory(id: string, category: Partial<BlogCateg
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/categories/${id}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/categories/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -266,7 +265,7 @@ export async function deleteBlogCategory(id: string): Promise<void> {
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/categories/${id}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/categories/${id}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -291,7 +290,7 @@ export async function uploadBlogImage(file: File): Promise<{ url: string; filena
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/upload-image`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/upload-image`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -361,7 +360,7 @@ export async function getBlogPostComments(
   }
 
   const response = await fetch(
-    `${FASTAPI_URL}/api/blog/posts/${postId}/comments?${params}`,
+    `${getFastapiUrl()}/api/blog/posts/${postId}/comments?${params}`,
     { headers }
   );
 
@@ -385,7 +384,7 @@ export async function createBlogComment(
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/posts/${postId}/comments`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/posts/${postId}/comments`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -422,7 +421,7 @@ export async function updateBlogComment(
   if (content !== undefined) updateData.content = content;
   if (isApproved !== undefined) updateData.is_approved = isApproved;
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/comments/${commentId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/comments/${commentId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -448,7 +447,7 @@ export async function deleteBlogComment(commentId: string): Promise<void> {
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/comments/${commentId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/comments/${commentId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -470,7 +469,7 @@ export async function approveBlogComment(commentId: string): Promise<BlogComment
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/comments/${commentId}/approve`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/comments/${commentId}/approve`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -507,7 +506,7 @@ export async function getAllBlogComments(
     params.append('is_approved', isApproved.toString());
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/blog/comments?${params}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/blog/comments?${params}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },

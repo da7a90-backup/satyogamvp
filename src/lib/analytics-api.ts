@@ -3,7 +3,6 @@ import { getFastapiUrl } from './api-utils';
  * Analytics API client for admin analytics and reporting
  */
 
-const FASTAPI_URL = getFastapiUrl();
 
 interface DashboardSummary {
   timeframe: string;
@@ -87,7 +86,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${FASTAPI_URL}${url}`, {
+  const response = await fetch(`${getFastapiUrl()}${url}`, {
     ...options,
     headers,
   });

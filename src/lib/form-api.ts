@@ -3,7 +3,6 @@ import { getFastapiUrl } from './api-utils';
  * API client for dynamic form templates
  */
 
-const API_URL = getFastapiUrl();
 
 export interface FormQuestion {
   id: string;
@@ -52,7 +51,7 @@ export interface FormSubmission {
  * Get a form template by slug (public access)
  */
 export async function getFormBySlug(slug: string): Promise<FormTemplate> {
-  const response = await fetch(`${API_URL}/api/form-templates/public/${slug}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/form-templates/public/${slug}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -80,7 +79,7 @@ export async function submitForm(submission: FormSubmission, token?: string): Pr
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_URL}/api/form-templates/submit`, {
+  const response = await fetch(`${getFastapiUrl()}/api/form-templates/submit`, {
     method: 'POST',
     headers,
     body: JSON.stringify(submission),

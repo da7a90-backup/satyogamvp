@@ -10,7 +10,6 @@ import type {
   AuditLogFilters,
 } from '@/types/audit';
 
-const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Get audit logs with filtering and pagination
@@ -31,7 +30,7 @@ export async function getAuditLogs(
   if (filters.start_date) params.append('start_date', filters.start_date);
   if (filters.end_date) params.append('end_date', filters.end_date);
 
-  const response = await fetch(`${FASTAPI_URL}/api/audit-logs?${params}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/audit-logs?${params}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -59,7 +58,7 @@ export async function getUserAuditHistory(
     limit: limit.toString(),
   });
 
-  const response = await fetch(`${FASTAPI_URL}/api/audit-logs/user/${userId}?${params}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/audit-logs/user/${userId}?${params}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -80,7 +79,7 @@ export async function getAuditStats(
   token: string,
   days = 30
 ): Promise<AuditLogStats> {
-  const response = await fetch(`${FASTAPI_URL}/api/audit-logs/stats?days=${days}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/audit-logs/stats?days=${days}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -101,7 +100,7 @@ export async function getAuditLogById(
   token: string,
   logId: string
 ): Promise<AuditLog> {
-  const response = await fetch(`${FASTAPI_URL}/api/audit-logs/${logId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/audit-logs/${logId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',

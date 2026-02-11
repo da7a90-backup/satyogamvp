@@ -5,11 +5,6 @@
 
 import { getFastapiUrl } from './api-utils';
 
-const API_URL = getFastapiUrl();
-
-console.log('[Store API] Initialized with URL:', API_URL);
-console.log('[Store API] Environment:', typeof window !== 'undefined' ? window.location.protocol : 'server');
-
 export interface DownloadItem {
   id: string;
   name: string;
@@ -158,7 +153,7 @@ export const productsApi = {
       });
     }
 
-    const url = `${API_URL}/api/products/?${params.toString()}`;
+    const url = `${getFastapiUrl()}/api/products/?${params.toString()}`;
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -172,7 +167,7 @@ export const productsApi = {
    * Get a single product by slug
    */
   async getProduct(slug: string): Promise<Product> {
-    const response = await fetch(`${API_URL}/api/products/${slug}/`);
+    const response = await fetch(`${getFastapiUrl()}/api/products/${slug}/`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -188,7 +183,7 @@ export const productsApi = {
    * Get all categories
    */
   async getCategories(): Promise<Category[]> {
-    const response = await fetch(`${API_URL}/api/products/categories/`);
+    const response = await fetch(`${getFastapiUrl()}/api/products/categories/`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch categories: ${response.statusText}`);
@@ -201,7 +196,7 @@ export const productsApi = {
    * Get featured products
    */
   async getFeaturedProducts(limit: number = 10): Promise<Product[]> {
-    const response = await fetch(`${API_URL}/api/products/featured/?limit=${limit}`);
+    const response = await fetch(`${getFastapiUrl()}/api/products/featured/?limit=${limit}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch featured products: ${response.statusText}`);
@@ -215,7 +210,7 @@ export const productsApi = {
    */
   async getRetreatPackages(skip: number = 0, limit: number = 20): Promise<Product[]> {
     const response = await fetch(
-      `${API_URL}/api/products/retreat-packages/?skip=${skip}&limit=${limit}`
+      `${getFastapiUrl()}/api/products/retreat-packages/?skip=${skip}&limit=${limit}`
     );
 
     if (!response.ok) {
@@ -238,11 +233,11 @@ export const cartApi = {
       throw new Error('Authentication required');
     }
 
-    console.log('[Cart API] Fetching cart from:', `${API_URL}/api/cart`);
+    console.log('[Cart API] Fetching cart from:', `${getFastapiUrl()}/api/cart`);
     console.log('[Cart API] Token:', token ? 'Present' : 'Missing');
 
     try {
-      const response = await fetch(`${API_URL}/api/cart`, {
+      const response = await fetch(`${getFastapiUrl()}/api/cart`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -272,7 +267,7 @@ export const cartApi = {
     if (!token) return 0;
 
     try {
-      const response = await fetch(`${API_URL}/api/cart/count`, {
+      const response = await fetch(`${getFastapiUrl()}/api/cart/count`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -295,7 +290,7 @@ export const cartApi = {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_URL}/api/cart/items`, {
+    const response = await fetch(`${getFastapiUrl()}/api/cart/items`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -320,7 +315,7 @@ export const cartApi = {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_URL}/api/cart/items/${itemId}`, {
+    const response = await fetch(`${getFastapiUrl()}/api/cart/items/${itemId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -345,7 +340,7 @@ export const cartApi = {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_URL}/api/cart/items/${itemId}`, {
+    const response = await fetch(`${getFastapiUrl()}/api/cart/items/${itemId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -366,7 +361,7 @@ export const cartApi = {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_URL}/api/cart`, {
+    const response = await fetch(`${getFastapiUrl()}/api/cart`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -392,7 +387,7 @@ export const checkoutApi = {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_URL}/api/payments/checkout`, {
+    const response = await fetch(`${getFastapiUrl()}/api/payments/checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -422,7 +417,7 @@ export const purchasesApi = {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_URL}/api/users/me/purchases`, {
+    const response = await fetch(`${getFastapiUrl()}/api/users/me/purchases`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

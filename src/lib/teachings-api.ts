@@ -139,7 +139,7 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
   console.log('[getTeachingsData] NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
   console.log('[getTeachingsData] NEXT_PUBLIC_FASTAPI_URL:', process.env.NEXT_PUBLIC_FASTAPI_URL);
   console.log('[getTeachingsData] Final API_BASE_URL:', API_BASE_URL);
-  console.log('[getTeachingsData] Fetching from:', `${API_BASE_URL}/api/teachings?limit=1000`);
+  console.log('[getTeachingsData] Fetching from:', `${getFastapiUrl()}/api/teachings?limit=1000`);
   console.log('[getTeachingsData] isLoggedIn:', isLoggedIn);
 
   try {
@@ -151,7 +151,7 @@ export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLib
     console.log('[getTeachingsData] Starting fetch...');
     const fetchStart = Date.now();
 
-    const response = await fetch(`${API_BASE_URL}/api/teachings?limit=1000`, {
+    const response = await fetch(`${getFastapiUrl()}/api/teachings?limit=1000`, {
       cache: 'no-store', // Always fetch fresh data
       headers: {
         'Content-Type': 'application/json',

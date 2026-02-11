@@ -6,7 +6,6 @@ import { getFastapiUrl } from './api-utils';
  * from FastAPI backend (migrated from frontend static files)
  */
 
-const API_BASE_URL = getFastapiUrl();
 
 export class ContentAPIError extends Error {
   constructor(
@@ -26,7 +25,7 @@ async function contentFetch<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getFastapiUrl()}${endpoint}`;
 
   console.log(`[Static Content API] Fetching: ${endpoint}`);
 

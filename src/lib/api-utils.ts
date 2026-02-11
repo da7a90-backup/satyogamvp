@@ -3,30 +3,22 @@
  */
 
 /**
- * Ensures URL uses HTTPS in production and cleans whitespace/newlines
- * @param url - The API URL from environment variable
- * @returns Cleaned and secured URL
+ * Get the FastAPI base URL with automatic HTTPS upgrade in production
+ * MUST be called at request time (not module load time) to ensure browser context
  */
-export function ensureSecureApiUrl(url: string): string {
-  // Clean whitespace and newlines
-  const cleanUrl = url.trim().replace(/[\n\r]/g, '');
+export function getFastapiUrl(): string {
+  let rawUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
-  // In production (browser with HTTPS), ensure HTTPS
+  // Clean whitespace and newlines
+  rawUrl = rawUrl.trim().replace(/[\n\r]/g, '');
+
+  // In browser context with HTTPS, force HTTPS for all non-localhost URLs
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    if (cleanUrl.startsWith('http://') && !cleanUrl.includes('localhost')) {
-      const secureUrl = cleanUrl.replace('http://', 'https://');
-      console.log(`[API] Upgrading to HTTPS: ${cleanUrl} -> ${secureUrl}`);
-      return secureUrl;
+    if (rawUrl.startsWith('http://') && !rawUrl.includes('localhost') && !rawUrl.includes('127.0.0.1')) {
+      rawUrl = rawUrl.replace('http://', 'https://');
+      console.log(`[API] Upgraded to HTTPS: ${rawUrl}`);
     }
   }
 
-  return cleanUrl;
-}
-
-/**
- * Get the FastAPI base URL with automatic HTTPS upgrade in production
- */
-export function getFastapiUrl(): string {
-  const rawUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-  return ensureSecureApiUrl(rawUrl);
+  return rawUrl;
 }

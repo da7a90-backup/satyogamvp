@@ -5,13 +5,12 @@ import { getFastapiUrl } from './api-utils';
 
 import { FormTemplate, FormSubmissionData, FormSubmission } from '@/types/dynamic-form';
 
-const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Fetch a form template by slug
  */
 export async function getFormBySlug(slug: string): Promise<FormTemplate> {
-  const response = await fetch(`${FASTAPI_URL}/api/form-templates/public/${slug}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/form-templates/public/${slug}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +45,7 @@ export async function submitForm(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/forms/${slug}/submit`, {
+  const response = await fetch(`${getFastapiUrl()}/api/forms/${slug}/submit`, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),

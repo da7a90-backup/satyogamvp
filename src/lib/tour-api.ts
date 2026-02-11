@@ -4,7 +4,6 @@ import { getFastapiUrl } from './api-utils';
  * Handles communication with backend for tour status
  */
 
-const API_BASE_URL = getFastapiUrl();
 
 interface TourStatusResponse {
   has_seen_dashboard_tour: boolean;
@@ -22,7 +21,7 @@ interface CompleteTourResponse {
  * @returns Promise with tour status
  */
 export async function getTourStatus(token: string): Promise<TourStatusResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/users/me/tour-status`, {
+  const response = await fetch(`${getFastapiUrl()}/api/users/me/tour-status`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -44,7 +43,7 @@ export async function getTourStatus(token: string): Promise<TourStatusResponse> 
  * @returns Promise with completion status
  */
 export async function completeTour(token: string): Promise<CompleteTourResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/users/me/complete-tour`, {
+  const response = await fetch(`${getFastapiUrl()}/api/users/me/complete-tour`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,

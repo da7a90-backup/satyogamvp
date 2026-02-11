@@ -4,7 +4,6 @@ import { getFastapiUrl } from './api-utils';
  * Requires GYANI+ membership access
  */
 
-const FASTAPI_URL = getFastapiUrl();
 
 // Frontend interface
 export interface Recommendation {
@@ -120,7 +119,7 @@ export async function getRecommendations(
     params.append('limit', filters.limit.toString());
   }
 
-  const url = `${FASTAPI_URL}/api/recommendations/?${params.toString()}`;
+  const url = `${getFastapiUrl()}/api/recommendations/?${params.toString()}`;
 
   const response = await fetch(url, {
     headers: {
@@ -155,7 +154,7 @@ export async function getRecommendation(
   slug: string,
   token: string
 ): Promise<Recommendation> {
-  const url = `${FASTAPI_URL}/api/recommendations/${slug}`;
+  const url = `${getFastapiUrl()}/api/recommendations/${slug}`;
 
   const response = await fetch(url, {
     headers: {
@@ -205,7 +204,7 @@ export async function getRecommendationsAdmin(
     params.append('limit', filters.limit.toString());
   }
 
-  const url = `${FASTAPI_URL}/api/recommendations/admin/list?${params.toString()}`;
+  const url = `${getFastapiUrl()}/api/recommendations/admin/list?${params.toString()}`;
 
   const response = await fetch(url, {
     headers: {
@@ -253,7 +252,7 @@ export async function createRecommendation(
     published_date: data.publishedDate,
   };
 
-  const response = await fetch(`${FASTAPI_URL}/api/recommendations/admin/create`, {
+  const response = await fetch(`${getFastapiUrl()}/api/recommendations/admin/create`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -296,7 +295,7 @@ export async function updateRecommendation(
   if (data.displayOrder !== undefined) payload.display_order = data.displayOrder;
   if (data.publishedDate !== undefined) payload.published_date = data.publishedDate;
 
-  const response = await fetch(`${FASTAPI_URL}/api/recommendations/admin/${recommendationId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/recommendations/admin/${recommendationId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -321,7 +320,7 @@ export async function deleteRecommendation(
   token: string,
   recommendationId: string
 ): Promise<void> {
-  const response = await fetch(`${FASTAPI_URL}/api/recommendations/admin/${recommendationId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/recommendations/admin/${recommendationId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -349,7 +348,7 @@ export async function uploadCoverImage(
     formData.append('alt_text', altText);
   }
 
-  const response = await fetch(`${FASTAPI_URL}/api/recommendations/admin/upload-cover`, {
+  const response = await fetch(`${getFastapiUrl()}/api/recommendations/admin/upload-cover`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,

@@ -6,7 +6,6 @@ import { getFastapiUrl } from './api-utils';
 
 import { searchSite, SearchResponse, SearchResult } from '@/lib/search-api';
 
-const API_URL = getFastapiUrl();
 
 export interface DashboardSearchResult extends SearchResult {
   is_enrolled?: boolean;
@@ -40,19 +39,19 @@ async function fetchUserContent(token: string): Promise<UserContent> {
   try {
     // Fetch user's courses, retreats, and purchases in parallel
     const [coursesRes, retreatsRes, purchasesRes] = await Promise.allSettled([
-      fetch(`${API_URL}/api/users/me/courses`, {
+      fetch(`${getFastapiUrl()}/api/users/me/courses`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       }),
-      fetch(`${API_URL}/api/retreats/my-registrations`, {
+      fetch(`${getFastapiUrl()}/api/retreats/my-registrations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       }),
-      fetch(`${API_URL}/api/users/me/purchases`, {
+      fetch(`${getFastapiUrl()}/api/users/me/purchases`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

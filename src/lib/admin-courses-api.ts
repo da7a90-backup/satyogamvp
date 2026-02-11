@@ -5,7 +5,6 @@ import { getFastapiUrl } from './api-utils';
 
 import { Course, CourseStructure } from '@/types/course';
 
-const FASTAPI_URL = getFastapiUrl();
 
 interface CreateCoursePayload {
   slug: string;
@@ -24,7 +23,7 @@ interface UpdateCoursePayload extends Partial<CreateCoursePayload> {}
  * Get all courses (admin only)
  */
 export async function getAllCoursesAdmin(token: string): Promise<Course[]> {
-  const response = await fetch(`${FASTAPI_URL}/api/courses`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -43,7 +42,7 @@ export async function getAllCoursesAdmin(token: string): Promise<Course[]> {
  * Get course by ID (admin only)
  */
 export async function getCourseByIdAdmin(courseId: string, token: string): Promise<Course> {
-  const response = await fetch(`${FASTAPI_URL}/api/courses/${courseId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/${courseId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -62,7 +61,7 @@ export async function getCourseByIdAdmin(courseId: string, token: string): Promi
  * Create new course (admin only)
  */
 export async function createCourse(payload: CreateCoursePayload, token: string): Promise<Course> {
-  const response = await fetch(`${FASTAPI_URL}/api/courses`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -87,7 +86,7 @@ export async function updateCourse(
   payload: UpdateCoursePayload,
   token: string
 ): Promise<Course> {
-  const response = await fetch(`${FASTAPI_URL}/api/courses/${courseId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/${courseId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -108,7 +107,7 @@ export async function updateCourse(
  * Delete course (admin only)
  */
 export async function deleteCourse(courseId: string, token: string): Promise<void> {
-  const response = await fetch(`${FASTAPI_URL}/api/courses/${courseId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/${courseId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -126,7 +125,7 @@ export async function deleteCourse(courseId: string, token: string): Promise<voi
  * Get all instructors (admin only)
  */
 export async function getAllInstructors(token: string): Promise<Array<{ id: string; name: string; bio?: string }>> {
-  const response = await fetch(`${FASTAPI_URL}/api/instructors`, {
+  const response = await fetch(`${getFastapiUrl()}/api/instructors`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',

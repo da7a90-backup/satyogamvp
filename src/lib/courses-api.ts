@@ -6,7 +6,6 @@ import { getFastapiUrl } from './api-utils';
 
 import { Course, CourseComponent, ComponentNavigation, CommentResponse } from '@/types/course';
 
-const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Get authentication token from NextAuth session
@@ -45,7 +44,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
  */
 export async function getCourseBySlug(slug: string): Promise<Course> {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/courses/${slug}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/${slug}`, {
     headers,
     credentials: 'include',
   });
@@ -62,7 +61,7 @@ export async function getCourseBySlug(slug: string): Promise<Course> {
  */
 export async function getComponent(componentId: string): Promise<CourseComponent> {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/courses/components/${componentId}`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/components/${componentId}`, {
     headers,
     credentials: 'include',
   });
@@ -86,7 +85,7 @@ export async function getComponentNavigation(
 ): Promise<ComponentNavigation> {
   const headers = await getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/courses/${courseSlug}/navigation/${componentId}`,
+    `${getFastapiUrl()}/api/courses/${courseSlug}/navigation/${componentId}`,
     {
       headers,
       credentials: 'include',
@@ -109,7 +108,7 @@ export async function updateComponentProgress(
   completed: boolean
 ): Promise<void> {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/courses/progress`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/progress`, {
     method: 'POST',
     headers,
     credentials: 'include',
@@ -133,7 +132,7 @@ export async function saveVideoTimestamp(
   timestamp: number
 ): Promise<void> {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/courses/progress/video-timestamp`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/progress/video-timestamp`, {
     method: 'POST',
     headers,
     credentials: 'include',
@@ -154,7 +153,7 @@ export async function saveVideoTimestamp(
 export async function getComponentComments(componentId: string): Promise<CommentResponse> {
   const headers = await getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/courses/components/${componentId}/comments`,
+    `${getFastapiUrl()}/api/courses/components/${componentId}/comments`,
     {
       headers,
       credentials: 'include',
@@ -177,7 +176,7 @@ export async function postComponentComment(
 ): Promise<void> {
   const headers = await getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/courses/components/${componentId}/comments`,
+    `${getFastapiUrl()}/api/courses/components/${componentId}/comments`,
     {
       method: 'POST',
       headers,
@@ -196,7 +195,7 @@ export async function postComponentComment(
  */
 export async function enrollInCourse(courseId: string, paymentId?: string): Promise<void> {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${FASTAPI_URL}/api/courses/enroll`, {
+  const response = await fetch(`${getFastapiUrl()}/api/courses/enroll`, {
     method: 'POST',
     headers,
     credentials: 'include',
@@ -220,7 +219,7 @@ export async function getCourses(skip: number = 0, limit: number = 50): Promise<
 }> {
   const headers = await getAuthHeaders();
   const response = await fetch(
-    `${FASTAPI_URL}/api/courses/?skip=${skip}&limit=${limit}`,
+    `${getFastapiUrl()}/api/courses/?skip=${skip}&limit=${limit}`,
     {
       headers,
       credentials: 'include',
