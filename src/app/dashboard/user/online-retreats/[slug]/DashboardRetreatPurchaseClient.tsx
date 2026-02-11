@@ -25,6 +25,7 @@ export default function DashboardRetreatPurchaseClient({ retreat }: DashboardRet
     tagline: retreat.booking_tagline || "ONLINE RETREAT",
     title: retreat.title,
     retreatSlug: retreat.slug,
+    thumbnail_url: retreat.thumbnail_url || retreat.hero_background,
     basePrice: parseFloat(retreat.price_limited?.toString() || '195'),
     priceOptions: [
       {

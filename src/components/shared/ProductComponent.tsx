@@ -61,6 +61,7 @@ interface ProductComponentData {
   membershipLinkUrl: string;
   membershipNote: string;
   images: ImageData[];
+  thumbnail_url?: string; // Fallback image when images array is empty
 }
 
 // ============================================================================
@@ -183,80 +184,97 @@ const ProductComponent = ({ data }: { data: ProductComponentData }) => {
     }
   };
 
+  // Check if images exist and have items
+  const hasImages = data.images && data.images.length > 0;
+
+  // Default placeholder image
+  const placeholderImage = {
+    src: data.thumbnail_url || '/orbanner.png',
+    alt: data.title || 'Retreat Image'
+  };
+
   return (
     <>
       <ActionModal isOpen={modalOpen} onClose={() => setModalOpen(false)} message={modalMessage} />
-    <section 
+    <section
       className="w-full flex flex-col items-center px-4 lg:px-16 py-16 lg:py-20"
       style={{ backgroundColor: '#FAF8F1' }}
     >
       <div className="w-full max-w-7xl mx-auto">
         {/* Mobile: Image Gallery at Top */}
-        <div className="lg:hidden mb-8">
-          <div className="w-full mb-4 rounded-2xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
-            <img
-              src={data.images[selectedImage].src}
-              alt={data.images[selectedImage].alt}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          <div className="grid grid-cols-4 gap-3">
-            {data.images
-              .filter((_, index) => index !== selectedImage)
-              .map((image, filterIndex) => {
-                const originalIndex = data.images.findIndex(
-                  (img, idx) => idx !== selectedImage && img.src === image.src
-                );
-                return (
-                  <button
-                    key={originalIndex}
-                    onClick={() => setSelectedImage(originalIndex)}
-                    className="rounded-xl overflow-hidden"
-                    style={{ aspectRatio: '1/1' }}
-                  >
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                );
-              })}
-          </div>
-        </div>
-
-        {/* Desktop: Two Column Layout */}
-        <div className="flex flex-col lg:flex-row items-start" style={{ gap: 'clamp(32px, 5vw, 64px)' }}>
-          {/* Left: Image Gallery (Desktop Only) */}
-          <div className="hidden lg:flex items-start" style={{ gap: '24px' }}>
-            <div className="flex flex-col" style={{ gap: '16px' }}>
-              {data.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`rounded-xl overflow-hidden transition-opacity ${
-                    selectedImage === index ? 'opacity-100' : 'opacity-60 hover:opacity-80'
-                  }`}
-                  style={{ width: '110px', height: '110px' }}
-                >
-                  <img
-                    src={image.src}
-                    alt={image.alt}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-
-            <div className="rounded-2xl overflow-hidden" style={{ width: '500px', height: '600px' }}>
+        {hasImages && (
+          <div className="lg:hidden mb-8">
+            <div className="w-full mb-4 rounded-2xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
               <img
                 src={data.images[selectedImage].src}
                 alt={data.images[selectedImage].alt}
                 className="w-full h-full object-cover"
               />
             </div>
+
+            {data.images.length > 1 && (
+              <div className="grid grid-cols-4 gap-3">
+                {data.images
+                  .filter((_, index) => index !== selectedImage)
+                  .map((image, filterIndex) => {
+                    const originalIndex = data.images.findIndex(
+                      (img, idx) => idx !== selectedImage && img.src === image.src
+                    );
+                    return (
+                      <button
+                        key={originalIndex}
+                        onClick={() => setSelectedImage(originalIndex)}
+                        className="rounded-xl overflow-hidden"
+                        style={{ aspectRatio: '1/1' }}
+                      >
+                        <img
+                          src={image.src}
+                          alt={image.alt}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    );
+                  })}
+              </div>
+            )}
           </div>
+        )}
+
+        {/* Desktop: Two Column Layout */}
+        <div className="flex flex-col lg:flex-row items-start" style={{ gap: 'clamp(32px, 5vw, 64px)' }}>
+          {/* Left: Image Gallery (Desktop Only) */}
+          {hasImages && (
+            <div className="hidden lg:flex items-start" style={{ gap: '24px' }}>
+              {data.images.length > 1 && (
+                <div className="flex flex-col" style={{ gap: '16px' }}>
+                  {data.images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`rounded-xl overflow-hidden transition-opacity ${
+                        selectedImage === index ? 'opacity-100' : 'opacity-60 hover:opacity-80'
+                      }`}
+                      style={{ width: '110px', height: '110px' }}
+                    >
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="rounded-2xl overflow-hidden" style={{ width: '500px', height: '600px' }}>
+                <img
+                  src={data.images[selectedImage].src}
+                  alt={data.images[selectedImage].alt}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Right: Booking Form */}
           <div className="flex-1 w-full">
