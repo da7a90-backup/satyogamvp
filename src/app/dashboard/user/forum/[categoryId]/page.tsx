@@ -18,7 +18,7 @@ export default async function CategoryThreadsPage({ params, searchParams }: Page
   const searchParamsResolved = await searchParams;
 
   return (
-    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#FAF8F1', minHeight: '100vh' }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FAF8F1' }}>
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Suspense
           fallback={
