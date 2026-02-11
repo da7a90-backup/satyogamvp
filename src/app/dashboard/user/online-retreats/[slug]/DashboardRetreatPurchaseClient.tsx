@@ -82,10 +82,12 @@ export default function DashboardRetreatPurchaseClient({ retreat }: DashboardRet
 
   const introData3 = {
     mediaPosition: "top" as const,
-    topMedia: {
-      type: 'image' as const,
-      src: retreat.intro3_media,
-    },
+    ...(retreat.intro3_media && {
+      topMedia: {
+        type: 'image' as const,
+        src: retreat.intro3_media,
+      }
+    }),
     leftPane: {
       title: "About Shunyamurti",
       titleLineHeight: "120%"
