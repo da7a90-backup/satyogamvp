@@ -18,17 +18,17 @@ export default async function CategoryThreadsPage({ params, searchParams }: Page
   const searchParamsResolved = await searchParams;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#FAF8F1', minHeight: '100vh' }}>
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Suspense
           fallback={
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+              <div className="h-8 rounded w-1/4 mb-6" style={{ backgroundColor: '#E5DED3' }}></div>
               <div className="space-y-4">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg border p-4">
-                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-gray-100 rounded w-1/2"></div>
+                  <div key={i} className="rounded-lg border p-4" style={{ backgroundColor: '#FFFFFF', borderColor: '#E5DED3' }}>
+                    <div className="h-6 rounded w-3/4 mb-2" style={{ backgroundColor: '#E5DED3' }}></div>
+                    <div className="h-4 rounded w-1/2" style={{ backgroundColor: '#FAF8F1' }}></div>
                   </div>
                 ))}
               </div>
