@@ -7,18 +7,29 @@
  * MUST be called at request time (not module load time) to ensure browser context
  */
 export function getFastapiUrl(): string {
-  let rawUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+  const rawEnvUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
 
   // Clean whitespace and newlines
-  rawUrl = rawUrl.trim().replace(/[\n\r]/g, '');
+  let cleanUrl = rawEnvUrl.trim().replace(/[\n\r]/g, '');
 
-  // In browser context with HTTPS, force HTTPS for all non-localhost URLs
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    if (rawUrl.startsWith('http://') && !rawUrl.includes('localhost') && !rawUrl.includes('127.0.0.1')) {
-      rawUrl = rawUrl.replace('http://', 'https://');
-      console.log(`[API] Upgraded to HTTPS: ${rawUrl}`);
+  // AGGRESSIVE: Force HTTPS in browser on HTTPS pages
+  if (typeof window !== 'undefined') {
+    const isHttpsPage = window.location.protocol === 'https:';
+    const isHttpUrl = cleanUrl.startsWith('http://');
+    const isNotLocalhost = !cleanUrl.includes('localhost') && !cleanUrl.includes('127.0.0.1');
+
+    console.log('[API-UTILS] Raw env:', rawEnvUrl);
+    console.log('[API-UTILS] Clean URL:', cleanUrl);
+    console.log('[API-UTILS] Page protocol:', window.location.protocol);
+    console.log('[API-UTILS] Is HTTP URL:', isHttpUrl);
+    console.log('[API-UTILS] Is not localhost:', isNotLocalhost);
+
+    if (isHttpsPage && isHttpUrl && isNotLocalhost) {
+      cleanUrl = cleanUrl.replace('http://', 'https://');
+      console.warn('[API-UTILS] ⚠️  FORCED HTTPS UPGRADE:', cleanUrl);
     }
   }
 
-  return rawUrl;
+  console.log('[API-UTILS] Final URL:', cleanUrl);
+  return cleanUrl;
 }
