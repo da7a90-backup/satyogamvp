@@ -68,7 +68,7 @@ UPLOAD_DIR = "public/uploads/forum"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Helper function to build nested post structure
-def build_nested_posts(posts: List[ForumPost], current_user_id: str, db: Session) -> List[dict]:
+def build_nested_posts(posts: List[ForumPost], current_user_id: Optional[str], db: Session) -> List[dict]:
     """Build nested post structure for thread detail view."""
     # Create a dictionary of posts by ID
     post_dict = {str(post.id): post for post in posts}
@@ -81,21 +81,24 @@ def build_nested_posts(posts: List[ForumPost], current_user_id: str, db: Session
             reaction_type = reaction.reaction_type.value
             reaction_counts[reaction_type] = reaction_counts.get(reaction_type, 0) + 1
 
-        # Get user's reaction
+        # Get user's reaction (only if logged in)
         user_reaction = None
-        for reaction in post.reactions:
-            if str(reaction.user_id) == current_user_id:
-                user_reaction = reaction.reaction_type.value
-                break
+        if current_user_id:
+            for reaction in post.reactions:
+                if str(reaction.user_id) == current_user_id:
+                    user_reaction = reaction.reaction_type.value
+                    break
 
         # Count direct replies
         reply_count = len([p for p in posts if p.parent_post_id == post.id])
 
-        # Check permissions
-        can_edit = str(post.user_id) == current_user_id and not post.is_deleted
-        can_delete = str(post.user_id) == current_user_id or db.query(User).filter(
-            User.id == current_user_id, User.is_admin == True
-        ).first() is not None
+        # Check permissions (only if logged in)
+        can_edit = current_user_id and str(post.user_id) == current_user_id and not post.is_deleted
+        can_delete = False
+        if current_user_id:
+            can_delete = str(post.user_id) == current_user_id or db.query(User).filter(
+                User.id == current_user_id, User.is_admin == True
+            ).first() is not None
 
         # Build post data
         post_data = {
@@ -211,9 +214,9 @@ async def upload_file(
 @router.get("/categories", response_model=ForumCategoryListResponse)
 def get_categories(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_forum_user),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
-    """Get all active forum categories with thread counts."""
+    """Get all active forum categories with thread counts (public endpoint)."""
     categories = db.query(ForumCategory).filter(
         ForumCategory.is_active == True
     ).order_by(ForumCategory.order).all()
@@ -303,9 +306,9 @@ def create_category(
 def get_category(
     category_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_forum_user),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
-    """Get a single category by ID."""
+    """Get a single category by ID (public endpoint)."""
     category = db.query(ForumCategory).filter(ForumCategory.id == category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -342,9 +345,9 @@ def get_threads(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_forum_user),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
-    """Get threads with pagination, filtering, and search."""
+    """Get threads with pagination, filtering, and search (public endpoint)."""
     query = db.query(ForumThread)
 
     # Filter by category
@@ -465,9 +468,9 @@ def create_thread(
 def get_thread(
     thread_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_forum_user),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
-    """Get thread details with all posts (nested)."""
+    """Get thread details with all posts (public endpoint, but posting requires auth)."""
     thread = db.query(ForumThread).filter(ForumThread.id == thread_id).first()
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
@@ -482,7 +485,8 @@ def get_thread(
     ).order_by(ForumPost.created_at).all()
 
     # Build nested structure
-    nested_posts = build_nested_posts(posts, str(current_user.id), db)
+    current_user_id = str(current_user.id) if current_user else None
+    nested_posts = build_nested_posts(posts, current_user_id, db)
 
     return {
         "id": str(thread.id),
