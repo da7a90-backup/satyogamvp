@@ -229,6 +229,29 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
             detail="User account is inactive",
         )
 
+    # Auto-enroll in Fundamentals of Meditation if not already enrolled (safety check)
+    fundamentals_course = db.query(Course).filter(
+        Course.slug == "fundamentals-of-meditation"
+    ).first()
+
+    if fundamentals_course:
+        # Check if user is already enrolled
+        existing_enrollment = db.query(CourseEnrollment).filter(
+            CourseEnrollment.user_id == user.id,
+            CourseEnrollment.course_id == fundamentals_course.id
+        ).first()
+
+        if not existing_enrollment:
+            # Auto-enroll the user
+            enrollment = CourseEnrollment(
+                user_id=user.id,
+                course_id=fundamentals_course.id,
+                status=EnrollmentStatus.ACTIVE,
+                enrolled_at=datetime.utcnow()
+            )
+            db.add(enrollment)
+            db.commit()
+
     # Track login event
     await mixpanel_service.track_login(str(user.id), user.email)
     await ga4_service.track_login(str(user.id))
