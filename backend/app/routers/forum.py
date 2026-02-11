@@ -303,7 +303,15 @@ def create_category(
     db.refresh(db_category)
 
     return {
-        **db_category.__dict__,
+        "id": str(db_category.id),
+        "name": db_category.name,
+        "slug": db_category.slug,
+        "description": db_category.description,
+        "icon": db_category.icon,
+        "order": db_category.order,
+        "is_active": db_category.is_active,
+        "created_at": db_category.created_at,
+        "updated_at": db_category.updated_at,
         "thread_count": 0,
         "post_count": 0,
         "latest_thread": None,
@@ -335,10 +343,33 @@ def get_category(
     ).order_by(desc(ForumThread.last_post_at)).first()
 
     return {
-        **category.__dict__,
+        "id": str(category.id),
+        "name": category.name,
+        "slug": category.slug,
+        "description": category.description,
+        "icon": category.icon,
+        "order": category.order,
+        "is_active": category.is_active,
+        "created_at": category.created_at,
+        "updated_at": category.updated_at,
         "thread_count": thread_count,
         "post_count": post_count,
-        "latest_thread": latest_thread,
+        "latest_thread": {
+            "id": str(latest_thread.id),
+            "title": latest_thread.title,
+            "slug": latest_thread.slug,
+            "user": {
+                "id": str(latest_thread.user.id),
+                "name": latest_thread.user.name,
+                "membership_tier": latest_thread.user.membership_tier.value,
+            },
+            "is_pinned": latest_thread.is_pinned,
+            "is_locked": latest_thread.is_locked,
+            "view_count": latest_thread.view_count,
+            "post_count": latest_thread.post_count,
+            "created_at": latest_thread.created_at,
+            "last_post_at": latest_thread.last_post_at,
+        } if latest_thread else None,
     }
 
 
