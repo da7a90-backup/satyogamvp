@@ -1,10 +1,11 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * API client for dynamic forms
  */
 
 import { FormTemplate, FormSubmissionData, FormSubmission } from '@/types/dynamic-form';
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Fetch a form template by slug

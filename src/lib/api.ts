@@ -1,6 +1,7 @@
+import { getFastapiUrl } from './api-utils';
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 const STRAPI_API_TOKEN = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000'
+const FASTAPI_URL = getFastapiUrl();
 
 export async function submitApplication(data: any) {
   try {

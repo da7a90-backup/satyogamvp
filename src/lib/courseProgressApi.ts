@@ -1,9 +1,10 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Course Progress API - FastAPI Backend Integration
  * Track user progress through courses
  */
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const FASTAPI_URL = getFastapiUrl();
 
 // Helper to get auth token
 const getAuthToken = (): string | null => {

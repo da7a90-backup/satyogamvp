@@ -1,3 +1,4 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Book Groups API Client
  * Functions for interacting with the book groups backend API
@@ -23,7 +24,7 @@ import {
   BookGroupStatus,
 } from '@/types/book-group';
 
-const API_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const API_URL = getFastapiUrl();
 
 /**
  * Get authorization token from localStorage

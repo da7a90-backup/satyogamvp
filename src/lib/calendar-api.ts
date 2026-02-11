@@ -1,7 +1,8 @@
+import { getFastapiUrl } from './api-utils';
 import { CalendarResponse } from "@/types/calendar";
 
 const FASTAPI_URL =
-  process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000";
+  getFastapiUrl();
 
 export async function getMyCalendar(
   token: string,

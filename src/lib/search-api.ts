@@ -1,9 +1,10 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Search API Client
  * Handles unified search across all content types
  */
 
-const API_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const API_URL = getFastapiUrl();
 
 export interface SearchResult {
   id: string;

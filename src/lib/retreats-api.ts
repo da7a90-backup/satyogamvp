@@ -1,9 +1,10 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Retreats API Client
  * Handles all communication with the FastAPI backend for retreats
  */
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Get authentication token from localStorage

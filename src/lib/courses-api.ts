@@ -1,3 +1,4 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Course API functions
  * Handles all API calls to the FastAPI backend for courses
@@ -5,7 +6,7 @@
 
 import { Course, CourseComponent, ComponentNavigation, CommentResponse } from '@/types/course';
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Get authentication token from NextAuth session

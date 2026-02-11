@@ -1,8 +1,9 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * API client for dynamic form templates
  */
 
-const API_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const API_URL = getFastapiUrl();
 
 export interface FormQuestion {
   id: string;

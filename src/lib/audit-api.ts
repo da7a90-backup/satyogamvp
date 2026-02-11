@@ -1,3 +1,4 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * API helper functions for Audit Logs
  */
@@ -9,7 +10,7 @@ import type {
   AuditLogFilters,
 } from '@/types/audit';
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const FASTAPI_URL = getFastapiUrl();
 
 /**
  * Get audit logs with filtering and pagination

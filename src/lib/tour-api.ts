@@ -1,9 +1,10 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Tour API Helper Functions
  * Handles communication with backend for tour status
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const API_BASE_URL = getFastapiUrl();
 
 interface TourStatusResponse {
   has_seen_dashboard_tour: boolean;

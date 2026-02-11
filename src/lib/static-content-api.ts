@@ -1,3 +1,4 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Static Content API Client
  *
@@ -5,7 +6,7 @@
  * from FastAPI backend (migrated from frontend static files)
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = getFastapiUrl();
 
 export class ContentAPIError extends Error {
   constructor(

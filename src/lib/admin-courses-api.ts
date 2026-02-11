@@ -1,10 +1,11 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Admin API client for course management
  */
 
 import { Course, CourseStructure } from '@/types/course';
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const FASTAPI_URL = getFastapiUrl();
 
 interface CreateCoursePayload {
   slug: string;

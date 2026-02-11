@@ -1,3 +1,4 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Dashboard Search API Client
  * Enhanced search that prioritizes and highlights user's enrolled/purchased content
@@ -5,7 +6,7 @@
 
 import { searchSite, SearchResponse, SearchResult } from '@/lib/search-api';
 
-const API_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const API_URL = getFastapiUrl();
 
 export interface DashboardSearchResult extends SearchResult {
   is_enrolled?: boolean;

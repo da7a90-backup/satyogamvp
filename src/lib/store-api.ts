@@ -3,27 +3,9 @@
  * Handles products, cart, checkout operations
  */
 
-/**
- * Ensures URL uses HTTPS in production and cleans whitespace
- */
-function ensureSecureUrl(url: string): string {
-  // Clean whitespace and newlines
-  const cleanUrl = url.trim().replace(/[\n\r]/g, '');
+import { getFastapiUrl } from './api-utils';
 
-  // In production (vercel), ensure HTTPS
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    if (cleanUrl.startsWith('http://') && !cleanUrl.includes('localhost')) {
-      const secureUrl = cleanUrl.replace('http://', 'https://');
-      console.log('[Store API] Upgrading to HTTPS:', cleanUrl, '->', secureUrl);
-      return secureUrl;
-    }
-  }
-
-  return cleanUrl;
-}
-
-const rawUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
-const API_URL = ensureSecureUrl(rawUrl);
+const API_URL = getFastapiUrl();
 
 console.log('[Store API] Initialized with URL:', API_URL);
 console.log('[Store API] Environment:', typeof window !== 'undefined' ? window.location.protocol : 'server');

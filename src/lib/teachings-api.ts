@@ -1,3 +1,4 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * Server-side functions to fetch teachings data from backend API
  * Transforms backend response to match frontend interface
@@ -131,7 +132,7 @@ function transformTeaching(apiTeaching: any): Teaching {
  */
 export async function getTeachingsData(isLoggedIn: boolean): Promise<TeachingLibraryData> {
   // Use 127.0.0.1 instead of localhost for server-side fetching
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('localhost', '127.0.0.1') || 'http://127.0.0.1:8000';
+  const API_BASE_URL = getFastapiUrl();
 
   console.log('===== [getTeachingsData] START =====');
   console.log('[getTeachingsData] Environment:', process.env.NODE_ENV);

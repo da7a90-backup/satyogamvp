@@ -1,9 +1,10 @@
+import { getFastapiUrl } from './api-utils';
 /**
  * API client for Shunyamurti Recommends (Books & Documentaries)
  * Requires GYANI+ membership access
  */
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+const FASTAPI_URL = getFastapiUrl();
 
 // Frontend interface
 export interface Recommendation {

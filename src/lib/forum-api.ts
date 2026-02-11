@@ -2,7 +2,9 @@
  * Forum API client for interacting with the FastAPI backend
  */
 
-const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8000';
+import { getFastapiUrl } from './api-utils';
+
+const FASTAPI_URL = getFastapiUrl();
 
 export interface ForumCategory {
   id: string;
