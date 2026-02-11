@@ -1,6 +1,7 @@
 // app/layout.tsx
 
 import './globals.css';
+import '@/lib/fetch-interceptor'; // Install fetch interceptor to catch HTTP requests
 import { Metadata } from 'next';
 import Script from 'next/script';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
