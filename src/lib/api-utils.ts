@@ -15,7 +15,7 @@ export function getFastapiUrl(): string {
   // ULTRA AGGRESSIVE: Force HTTPS for any cloudflare tunnel URL
   if (cleanUrl.includes('trycloudflare.com') && cleanUrl.startsWith('http://')) {
     cleanUrl = cleanUrl.replace('http://', 'https://');
-    console.warn('[API-UTILS] 🔒 CLOUDFLARE TUNNEL HTTPS UPGRADE:', cleanUrl);
+    console.warn('[API-UTILS] CLOUDFLARE TUNNEL HTTPS UPGRADE:', cleanUrl);
   }
 
   // AGGRESSIVE: Force HTTPS in browser on HTTPS pages
@@ -32,7 +32,7 @@ export function getFastapiUrl(): string {
 
     if (isHttpsPage && isHttpUrl && isNotLocalhost) {
       cleanUrl = cleanUrl.replace('http://', 'https://');
-      console.warn('[API-UTILS] ⚠️  FORCED HTTPS UPGRADE:', cleanUrl);
+      console.warn('[API-UTILS] FORCED HTTPS UPGRADE:', cleanUrl);
     }
   }
 

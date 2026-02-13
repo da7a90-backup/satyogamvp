@@ -11,11 +11,13 @@ export const dynamic = 'force-dynamic';
 export default function ForumPage() {
   return (
     <div
-      className="w-full h-full"
+      className="w-full"
       style={{
         backgroundColor: '#FAF8F1',
         minHeight: '100vh',
-        position: 'relative'
+        height: '100%',
+        position: 'relative',
+        paddingBottom: '2rem'
       }}
     >
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">

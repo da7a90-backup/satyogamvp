@@ -134,15 +134,15 @@ export default function ForumPostCard({
                       key={type}
                       onClick={() => handleReaction(type)}
                       disabled={reacting}
-                      className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                      className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-xs font-medium ${
                         isActive
                           ? 'bg-[#7D1A13] text-white'
                           : 'hover:bg-gray-200 text-gray-600'
                       } disabled:opacity-50`}
                       title={type}
                     >
-                      <span>{getReactionEmoji(type)}</span>
-                      {count > 0 && <span className="text-xs">{count}</span>}
+                      <span className="capitalize">{type}</span>
+                      {count > 0 && <span className="text-xs">({count})</span>}
                     </button>
                   );
                 })}
@@ -287,7 +287,7 @@ function EditPostModal({
         </div>
 
         <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-          ⏰ You can edit your post within 15 minutes of posting.
+          You can edit your post within 15 minutes of posting.
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -428,15 +428,4 @@ function ReportPostModal({
       </div>
     </div>
   );
-}
-
-function getReactionEmoji(type: string): string {
-  const emojiMap: Record<string, string> = {
-    like: '👍',
-    love: '❤️',
-    insightful: '💡',
-    grateful: '🙏',
-    question: '❓',
-  };
-  return emojiMap[type] || '👍';
 }
