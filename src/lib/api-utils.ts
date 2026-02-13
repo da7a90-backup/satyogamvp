@@ -12,6 +12,12 @@ export function getFastapiUrl(): string {
   // Clean whitespace and newlines
   let cleanUrl = rawEnvUrl.trim().replace(/[\n\r]/g, '');
 
+  // ULTRA AGGRESSIVE: Force HTTPS for any cloudflare tunnel URL
+  if (cleanUrl.includes('trycloudflare.com') && cleanUrl.startsWith('http://')) {
+    cleanUrl = cleanUrl.replace('http://', 'https://');
+    console.warn('[API-UTILS] 🔒 CLOUDFLARE TUNNEL HTTPS UPGRADE:', cleanUrl);
+  }
+
   // AGGRESSIVE: Force HTTPS in browser on HTTPS pages
   if (typeof window !== 'undefined') {
     const isHttpsPage = window.location.protocol === 'https:';

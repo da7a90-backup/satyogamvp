@@ -78,32 +78,36 @@ export default function ForumCreateThreadClient({ initialCategoryId }: Props) {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-8">
         <Link
           href="/dashboard/user/forum"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+          className="inline-flex items-center text-sm mb-4 transition-colors"
+          style={{ color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}
+          onMouseEnter={(e) => e.currentTarget.style.color = '#2C1810'}
+          onMouseLeave={(e) => e.currentTarget.style.color = '#5C4D42'}
         >
           <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back to Forum
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Create New Thread</h1>
-        <p className="mt-2 text-gray-600">Start a new discussion topic</p>
+        <h1 className="text-4xl font-semibold" style={{ fontFamily: 'Optima, Georgia, serif', color: '#2C1810' }}>Create New Thread</h1>
+        <p className="mt-2 text-lg" style={{ fontFamily: 'Avenir Next, sans-serif', color: '#5C4D42' }}>Start a new discussion topic</p>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="rounded-xl border p-8 space-y-6" style={{ backgroundColor: '#FFFFFF', borderColor: '#E5DED3' }}>
         {/* Category Selection */}
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="category" className="block text-sm font-medium mb-2" style={{ color: '#2C1810', fontFamily: 'Avenir Next, sans-serif' }}>
             Category
           </label>
           <select
             id="category"
             value={selectedCategoryId}
             onChange={(e) => setSelectedCategoryId(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+            className="w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent transition-colors"
+            style={{ border: '1px solid #E5DED3', fontFamily: 'Avenir Next, sans-serif', color: '#2C1810' }}
             disabled={loading}
           >
             <option value="">Select a category</option>
@@ -117,7 +121,7 @@ export default function ForumCreateThreadClient({ initialCategoryId }: Props) {
 
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="title" className="block text-sm font-medium mb-2" style={{ color: '#2C1810', fontFamily: 'Avenir Next, sans-serif' }}>
             Thread Title
           </label>
           <input
@@ -127,15 +131,16 @@ export default function ForumCreateThreadClient({ initialCategoryId }: Props) {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter a clear, descriptive title..."
             maxLength={255}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent"
+            className="w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-[#7D1A13] focus:border-transparent transition-colors"
+            style={{ border: '1px solid #E5DED3', fontFamily: 'Avenir Next, sans-serif', color: '#2C1810' }}
             disabled={loading}
           />
-          <p className="mt-1 text-xs text-gray-500">{title.length}/255 characters</p>
+          <p className="mt-1 text-xs" style={{ color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}>{title.length}/255 characters</p>
         </div>
 
         {/* Content */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium mb-2" style={{ color: '#2C1810', fontFamily: 'Avenir Next, sans-serif' }}>
             Content
           </label>
           <RichTextEditor
@@ -147,16 +152,19 @@ export default function ForumCreateThreadClient({ initialCategoryId }: Props) {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-            {error}
+          <div className="rounded-lg p-4" style={{ backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5' }}>
+            <p style={{ color: '#991B1B', fontFamily: 'Avenir Next, sans-serif' }}>{error}</p>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+        <div className="flex items-center justify-end gap-3 pt-4" style={{ borderTop: '1px solid #E5DED3' }}>
           <Link
             href="/dashboard/user/forum"
-            className="px-6 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            className="px-6 py-2 rounded-lg transition-colors"
+            style={{ color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF8F1'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             Cancel
           </Link>
@@ -164,6 +172,7 @@ export default function ForumCreateThreadClient({ initialCategoryId }: Props) {
             type="submit"
             disabled={loading || !title.trim() || !content.trim() || content === '<p></p>'}
             className="px-6 py-2 bg-[#7D1A13] text-white rounded-lg hover:bg-[#6A1610] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            style={{ fontFamily: 'Avenir Next, sans-serif' }}
           >
             {loading ? 'Creating...' : 'Create Thread'}
           </button>
@@ -171,9 +180,9 @@ export default function ForumCreateThreadClient({ initialCategoryId }: Props) {
       </form>
 
       {/* Guidelines */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-blue-900 mb-2">Community Guidelines</h3>
-        <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+      <div className="mt-6 rounded-lg p-4" style={{ backgroundColor: '#FFF9F0', border: '1px solid #E5DED3' }}>
+        <h3 className="text-sm font-semibold mb-2" style={{ color: '#2C1810', fontFamily: 'Avenir Next, sans-serif' }}>Community Guidelines</h3>
+        <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}>
           <li>Be respectful and kind to fellow members</li>
           <li>Stay on topic and use appropriate categories</li>
           <li>Search before posting to avoid duplicates</li>
