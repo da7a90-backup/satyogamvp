@@ -237,7 +237,7 @@ export const cartApi = {
     console.log('[Cart API] Token:', token ? 'Present' : 'Missing');
 
     try {
-      const response = await fetch(`${getFastapiUrl()}/api/cart`, {
+      const response = await fetch(`${getFastapiUrl()}/api/cart/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -361,7 +361,7 @@ export const cartApi = {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${getFastapiUrl()}/api/cart`, {
+    const response = await fetch(`${getFastapiUrl()}/api/cart/`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
