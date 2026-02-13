@@ -125,9 +125,6 @@ export default function ForumCategoriesClient() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-4 mb-3">
-                  {category.icon && (
-                    <span className="text-3xl">{category.icon}</span>
-                  )}
                   <h2
                     className="text-2xl font-semibold"
                     style={{

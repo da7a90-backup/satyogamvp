@@ -114,8 +114,7 @@ export default function ForumThreadListClient({
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-semibold flex items-center gap-3" style={{ fontFamily: 'Optima, Georgia, serif', color: '#2C1810' }}>
-              {category?.icon && <span className="text-4xl">{category.icon}</span>}
+            <h1 className="text-4xl font-semibold" style={{ fontFamily: 'Optima, Georgia, serif', color: '#2C1810' }}>
               {category?.name}
             </h1>
             {category?.description && (
