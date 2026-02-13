@@ -81,12 +81,12 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-        <div className="h-10 bg-gray-200 rounded w-3/4 mb-6"></div>
-        <div className="bg-white rounded-lg border p-6">
-          <div className="h-4 bg-gray-100 rounded w-full mb-3"></div>
-          <div className="h-4 bg-gray-100 rounded w-full mb-3"></div>
-          <div className="h-4 bg-gray-100 rounded w-2/3"></div>
+        <div className="h-8 rounded w-1/4 mb-4" style={{ backgroundColor: '#E5DED3' }}></div>
+        <div className="h-10 rounded w-3/4 mb-6" style={{ backgroundColor: '#E5DED3' }}></div>
+        <div className="rounded-lg border p-6" style={{ backgroundColor: '#FFFFFF', borderColor: '#E5DED3' }}>
+          <div className="h-4 rounded w-full mb-3" style={{ backgroundColor: '#FAF8F1' }}></div>
+          <div className="h-4 rounded w-full mb-3" style={{ backgroundColor: '#FAF8F1' }}></div>
+          <div className="h-4 rounded w-2/3" style={{ backgroundColor: '#FAF8F1' }}></div>
         </div>
       </div>
     );
@@ -94,19 +94,23 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
 
   if (error || !thread) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Thread</h3>
-        <p className="text-red-700">{error || 'Thread not found'}</p>
+      <div className="rounded-lg border p-6" style={{ backgroundColor: '#FEF2F2', borderColor: '#FCA5A5' }}>
+        <h3 className="text-lg font-semibold mb-2" style={{ color: '#991B1B', fontFamily: 'Avenir Next, sans-serif' }}>Error Loading Thread</h3>
+        <p style={{ color: '#B91C1C', fontFamily: 'Avenir Next, sans-serif' }}>{error || 'Thread not found'}</p>
         <div className="mt-4 flex gap-3">
           <button
             onClick={loadThread}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="px-4 py-2 bg-[#7D1A13] text-white rounded-lg hover:bg-[#6A1610] transition-colors"
+            style={{ fontFamily: 'Avenir Next, sans-serif' }}
           >
             Try Again
           </button>
           <Link
             href="/dashboard/user/forum"
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-lg transition-colors"
+            style={{ border: '1px solid #E5DED3', color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF8F1'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             Back to Forum
           </Link>
@@ -119,8 +123,14 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
     <div>
       {/* Breadcrumb */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Link href="/dashboard/user/forum" className="hover:text-gray-900">
+        <div className="flex items-center gap-2 text-sm" style={{ color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}>
+          <Link
+            href="/dashboard/user/forum"
+            className="transition-colors"
+            style={{ color: '#5C4D42' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#2C1810'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#5C4D42'}
+          >
             Forum
           </Link>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,14 +138,17 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
           </svg>
           <Link
             href={`/dashboard/user/forum/${thread.category.id}`}
-            className="hover:text-gray-900"
+            className="transition-colors"
+            style={{ color: '#5C4D42' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#2C1810'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#5C4D42'}
           >
             {thread.category.name}
           </Link>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <span className="text-gray-900">{thread.title}</span>
+          <span style={{ color: '#2C1810' }}>{thread.title}</span>
         </div>
       </div>
 
@@ -184,7 +197,7 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
       {/* Thread Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-3">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold flex items-center gap-3" style={{ color: '#2C1810', fontFamily: 'Optima, Georgia, serif' }}>
             {thread.is_pinned && (
               <svg className="w-6 h-6 text-[#7D1A13]" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" />
@@ -192,13 +205,13 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
             )}
             {thread.title}
             {thread.is_locked && (
-              <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6" style={{ color: '#5C4D42' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             )}
           </h1>
         </div>
-        <div className="flex items-center gap-6 text-sm text-gray-600">
+        <div className="flex items-center gap-6 text-sm" style={{ color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}>
           <span>Started by {thread.user.name}</span>
           <span>{formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}</span>
           <span className="flex items-center gap-1">
@@ -230,7 +243,7 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
             />
           ))
         ) : (
-          <div className="bg-white rounded-lg border p-6 text-center text-gray-500">
+          <div className="rounded-lg border p-6 text-center" style={{ backgroundColor: '#FFFFFF', borderColor: '#E5DED3', color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}>
             No posts yet
           </div>
         )}
@@ -238,21 +251,25 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
 
       {/* Reply Button */}
       {!thread.is_locked && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="rounded-lg border p-6" style={{ backgroundColor: '#FFFFFF', borderColor: '#E5DED3' }}>
           {!showReplyForm ? (
             <button
               onClick={() => setShowReplyForm(true)}
               className="w-full px-4 py-3 bg-[#7D1A13] text-white rounded-lg hover:bg-[#6A1610] transition-colors font-medium"
+              style={{ fontFamily: 'Avenir Next, sans-serif' }}
             >
               Reply to Thread
             </button>
           ) : (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Post Reply</h3>
+                <h3 className="text-lg font-semibold" style={{ color: '#2C1810', fontFamily: 'Avenir Next, sans-serif' }}>Post Reply</h3>
                 <button
                   onClick={() => setShowReplyForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="transition-colors"
+                  style={{ color: '#5C4D42' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#2C1810'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#5C4D42'}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -270,11 +287,11 @@ export default function ForumThreadDetailClient({ threadId }: Props) {
       )}
 
       {thread.is_locked && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
-          <svg className="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="rounded-lg border p-4 flex items-center gap-3" style={{ backgroundColor: '#FFF9F0', borderColor: '#E5DED3' }}>
+          <svg className="w-5 h-5" style={{ color: '#7D1A13' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          <span className="text-yellow-800">This thread is locked. No new replies can be posted.</span>
+          <span style={{ color: '#5C4D42', fontFamily: 'Avenir Next, sans-serif' }}>This thread is locked. No new replies can be posted.</span>
         </div>
       )}
     </div>

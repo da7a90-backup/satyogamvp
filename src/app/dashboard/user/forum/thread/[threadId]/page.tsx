@@ -16,17 +16,26 @@ export default async function ThreadDetailPage({ params }: PageProps) {
   const { threadId } = await params;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div
+      className="w-full"
+      style={{
+        backgroundColor: '#FAF8F1',
+        minHeight: '100vh',
+        height: '100%',
+        position: 'relative',
+        paddingBottom: '2rem'
+      }}
+    >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Suspense
           fallback={
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-              <div className="h-10 bg-gray-200 rounded w-3/4 mb-6"></div>
-              <div className="bg-white rounded-lg border p-6">
-                <div className="h-4 bg-gray-100 rounded w-full mb-3"></div>
-                <div className="h-4 bg-gray-100 rounded w-full mb-3"></div>
-                <div className="h-4 bg-gray-100 rounded w-2/3"></div>
+              <div className="h-8 rounded w-1/4 mb-4" style={{ backgroundColor: '#E5DED3' }}></div>
+              <div className="h-10 rounded w-3/4 mb-6" style={{ backgroundColor: '#E5DED3' }}></div>
+              <div className="rounded-lg border p-6" style={{ backgroundColor: '#FFFFFF', borderColor: '#E5DED3' }}>
+                <div className="h-4 rounded w-full mb-3" style={{ backgroundColor: '#FAF8F1' }}></div>
+                <div className="h-4 rounded w-full mb-3" style={{ backgroundColor: '#FAF8F1' }}></div>
+                <div className="h-4 rounded w-2/3" style={{ backgroundColor: '#FAF8F1' }}></div>
               </div>
             </div>
           }
